@@ -1,6 +1,7 @@
 package com.vibin.billy;
 
 import android.app.Activity;
+import android.app.ListFragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -21,7 +22,7 @@ import it.gmariotti.cardslib.library.view.CardListView;
 import it.gmariotti.cardslib.library.view.CardView;
 
 
-public class Fragment1 extends Fragment {
+public class Fragment1 extends ListFragment {
     ViewGroup mContainer;
     ArrayList<Card> cards = new ArrayList<Card>();
     private static final String TAG = "Fragment1";
