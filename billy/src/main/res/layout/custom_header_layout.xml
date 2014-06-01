@@ -1,0 +1,16 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    style="@style/card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/song"
+        android:textSize="25sp"
+        android:fontFamily="sans-serif-thin"
+        android:layout_marginLeft="15dp"
+        />
+
+</LinearLayout>
