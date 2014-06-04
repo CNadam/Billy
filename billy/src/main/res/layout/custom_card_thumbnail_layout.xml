@@ -16,7 +16,6 @@
             android:id="@+id/card_thumbnail_layout"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
-            android:layout_margin="0dp"
             />
 
         <LinearLayout
@@ -31,35 +30,19 @@
                 android:id="@+id/card_header_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
                 app:card_header_layout_resourceID="@layout/custom_header_layout"
                 />
 
             <!-- Main Content View -->
-            <LinearLayout
+            <FrameLayout
                 android:id="@+id/card_main_content_layout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginLeft="15dp"
-                android:orientation="vertical"
-                android:layout_marginTop="15dp">
+                android:layout_marginBottom="5dp"
+               />
 
-                <TextView
-                    android:id="@+id/album"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-condensed"
-                    android:textStyle="bold"
-                    android:textSize="18sp"/>
-
-                <TextView
-                    android:id="@+id/artist"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-condensed"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:layout_marginTop="5dp"/>
-                </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
@@ -75,7 +58,6 @@
         style="@style/card.main_contentExpand"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        >
-    </FrameLayout>
+        />
 
 </LinearLayout>

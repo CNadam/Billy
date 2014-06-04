@@ -15,7 +15,7 @@ public class BillyCard extends Card {
     int position;
 
     public BillyCard(Context context, ArrayList<Fragment1.BillyData> data, int position) {
-        this(context, R.layout.cardview_layout);
+        this(context, R.layout.main_content_inner_layout);
         this.data = data;
         this.position = position;
     }
@@ -26,17 +26,17 @@ public class BillyCard extends Card {
 
     @Override
     public void setupInnerViewElements(ViewGroup parent, View view) {
-        CardView cv  = (CardView) view.findViewById(R.id.cardid);
+       // CardView cv  = (CardView) view.findViewById(R.id.cardid);
 
         //modify textviews
-        TextView t1 = (TextView) cv.findViewById(R.id.artist);
-        TextView t2 = (TextView) cv.findViewById(R.id.album);
-        View v = cv.findViewById(R.id.card_header_layout);
-        TextView t3 = (TextView) v.findViewById(R.id.song);
+        TextView t1 = (TextView) view.findViewById(R.id.artist);
+        TextView t2 = (TextView) view.findViewById(R.id.album);
+        //View v = cv.findViewById(R.id.card_header_layout);
+        //TextView t3 = (TextView) v.findViewById(R.id.song);
 
         t1.setText(data.get(position).artist);
         t2.setText(data.get(position).album);
-        t3.setText(data.get(position).song);
+        //t3.setText(data.get(position).song);
     }
 
 

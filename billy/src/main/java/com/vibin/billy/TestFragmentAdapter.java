@@ -64,15 +64,19 @@ public class TestFragmentAdapter extends FragmentPagerAdapter implements IconPag
         switch(position){
             case 0:
                 fragment = new Fragment1();
+                Log.i(TAG,"fragment 1 is called");
                 break;
             case 1:
                 fragment = new Fragment2();
+                Log.i(TAG,"fragment 2 is called");
                 break;
             case 2:
                 fragment = new Fragment3();
+                Log.i(TAG,"fragment 3 is called");
                 break;
             case 3:
                 fragment = new Fragment4();
+                Log.i(TAG,"fragment 4 is called");
                 break;
         }
         return fragment;

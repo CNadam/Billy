@@ -6,6 +6,8 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -21,13 +23,16 @@ public class Fragment1 extends Fragment {
     String[] album;
     String[] artist;
     int[] artwork;
+    CardView cv;
+    View v;
     ArrayList<Card> cards = new ArrayList<Card>();
     private static final String TAG = "Fragment1";
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_1, container, false);
-
+         v =  inflater.inflate(R.layout.fragment_1, container, false);
+        return v;
     }
 
     @Override
@@ -58,6 +63,12 @@ public class Fragment1 extends Fragment {
     }
 
     private void populateData() {
+
+        TextView tv = new TextView(getActivity());
+        tv.setText("Some random text");
+        LinearLayout ll = (LinearLayout) v.findViewById(R.id.what);
+        ll.addView(tv);
+
         int i;
         song = new String[] {"Get Lucky","All Of Me","Mirrors"};
         album = new String[] {"Random Access Memories","Love In The Future","The 20/20 Experience"};
@@ -65,20 +76,14 @@ public class Fragment1 extends Fragment {
         artwork = new int[] {R.drawable.ram,R.drawable.allofme,R.drawable.mirrors};
         data = new ArrayList<BillyData>();
 
-        //find cardview from the xml file
-        LayoutInflater mInflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = mInflater.inflate(R.layout.cardview_layout,null,false);
-        CardView cv = (CardView) view.findViewById(R.id.cardid);
-
         for(i=0;i<song.length;i++)
         {
             BillyData obj = new BillyData(song[i],album[i],artist[i],artwork[i]);
             data.add(obj);
             BillyCard card = new BillyCard(getActivity(),data,i);
-            cv.setCard(card);
 
             //create a CardHeader
-            CustomHeader header = new CustomHeader(getActivity());
+            CustomHeader header = new CustomHeader(getActivity(), data, i);
             card.addCardHeader(header);
 
             //creates a thumbnail image
