@@ -31,7 +31,6 @@
                 android:id="@+id/card_header_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="#000"
                 app:card_header_layout_resourceID="@layout/custom_header_layout"
                 />
 

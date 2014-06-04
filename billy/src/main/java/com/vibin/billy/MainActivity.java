@@ -24,6 +24,8 @@ import com.viewpagerindicator.*;
 
 import android.support.v4.app.FragmentActivity;
 
+import org.json.JSONException;
+
 import it.gmariotti.cardslib.library.view.CardView;
 
 
@@ -68,7 +70,11 @@ public class MainActivity extends FragmentActivity {
         tintManager.setStatusBarTintEnabled(true);
         tintManager.setTintColor(Color.parseColor("#EA5157"));
 
-        mAdapter = new TestFragmentAdapter(getSupportFragmentManager());
+        try {
+            mAdapter = new TestFragmentAdapter(getSupportFragmentManager());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         mPager = (ViewPager)findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);

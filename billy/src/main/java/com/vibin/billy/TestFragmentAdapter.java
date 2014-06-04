@@ -2,25 +2,55 @@ package com.vibin.billy;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.util.Log;
+
 import com.viewpagerindicator.IconPagerAdapter;
 
-public class TestFragmentAdapter extends FragmentPagerAdapter implements IconPagerAdapter{
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class TestFragmentAdapter extends FragmentPagerAdapter implements IconPagerAdapter, OnTaskCompleted{
+
+    private static final String TAG = "TestFragmentAdapter";
     protected static final String[] CONTENT = new String[] {
             "Most Popular", "Pop", "Rock","Dance"
     };
-
     private int mCount = CONTENT.length;
+    String searchparam = "dark+horse";
+    String result;
+    String uri = "http://itunes.apple.com/search?term="+searchparam;
 
-    public TestFragmentAdapter(FragmentManager fm) {
+    public TestFragmentAdapter(FragmentManager fm) throws JSONException {
         super(fm);
+
+        //fetch billboard rss
+
+        //fetch itunes json
+        FetchTask ft = new FetchTask(this);
+        ft.execute(uri);
+    }
+
+    @Override
+    public void onTaskCompleted(String result) throws JSONException {
+        Log.i(TAG,"The JSON is: "+result);
+
+        //parse billboard rss
+
+        //parse itunes json
+        JSONObject jsobj = new JSONObject(result);
+        JSONArray jsarr = jsobj.getJSONArray("results");
+        Log.i(TAG,jsarr.getJSONObject(0).getString("trackName"));
+        Log.i(TAG,jsarr.getJSONObject(0).getString("collectionName"));
+
     }
 
     public TestFragmentAdapter(android.support.v4.app.Fragment fragment)
     {
         super(fragment.getChildFragmentManager());
 
-        // write your code here
     }
+
 
     @Override
     public int getIconResId(int index) {
@@ -80,6 +110,4 @@ public class TestFragmentAdapter extends FragmentPagerAdapter implements IconPag
             notifyDataSetChanged();
         }
     }
-
-
 }
