@@ -1,6 +1,5 @@
 package com.vibin.billy;
 
-
 import org.json.JSONException;
 
 public interface OnTaskCompleted {

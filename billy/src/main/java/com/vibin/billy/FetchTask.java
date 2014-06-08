@@ -54,7 +54,7 @@ public class FetchTask extends AsyncTask<String, Void, String>{
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
         try {
-            listener.onTaskCompleted(result);
+            listener.onTaskCompleted(result); //call listener after task execution
         } catch (JSONException e) {
             e.printStackTrace();
         }
