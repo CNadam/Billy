@@ -14,7 +14,7 @@
         android:background="@drawable/cardui"
         android:orientation="horizontal">
 
-        <ImageView
+        <com.android.volley.toolbox.NetworkImageView
             android:id="@+id/artwork"
             android:layout_width="143dp"
             android:layout_height="143dp" />
