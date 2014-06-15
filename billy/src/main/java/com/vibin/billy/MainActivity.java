@@ -76,11 +76,7 @@ public class MainActivity extends FragmentActivity {
         tintManager.setStatusBarTintEnabled(true);
         tintManager.setTintColor(Color.parseColor("#EA5157"));
 
-        try {
-            mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(),this);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(),this);
 
         mPager = (ViewPager)findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
