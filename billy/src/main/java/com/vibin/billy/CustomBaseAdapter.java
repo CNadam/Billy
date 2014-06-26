@@ -9,24 +9,27 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 
 import java.util.ArrayList;
 
-class MyCustomAdapter extends BaseAdapter {
+class CustomBaseAdapter extends BaseAdapter {
     Context c;
     ArrayList<FetchTask.BillyData> mData;
+    ImageLoader imgload;
 
-    MyCustomAdapter(Context c, ArrayList<FetchTask.BillyData> arrayList) {
+    CustomBaseAdapter(Context c, ArrayList<FetchTask.BillyData> arrayList, ImageLoader imgload) {
         this.c = c;
         Log.d(getClass().getName(), "This is the adapter constructor");
         mData = arrayList;
+        this.imgload = imgload;
     }
 
-    public void updateArrayList(ArrayList<FetchTask.BillyData> arraylist)
-    {
+    public void updateArrayList(ArrayList<FetchTask.BillyData> arraylist) {
         mData = arraylist;
     }
+
     @Override
     public int getCount() {
         return mData.size();
@@ -42,7 +45,7 @@ class MyCustomAdapter extends BaseAdapter {
         return 0;
     }
 
-    class MyViewHolder {
+    static class MyViewHolder {
         TextView album, artist, song;
         NetworkImageView artwork;
 
@@ -80,7 +83,7 @@ class MyCustomAdapter extends BaseAdapter {
         holder.album.setText(temp.album);
         holder.artist.setText(temp.artist);
         holder.song.setText(temp.song);
-        holder.artwork.setImageUrl(temp.artwork, ImageCacheManager.getInstance().getImageLoader());
+        holder.artwork.setImageUrl(temp.artwork, imgload);
 
         return row;
     }

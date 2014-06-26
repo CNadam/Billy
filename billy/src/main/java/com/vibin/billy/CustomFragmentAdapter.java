@@ -5,6 +5,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.util.Log;
+
 import com.viewpagerindicator.IconPagerAdapter;
 
 public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconPagerAdapter {
@@ -16,12 +17,12 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
     private int mCount = CONTENT.length;
     Context c;
 
-    public CustomFragmentAdapter(FragmentManager fm, Context c){
+    public CustomFragmentAdapter(FragmentManager fm, Context c) {
         super(fm);
         this.c = c;
     }
 
-     public CustomFragmentAdapter(android.support.v4.app.Fragment fragment) {
+    public CustomFragmentAdapter(android.support.v4.app.Fragment fragment) {
         super(fragment.getChildFragmentManager());
 
     }

@@ -11,5 +11,7 @@
         <item name="pop">http://www1.billboard.com/rss/charts/pop-songs</item>
         <item name="rock">http://www1.billboard.com/rss/charts/rock-songs</item>
         <item name="dance">http://www1.billboard.com/rss/charts/dance-electronic-songs</item>
+        <item name="itunes">http://itunes.apple.com/search?term=</item>
+        <item name="limit">&amp;limit=2</item>
     </string-array>
 </resources>

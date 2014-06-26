@@ -16,6 +16,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+    packagingOptions {
+       exclude 'META-INF/NOTICE.txt'
+       exclude 'META-INF/LICENSE.txt'
+    }
 }
 
 
@@ -37,5 +41,7 @@ dependencies {
     }
     compile group: 'commons-io', name: 'commons-io', version: '2.0.1'
     compile 'com.jakewharton:disklrucache:1.0.0'
+    compile 'commons-lang:commons-lang:2.6'
+    compile 'com.google.code.gson:gson:2.2.4'
 }
 

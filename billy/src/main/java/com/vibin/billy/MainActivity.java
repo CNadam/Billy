@@ -1,60 +1,28 @@
 package com.vibin.billy;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Locale;
-
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.viewpagerindicator.*;
 
 import android.support.v4.app.FragmentActivity;
-import android.widget.Toast;
-
-import org.apache.commons.io.IOUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-
 
 public class MainActivity extends FragmentActivity {
 
     ViewPager mPager;
     CustomFragmentAdapter mAdapter;
     TitlePageIndicator mIndicator;
-
     View customActionView;
     private CharSequence mTitle;
-
-    String searchparam = "dark+horse";
     Context c;
-    RequestQueue req;
-    String KEY_MDATA ="KEY_MDATA";
-    String uri = "http://itunes.apple.com/search?term=" + searchparam + "&limit=1";
-    String rssurl ="http://www1.billboard.com/rss/charts/hot-100";
-    int mIndex;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,15 +44,13 @@ public class MainActivity extends FragmentActivity {
         tintManager.setStatusBarTintEnabled(true);
         tintManager.setTintColor(Color.parseColor("#EA5157"));
 
-        mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(),this);
+        mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this);
 
-        mPager = (ViewPager)findViewById(R.id.pager);
+        mPager = (ViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
 
-        mIndicator = (TitlePageIndicator)findViewById(R.id.indicator);
+        mIndicator = (TitlePageIndicator) findViewById(R.id.indicator);
         mIndicator.setViewPager(mPager);
-
-
     }
 
     private void customActionBar() {
