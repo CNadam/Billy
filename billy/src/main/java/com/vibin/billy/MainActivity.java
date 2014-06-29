@@ -1,21 +1,26 @@
 package com.vibin.billy;
 
+
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.android.volley.RequestQueue;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.viewpagerindicator.*;
 
 import android.support.v4.app.FragmentActivity;
 
 public class MainActivity extends FragmentActivity {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     ViewPager mPager;
     CustomFragmentAdapter mAdapter;
@@ -65,6 +70,21 @@ public class MainActivity extends FragmentActivity {
         mTitle = title;
         ((TextView) customActionView.findViewById(R.id.title)).setText(mTitle);
         getActionBar().setTitle("");
+    }
+
+    public void onListItemClicked(Fragment frag) {
+        // FragmentTransaction trans = getSupportFragmentManager().beginTransaction();
+        // trans.replace(R.id.container,frag).addToBackStack(null);
+        // findViewById(R.id.indicator).setVisibility(View.GONE);
+        // trans.commit();
+
+        Log.d(TAG, "OnListItemClicked");
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        //findViewById(R.id.indicator).setVisibility(View.VISIBLE);
     }
 
     // Inflate the menu; this adds items to the action bar if it is present.

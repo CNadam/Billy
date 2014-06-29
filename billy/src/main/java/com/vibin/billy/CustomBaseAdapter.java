@@ -15,18 +15,20 @@ import com.android.volley.toolbox.NetworkImageView;
 import java.util.ArrayList;
 
 class CustomBaseAdapter extends BaseAdapter {
+
+    private static final String TAG = CustomBaseAdapter.class.getSimpleName();
     Context c;
-    ArrayList<FetchTask.BillyData> mData;
+    ArrayList<ProcessingTask.BillyData> mData;
     ImageLoader imgload;
 
-    CustomBaseAdapter(Context c, ArrayList<FetchTask.BillyData> arrayList, ImageLoader imgload) {
+    CustomBaseAdapter(Context c, ArrayList<ProcessingTask.BillyData> arrayList, ImageLoader imgload) {
         this.c = c;
-        Log.d(getClass().getName(), "This is the adapter constructor");
+        Log.d(TAG, "This is the adapter constructor");
         mData = arrayList;
         this.imgload = imgload;
     }
 
-    public void updateArrayList(ArrayList<FetchTask.BillyData> arraylist) {
+    public void updateArrayList(ArrayList<ProcessingTask.BillyData> arraylist) {
         mData = arraylist;
     }
 
@@ -61,6 +63,7 @@ class CustomBaseAdapter extends BaseAdapter {
         }
     }
 
+
     @Override
     public View getView(int i, View convertView, ViewGroup viewGroup) {
         View row = convertView;
@@ -75,9 +78,9 @@ class CustomBaseAdapter extends BaseAdapter {
             holder = (MyViewHolder) row.getTag();
         }
 
-        FetchTask.BillyData temp = mData.get(i);
+        ProcessingTask.BillyData temp = mData.get(i);
 
-        //Log.d(getClass().getName(), i + " " + temp.album + " " + temp.artist + " " + temp.song + " " + temp.artwork);
+        //Log.d(TAG, i + " " + temp.album + " " + temp.artist + " " + temp.song + " " + temp.artwork);
 
         // Set everything
         holder.album.setText(temp.album);

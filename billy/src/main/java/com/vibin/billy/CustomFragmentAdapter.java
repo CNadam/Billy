@@ -4,13 +4,14 @@ import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.ListFragment;
 import android.util.Log;
 
 import com.viewpagerindicator.IconPagerAdapter;
 
 public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconPagerAdapter {
 
-    private static final String TAG = "CustomFragmentAdapter";
+    private static final String TAG = CustomFragmentAdapter.class.getSimpleName();
     protected static final String[] CONTENT = new String[]{
             "Most Popular", "Pop", "Rock", "Dance"
     };
@@ -34,7 +35,7 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
 
     @Override
     public Fragment getItem(int position) {
-        Fragment fragment = new Fragment1();
+        ListFragment fragment = new Fragment1();
         switch (position) {
             case 0:
                 fragment = new Fragment1();

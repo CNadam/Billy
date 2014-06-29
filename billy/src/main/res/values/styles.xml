@@ -30,10 +30,6 @@
     <style name="ActionButton.CloseMode.Billy" parent="@android:style/Widget.Holo.Light.ActionButton.CloseMode">
     </style>
 
-
-    <style name="card.header_simple_title">
-        <item name="android:fontFamily">sans-serif-light</item>
-    </style>
     <!-- this style is only referenced in a Light.DarkActionBar based theme -->
     <style name="Theme.Billy.Widget" parent="@android:style/Theme.Holo">
     </style>

@@ -2,24 +2,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
-    <com.viewpagerindicator.TitlePageIndicator
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="@+id/container">
+
+    <com.viewpagerindicator.TitlePageIndicator xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/indicator"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:background="#EE4F5A"
+        android:fontFamily="sans-serif-condensed"
         android:padding="10dp"
         android:textColor="#fff"
-        android:fontFamily="sans-serif-condensed"
-        app:footerColor="#fff"
-        />
+        app:footerColor="#fff" />
 
     <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/pager"
-    android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:layout_weight="1"
-    tools:context="com.vibin.billy.MainActivity" />
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        tools:context="com.vibin.billy.MainActivity" />
 </LinearLayout>

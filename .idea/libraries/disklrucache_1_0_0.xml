@@ -4,6 +4,8 @@
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jakewharton/disklrucache/1.0.0/dbb2788b47813d696a69cc2603d3ff1a32ac253a/disklrucache-1.0.0.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jakewharton/disklrucache/1.0.0/5376c94841916000fb18049dd177ccea02ee5529/disklrucache-1.0.0-sources.jar!/" />
+    </SOURCES>
   </library>
 </component>

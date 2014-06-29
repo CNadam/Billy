@@ -2,7 +2,7 @@ apply plugin: 'android'
 
 android {
     compileSdkVersion 19
-    buildToolsVersion "19.0.0"
+    buildToolsVersion "19.1.0"
 
     defaultConfig {
         minSdkVersion 16
@@ -29,16 +29,7 @@ dependencies {
     compile fileTree(dir: 'libraries', include: ['*.jar', '*.aar'])
     compile files('libs/systembartint-1.0.3.jar')
 
-    //Core card library
-    compile 'com.github.gabrielemariotti.cards:library:1.6.0'
-
-    //Extra card library, it is required only if you want to use integrations with other libraries
-    compile 'com.github.gabrielemariotti.cards:library-extra:1.6.0'
     compile 'com.mcxiaoke.volley:library-aar:1.0.0'
-    compile('org.simpleframework:simple-xml:2.7.1') {
-        exclude group: 'stax', module: 'stax-api'
-        exclude group: 'xpp3', module: 'xpp3'
-    }
     compile group: 'commons-io', name: 'commons-io', version: '2.0.1'
     compile 'com.jakewharton:disklrucache:1.0.0'
     compile 'commons-lang:commons-lang:2.6'

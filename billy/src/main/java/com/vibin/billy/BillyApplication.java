@@ -1,7 +1,10 @@
 package com.vibin.billy;
 
 import android.app.Application;
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 
 import com.android.volley.RequestQueue;
@@ -10,12 +13,13 @@ import com.android.volley.toolbox.Volley;
 
 
 public class BillyApplication extends Application {
-    private static int DISK_IMAGECACHE_SIZE = 1024 * 1024 * 10;
-    private static Bitmap.CompressFormat DISK_IMAGECACHE_COMPRESS_FORMAT = Bitmap.CompressFormat.PNG;
-    private static int DISK_IMAGECACHE_QUALITY = 100;  //PNG is lossless so quality is ignored but must be provided
     RequestQueue req;
     ImageLoader.ImageCache imageCache;
     ImageLoader imageLoader;
+    ConnectivityManager cm;
+    NetworkInfo net;
+
+    private static final String TAG = BillyApplication.class.getSimpleName();
 
     @Override
     public void onCreate() {
@@ -24,7 +28,9 @@ public class BillyApplication extends Application {
     }
 
     private void init() {
-        Log.d(getClass().getName(), "This is init");
+        Log.d(TAG, "This is init");
+        cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        net = cm.getActiveNetworkInfo();
         req = Volley.newRequestQueue(this);
         createImageLoader();
     }
@@ -42,7 +48,7 @@ public class BillyApplication extends Application {
 
     public RequestQueue getRequestQueue() {
         if (req == null) {
-            Log.d(getClass().getName(), "Request Queue object is not initialized");
+            Log.d(TAG, "Request Queue object is not initialized");
             req = Volley.newRequestQueue(this);
         }
         return req;
@@ -52,4 +58,11 @@ public class BillyApplication extends Application {
         return 20;
     }
 
+    public boolean isConnected() {
+        if (net == null) {
+            return false;
+        } else {
+            return net.isConnected();
+        }
+    }
 }

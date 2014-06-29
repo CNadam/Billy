@@ -18,20 +18,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 
-public class FetchTask {
+public class ProcessingTask {
+
+    private static final String TAG = ProcessingTask.class.getSimpleName();
 
     String[] billySong, billyArtist, result;
     JSONArray mJsonArray;
     String artistName, collectionName, artworkUrl, trackName, extractedSong, extractedArtist, newTrack, paramEncode;
     int billySize;
 
-    public FetchTask(int billySize) {
+    public ProcessingTask(int billySize) {
         this.billySize = billySize;
         billySong = new String[billySize];
         billyArtist = new String[billySize];
     }
 
-    public static class BillyData implements Parcelable{
+    public static class BillyData implements Parcelable {
         String song, album, artist, artwork;
 
         BillyData() {
@@ -93,15 +95,13 @@ public class FetchTask {
                         if (i != 0) {
                             billySong[i - 1] = extractSong(parser.getText()).trim();
                             billyArtist[i - 1] = extractArtist(parser.getText()).trim();
-                            Log.d(getClass().getName(), billySong[i - 1] + " " + billyArtist[i - 1]);
-                            // Log.d(getClass().getName(), billySong[i - 1]);
+                            Log.d(TAG, billySong[i - 1] + " " + billyArtist[i - 1]);
                         }
                         i++;
                     }
                 }
 
             } else if (i > billySize) {
-                Log.d(getClass().getName(), "Parsed 20 tracks!");
                 break;
             }
             event = parser.next();
@@ -121,8 +121,8 @@ public class FetchTask {
         while (counter <= 1) {
             mJsonArray = jsonObject.getJSONArray("results");
             if (jsonObject.getInt("resultCount") == 0) {
-                Log.e(getClass().getName(), "resultCount is zero");
-                Log.e(getClass().getName(), "Artist name is "+mJsonArray.getJSONObject(counter).getString("artistName"));
+                Log.e(TAG, "resultCount is zero");
+                Log.e(TAG, "Artist name is " + mJsonArray.getJSONObject(counter).getString("artistName"));
             }
             artistName = mJsonArray.getJSONObject(counter).getString("artistName");
             collectionName = mJsonArray.getJSONObject(counter).getString("collectionName");
@@ -135,22 +135,24 @@ public class FetchTask {
             if (trackName.contains("(")) {
                 newTrack = newTrack.substring(0, trackName.indexOf("("));
             } else if (trackName.contains("feat")) {
-                Log.d(getClass().getName(), newTrack + " contains Featuring");
+                Log.d(TAG, newTrack + " contains Featuring");
                 newTrack = newTrack.substring(0, trackName.indexOf("feat"));
-                //Log.d(getClass().getName(), newTrack);
+                //Log.d(TAG, newTrack);
+            } else if (trackName.contains("!")) {
+                newTrack = newTrack.substring(0, trackName.indexOf("!"));
             }
             newTrack = newTrack.trim();
             String match = Integer.toString(Arrays.asList(billySong).indexOf(newTrack));
 
             // Trackname from Billboard and iTunes don't match
             if (Integer.parseInt(match) == -1) {
-                Log.e(getClass().getName(), "The unmatched billysong is " + trackName + newTrack);
+                Log.e(TAG, "The unmatched billysong is " + trackName + newTrack);
                 String matchArtist = Integer.toString(Arrays.asList(billyArtist).indexOf(artistName));
                 if (Integer.parseInt(matchArtist) == -1) {
                     counter++;
-                    Log.e(getClass().getName(), "Artists haven't matched " + artistName + " and counter is " + counter);
+                    Log.e(TAG, "Artists haven't matched " + artistName + " and counter is " + counter);
                 } else {
-                    Log.e(getClass().getName(), "Something wrong with text manipulation " + trackName + artistName);
+                    Log.e(TAG, "Something wrong with text manipulation " + trackName + artistName);
                     return null;
                 }
             } else {
@@ -170,23 +172,23 @@ public class FetchTask {
         if (!extractedSong.contains("(") && !extractedSong.contains("!") && !extractedSong.contains("#") && !extractedSong.contains("&")) {
             return extractedSong;
         } else if (extractedSong.contains("!")) {
-            //Log.d(getClass().getName(), "Exclamation mark detected "+extractedSong);
+            //Log.d(TAG, "Exclamation mark detected "+extractedSong);
             return extractedSong.replace("!", "");
         } else if (extractedSong.contains("(")) {
-            //Log.d(getClass().getName(), "Brackets detected "+extractedSong);
+            //Log.d(TAG, "Brackets detected "+extractedSong);
             return extractedSong.substring(0, extractedSong.indexOf("("));
         }
 /*        else if(extractedSong.contains("#")){
-            Log.d(getClass().getName(), "Hash sign detected "+extractedSong +  extractedSong.substring(1));
+            Log.d(TAG, "Hash sign detected "+extractedSong +  extractedSong.substring(1));
             return extractedSong.substring(1);
         }*/
 /*        else if(extractedSong.contains("&"))
         {
-            Log.d(getClass().getName(), "Ampersand detected "+extractedSong);
+            Log.d(TAG, "Ampersand detected "+extractedSong);
             return extractedSong.replace("&","and");
         }*/
         else {
-            //Log.e(getClass().getName(), "The song "+text+" couldn't be extracted properly");
+            //Log.e(TAG, "The song "+text+" couldn't be extracted properly");
             return extractedSong;
         }
     }
@@ -196,15 +198,15 @@ public class FetchTask {
         if (!extractedArtist.contains("Featuring") && !extractedArtist.contains("Ft")) {
             return extractedArtist;
         } else if (extractedArtist.contains("Featuring")) {
-            //Log.d(getClass().getName(), "Contains featuring "+ extractedArtist);
+            //Log.d(TAG, "Contains featuring "+ extractedArtist);
             extractedArtist = extractedArtist.substring(0, extractedArtist.indexOf("Featuring"));
             return extractedArtist;
         } else if (extractedArtist.contains("Ft")) {
-            //Log.d(getClass().getName(), "Contains Ft "+ extractedArtist);
+            //Log.d(TAG, "Contains Ft "+ extractedArtist);
             extractedArtist = extractedArtist.substring(0, extractedArtist.indexOf("Ft"));
             return extractedArtist;
         } else {
-            //Log.e(getClass().getName(), "The song "+text+" couldn't be extracted properly");
+            //Log.e(TAG, "The song "+text+" couldn't be extracted properly");
             return extractedArtist;
         }
     }

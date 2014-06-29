@@ -1,6 +1,7 @@
 package com.vibin.billy;
 
 import com.android.volley.toolbox.ImageLoader;
+
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
 import android.util.Log;
@@ -13,6 +14,8 @@ import android.util.Log;
 public class BitmapLruCache
         extends LruCache<String, Bitmap>
         implements ImageLoader.ImageCache {
+
+    private static final String TAG = BitmapLruCache.class.getSimpleName();
 
     public BitmapLruCache() {
         this(getDefaultLruCacheSize());
@@ -28,16 +31,14 @@ public class BitmapLruCache
     }
 
     @Override
-    public Bitmap getBitmap(String url)
-    {
-      //  Log.d(getClass().getName(), "Grab "+url);
+    public Bitmap getBitmap(String url) {
+        //  Log.d(TAG, "Grab "+url);
         return get(url);
     }
 
     @Override
-    public void putBitmap(String url, Bitmap bitmap)
-    {
-      //  Log.d(getClass().getName(), "Put "+url);
+    public void putBitmap(String url, Bitmap bitmap) {
+        //  Log.d(TAG, "Put "+url);
         put(url, bitmap);
     }
 
