@@ -19,5 +19,6 @@
         android:textStyle="bold"
         android:singleLine="true"
         android:ellipsize="end"
+        android:alpha="1"
         android:paddingRight="5dp"/>
 </RelativeLayout>

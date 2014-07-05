@@ -25,8 +25,7 @@ public class CustomDatabaseAdapter {
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHelper.UID, 0);
         cv.put(DatabaseHelper.ArrayList, data);
-        long yolo = db.replace(table, null, cv);
-        return yolo;
+        return db.replace(table, null, cv);
     }
 
     public String getArrayList(String table) {

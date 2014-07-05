@@ -7,10 +7,12 @@ import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Cache;
@@ -50,7 +52,7 @@ public class Fragment1 extends ListFragment implements AdapterView.OnItemClickLi
     final long ANIMATION_DELAY = 200;
     final long ANIMATION_DURATION = 350;
 
-    private String tag = Fragment1.class.getSimpleName(); // tag is not final
+    private String tag = Fragment1.class.getSimpleName(); // Tag is not final
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +66,7 @@ public class Fragment1 extends ListFragment implements AdapterView.OnItemClickLi
             mData.add(new ProcessingTask.BillyData());
         }
         customDatabaseAdapter = new CustomDatabaseAdapter(getActivity());
+        setHasOptionsMenu(true);
 
         table_name = getResources().getStringArray(R.array.table)[position];
         if (!billyapp.isConnected()) {
@@ -165,7 +168,7 @@ public class Fragment1 extends ListFragment implements AdapterView.OnItemClickLi
                     if(pulltorefresh)
                     {
                         Log.d(tag, "Pull to refresh");
-                        if(!response.equalsIgnoreCase(data)){Toast.makeText(getActivity(),"New songs have loaded",Toast.LENGTH_LONG);}
+                        if(!response.equalsIgnoreCase(data)){Toast.makeText(getActivity(),"New songs have loaded",Toast.LENGTH_LONG).show();}
                         handleXML(response);
                         pulltorefresh = false; // Resetting
                     }
@@ -257,21 +260,22 @@ public class Fragment1 extends ListFragment implements AdapterView.OnItemClickLi
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        /*TextView song = (TextView) view.findViewById(R.id.song);
-        TextView album = (TextView) view.findViewById(R.id.album);
-        TextView artist = (TextView) view.findViewById(R.id.artist);*/
-        String song = mData.get(i).song;
-        String album = mData.get(i).album;
-        String artist = mData.get(i).artist;
-        String artwork = mData.get(i).artwork;
+        if (billyapp.isConnected()) {
+            String song = mData.get(i).song;
+            String album = mData.get(i).album;
+            String artist = mData.get(i).artist;
+            String artwork = mData.get(i).artwork;
 
-        Intent myintent = new Intent(getActivity(), DetailView.class);
-        myintent.putExtra("song", song);
-        myintent.putExtra("album", album);
-        myintent.putExtra("artist", artist);
-        myintent.putExtra("artwork", artwork);
-        Log.d(tag, "i is "+i);
-        startActivity(myintent);
+            Intent myintent = new Intent(getActivity(), DetailView.class);
+            myintent.putExtra("song", song);
+            myintent.putExtra("album", album);
+            myintent.putExtra("artist", artist);
+            myintent.putExtra("artwork", artwork);
+            startActivity(myintent);
+        }
+        else{
+            Toast.makeText(getActivity(),"Please connect to Internet",Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -292,5 +296,34 @@ public class Fragment1 extends ListFragment implements AdapterView.OnItemClickLi
             Toast.makeText(getActivity(),"Please connect to Internet",Toast.LENGTH_LONG).show();
             swipelayout.setRefreshing(false);
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.main, menu);
+        super.onCreateOptionsMenu(menu,inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId())
+        {
+            case R.id.refresh:
+                if (billyapp.isConnected()) {
+                    onRefresh();
+                    swipelayout.setRefreshing(true);
+                    return true;
+                }
+                else
+                {
+                    Toast.makeText(getActivity(),"Please connect to Internet",Toast.LENGTH_LONG).show();
+                    return false;
+                }
+            case R.id.action_settings:
+                Toast.makeText(getActivity(), "This is settings",
+                        Toast.LENGTH_LONG).show();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

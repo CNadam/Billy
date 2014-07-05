@@ -9,6 +9,12 @@
         <item name="android:homeAsUpIndicator">@drawable/up</item>
     </style>
 
+    <style name="Theme.Billy.TransparentActionBar" parent="Theme.Billy">
+        <item name ="android:windowActionBarOverlay">true</item>
+        <item name="android:actionBarStyle">@style/ActionBar.Transparent.Billy</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+
     <style name="ActionBar.Solid.Billy" parent="@android:style/Widget.Holo.Light.ActionBar.Solid">
         <item name="android:background">@drawable/ab_solid_billy</item>
         <item name="android:backgroundStacked">@drawable/ab_stacked_solid_billy</item>

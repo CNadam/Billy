@@ -104,7 +104,7 @@ public class ProcessingTask {
     /**
      * Parses JSON from iTunes
      *
-     * @param jsonObject
+     * @param jsonObject JSON response
      * @return A String Array containing metadata of a song
      * @throws JSONException
      */

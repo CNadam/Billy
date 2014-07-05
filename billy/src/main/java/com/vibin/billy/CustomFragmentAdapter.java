@@ -23,11 +23,6 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
         this.c = c;
     }
 
-    public CustomFragmentAdapter(android.support.v4.app.Fragment fragment) {
-        super(fragment.getChildFragmentManager());
-
-    }
-
     @Override
     public int getIconResId(int index) {
         return 0;
@@ -40,6 +35,7 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
         f.setArguments(args);
         return f;
     }
+
     @Override
     public int getCount() {
         return mCount;
@@ -47,30 +43,7 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
 
     @Override
     public CharSequence getPageTitle(int position) {
-        String title = "";
-        switch (position) {
-            case 0:
-                title = "Most Popular";
-                break;
-            case 1:
-                title = "Pop";
-                break;
-            case 2:
-                title = "Rock";
-                break;
-            case 3:
-                title = "Dance";
-                break;
-        }
-
-        return title;
-    }
-
-    public void setCount(int count) {
-        if (count > 0 && count < 10) {
-            mCount = count;
-            notifyDataSetChanged();
-        }
+        return CONTENT[position];
     }
 
     @Override

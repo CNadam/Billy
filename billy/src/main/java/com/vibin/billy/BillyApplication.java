@@ -58,10 +58,6 @@ public class BillyApplication extends Application {
     public boolean isConnected() {
         cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
         net = cm.getActiveNetworkInfo();
-        if (net == null) {
-            return false;
-        } else {
-            return net.isConnected();
-        }
+        return net != null && net.isConnected();
     }
 }
