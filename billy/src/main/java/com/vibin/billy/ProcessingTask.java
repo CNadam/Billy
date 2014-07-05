@@ -24,7 +24,7 @@ public class ProcessingTask {
 
     String[] billySong, billyArtist, result;
     JSONArray mJsonArray;
-    String artistName, collectionName, artworkUrl, trackName, extractedSong, extractedArtist, newTrack, paramEncode;
+    String artistName, collectionName, artworkUrl, trackName, extractedSong, extractedArtist, paramEncode;
     int billySize;
 
     public ProcessingTask(int billySize) {
@@ -58,13 +58,6 @@ public class ProcessingTask {
             parcel.writeString(artist);
             parcel.writeString(artwork);
         }
-
-        private void readFromParcel(Parcel in) {
-            song = in.readString();
-            album = in.readString();
-            artist = in.readString();
-            artwork = in.readString();
-        }
     }
 
     /**
@@ -90,7 +83,6 @@ public class ProcessingTask {
 
             if (i <= billySize && event == XmlPullParser.START_TAG) {
                 if (name.equals("title")) {
-
                     if (parser.next() == XmlPullParser.TEXT) {
                         if (i != 0) {
                             billySong[i - 1] = extractSong(parser.getText()).trim();
@@ -129,24 +121,25 @@ public class ProcessingTask {
             artworkUrl = mJsonArray.getJSONObject(counter).getString("artworkUrl100").replaceAll("100x100", "400x400");
             trackName = mJsonArray.getJSONObject(counter).getString("trackName");
 
+            // Capitalize first letter of every word
             if (!StringUtils.isAllUpperCase(trackName)) {
-                newTrack = WordUtils.capitalize(trackName);
-            } // Capitalize first letter of every word
+                trackName = WordUtils.capitalize(trackName);
+            } 
+            
             if (trackName.contains("(")) {
-                newTrack = newTrack.substring(0, trackName.indexOf("("));
+                trackName = trackName.substring(0, trackName.indexOf("("));
             } else if (trackName.contains("feat")) {
-                Log.d(TAG, newTrack + " contains Featuring");
-                newTrack = newTrack.substring(0, trackName.indexOf("feat"));
-                //Log.d(TAG, newTrack);
+                Log.d(TAG, trackName + " contains Featuring");
+                trackName = trackName.substring(0, trackName.indexOf("feat"));
             } else if (trackName.contains("!")) {
-                newTrack = newTrack.substring(0, trackName.indexOf("!"));
+                trackName = trackName.substring(0, trackName.indexOf("!"));
             }
-            newTrack = newTrack.trim();
-            String match = Integer.toString(Arrays.asList(billySong).indexOf(newTrack));
+            trackName = trackName.trim();
+            String match = Integer.toString(Arrays.asList(billySong).indexOf(trackName));
 
             // Trackname from Billboard and iTunes don't match
             if (Integer.parseInt(match) == -1) {
-                Log.e(TAG, "The unmatched billysong is " + trackName + newTrack);
+                Log.e(TAG, "The unmatched billysong is " + trackName + trackName);
                 String matchArtist = Integer.toString(Arrays.asList(billyArtist).indexOf(artistName));
                 if (Integer.parseInt(matchArtist) == -1) {
                     counter++;
@@ -157,7 +150,7 @@ public class ProcessingTask {
                 }
             } else {
                 // Most ideal situation
-                result = new String[]{collectionName, artistName, artworkUrl, newTrack, match};
+                result = new String[]{collectionName, artistName, artworkUrl, trackName, match};
                 return result;
             }
         }
@@ -212,15 +205,13 @@ public class ProcessingTask {
     }
 
     public String paramEncode(String[] stuff, int i) {
+        paramEncode = stuff[i];
         if (stuff[i].contains("&")) {
             paramEncode = stuff[i].replaceAll("&", "and");
-            paramEncode = paramEncode.replaceAll(" ", "+");
         } else if (stuff[i].contains("#")) {
             paramEncode = stuff[i].replace("#", "");
-            paramEncode = paramEncode.replaceAll(" ", "+").trim();
-        } else {
-            paramEncode = stuff[i].replaceAll(" ", "+");
-        }
+        } 
+        paramEncode = paramEncode.replaceAll(" ", "+").trim();
         return paramEncode;
     }
 }

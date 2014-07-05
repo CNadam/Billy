@@ -34,20 +34,20 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //get title of activity
+        // Get title of activity
         mTitle = getTitle();
 
-        //Set up custom action bar
+        // Set up custom action bar
         getActionBar().setDisplayShowTitleEnabled(false);
         getActionBar().setDisplayShowCustomEnabled(true);
         customActionBar();
 
         c = this; // Setting context object
 
-        //Set up status bar tint
+        // Set up status bar tint
         SystemBarTintManager tintManager = new SystemBarTintManager(this);
         tintManager.setStatusBarTintEnabled(true);
-        tintManager.setTintColor(Color.parseColor("#EA5157"));
+        tintManager.setTintColor(getResources().getColor(R.color.billyred));
 
         mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this);
 
@@ -70,21 +70,6 @@ public class MainActivity extends FragmentActivity {
         mTitle = title;
         ((TextView) customActionView.findViewById(R.id.title)).setText(mTitle);
         getActionBar().setTitle("");
-    }
-
-    public void onListItemClicked(Fragment frag) {
-        // FragmentTransaction trans = getSupportFragmentManager().beginTransaction();
-        // trans.replace(R.id.container,frag).addToBackStack(null);
-        // findViewById(R.id.indicator).setVisibility(View.GONE);
-        // trans.commit();
-
-        Log.d(TAG, "OnListItemClicked");
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        //findViewById(R.id.indicator).setVisibility(View.VISIBLE);
     }
 
     // Inflate the menu; this adds items to the action bar if it is present.

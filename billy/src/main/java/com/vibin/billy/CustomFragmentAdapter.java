@@ -1,10 +1,10 @@
 package com.vibin.billy;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.ListFragment;
 import android.util.Log;
 
 import com.viewpagerindicator.IconPagerAdapter;
@@ -33,30 +33,13 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
         return 0;
     }
 
-    @Override
-    public Fragment getItem(int position) {
-        ListFragment fragment = new Fragment1();
-        switch (position) {
-            case 0:
-                fragment = new Fragment1();
-                Log.d(TAG, "fragment 1 is called");
-                break;
-            case 1:
-                fragment = new Fragment2();
-                Log.d(TAG, "fragment 2 is called");
-                break;
-            case 2:
-                fragment = new Fragment3();
-                Log.d(TAG, "fragment 3 is called");
-                break;
-            case 3:
-                fragment = new Fragment4();
-                Log.d(TAG, "fragment 4 is called");
-                break;
-        }
-        return fragment;
+    public static Fragment newInstance(int position) {
+        Fragment1 f = new Fragment1();
+        Bundle args = new Bundle();
+        args.putInt("position", position);
+        f.setArguments(args);
+        return f;
     }
-
     @Override
     public int getCount() {
         return mCount;
@@ -88,5 +71,10 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
             mCount = count;
             notifyDataSetChanged();
         }
+    }
+
+    @Override
+    public Fragment getItem(int position) {
+        return newInstance(position);
     }
 }

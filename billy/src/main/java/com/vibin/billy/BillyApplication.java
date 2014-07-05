@@ -28,9 +28,6 @@ public class BillyApplication extends Application {
     }
 
     private void init() {
-        Log.d(TAG, "This is init");
-        cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
-        net = cm.getActiveNetworkInfo();
         req = Volley.newRequestQueue(this);
         createImageLoader();
     }
@@ -59,6 +56,8 @@ public class BillyApplication extends Application {
     }
 
     public boolean isConnected() {
+        cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        net = cm.getActiveNetworkInfo();
         if (net == null) {
             return false;
         } else {

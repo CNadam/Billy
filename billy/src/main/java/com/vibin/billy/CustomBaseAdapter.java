@@ -23,7 +23,6 @@ class CustomBaseAdapter extends BaseAdapter {
 
     CustomBaseAdapter(Context c, ArrayList<ProcessingTask.BillyData> arrayList, ImageLoader imgload) {
         this.c = c;
-        Log.d(TAG, "This is the adapter constructor");
         mData = arrayList;
         this.imgload = imgload;
     }

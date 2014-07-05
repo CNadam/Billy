@@ -1,9 +1,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:id="@+id/container">
+    android:fitsSystemWindows="true">
 
     <com.viewpagerindicator.TitlePageIndicator xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/indicator"

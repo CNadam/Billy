@@ -2,15 +2,15 @@ package com.vibin.billy;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ListFragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.Cache;
 import com.android.volley.Request;
@@ -30,11 +30,10 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class Fragment2 extends ListFragment implements AdapterView.OnItemClickListener {
+public class Fragment2 extends ListFragment implements AdapterView.OnItemClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     ArrayList<ProcessingTask.BillyData> mData;
     String[] billySong, result;
-    ListView lv;
     View v;
     CustomBaseAdapter customBaseAdapter;
     CustomDatabaseAdapter customDatabaseAdapter;
@@ -46,7 +45,9 @@ public class Fragment2 extends ListFragment implements AdapterView.OnItemClickLi
     String rssurl;
     long yolo;
     int mIndex, billySize, onlyOnce;
+    SwipeRefreshLayout swipelayout;
     ImageLoader imgload;
+    boolean pulltorefresh = false;
 
     private static final String TAG = Fragment2.class.getSimpleName();
 
@@ -92,6 +93,13 @@ public class Fragment2 extends ListFragment implements AdapterView.OnItemClickLi
         customBaseAdapter = new CustomBaseAdapter(getActivity(), mData, imgload);
         mIndex = 0;
 
+        swipelayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_container);
+        swipelayout.setOnRefreshListener(this);
+        swipelayout.setColorScheme(android.R.color.holo_blue_bright,
+                R.color.billyred,
+                android.R.color.holo_orange_light,
+                R.color.billygreen);
+
         // Restore instance, on Orientation change
         if (savedInstanceState != null) {
             mData = savedInstanceState.getParcelableArrayList("MDATA");
@@ -134,14 +142,20 @@ public class Fragment2 extends ListFragment implements AdapterView.OnItemClickLi
                     Cache.Entry entry = req.getCache().get(rssurl);
                     String data = new String(entry.data, "UTF-8");
                     String jsonMdata = customDatabaseAdapter.getArrayList("Pop");
-                    if (entry == null || jsonMdata == null) {
-                        Log.d(getClass().getSimpleName(), "No cache/DB. Requests made.");
+                    if(pulltorefresh == true)
+                    {
+                        Log.d(TAG, "Pull to refresh");
+                        handleXML(response);
+                        pulltorefresh = false; // Resetting
+                    }
+                    else if (entry == null || jsonMdata == null) {
+                        Log.d(TAG, "No cache/DB. Requests made.");
                         handleXML(response);
                     } else if (!response.equalsIgnoreCase(data) || customDatabaseAdapter.getArrayList("Pop").length() < 100) {
-                        Log.d(getClass().getSimpleName(), "New data available or DB is empty. Requests made.");
+                        Log.d(TAG, "New data available or DB is empty. Requests made.");
                         handleXML(response);
                     } else {
-                        Log.d(getClass().getName(), "Cache and response are equal, no requests made");
+                        Log.d(TAG, "Cache and response are equal, no requests made");
                         jsonMdata = customDatabaseAdapter.getArrayList("Pop");
                         Gson gson = new Gson();
                         mData = gson.fromJson(jsonMdata, new TypeToken<ArrayList<ProcessingTask.BillyData>>() {
@@ -239,6 +253,18 @@ public class Fragment2 extends ListFragment implements AdapterView.OnItemClickLi
         myintent.putExtra("album", album.getText().toString());
         myintent.putExtra("artist", artist.getText().toString());
         startActivity(myintent);
+    }
+
+    @Override
+    public void onRefresh() {
+        pulltorefresh = true;
+        StringRequest stringreq = new StringRequest(Request.Method.GET, rssurl, billyComplete(), billyError());
+        req.add(stringreq);
+        new Handler().postDelayed(new Runnable() {
+            @Override public void run() {
+                swipelayout.setRefreshing(false);
+            }
+        }, 2500);
     }
 }
 

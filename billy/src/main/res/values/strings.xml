@@ -6,6 +6,13 @@
     <string name="title_section2">Section 2</string>
     <string name="title_section3">Section 3</string>
     <string name="action_settings">Settings</string>
+    <string name="about">About</string>
+    <string-array name="table">
+        <item name="mostpopular">MostPopular</item>
+        <item name="pop">Pop</item>
+        <item name="rock">Rock</item>
+        <item name="dance">Dance</item>
+    </string-array>
     <string-array name="url">
         <item name="hot100">http://www1.billboard.com/rss/charts/hot-100</item>
         <item name="pop">http://www1.billboard.com/rss/charts/pop-songs</item>
