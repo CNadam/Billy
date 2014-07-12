@@ -21,5 +21,7 @@
         <item name="dance">http://www1.billboard.com/rss/charts/dance-electronic-songs</item>
         <item name="itunes">http://itunes.apple.com/search?term=</item>
         <item name="limit">&amp;limit=2</item>
+        <item name="soundcloud">https://api.soundcloud.com/tracks.format?consumer_key=apigee&amp;q=</item>
+        <item name="scparams">&amp;filter=all&amp;track_type=original&amp;limit=2</item>
     </string-array>
 </resources>

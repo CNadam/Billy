@@ -24,9 +24,10 @@ public class ProcessingTask {
 
     String[] billySong, billyArtist, result;
     JSONArray mJsonArray;
-    String artistName, collectionName, artworkUrl, trackName, extractedSong, extractedArtist, paramEncode;
+    String artistName, collectionName, artworkUrl, trackName, extractedSong, extractedArtist, paramEncode,streamLink;
     int billySize;
 
+    public ProcessingTask(){}
     public ProcessingTask(int billySize) {
         this.billySize = billySize;
         billySong = new String[billySize];
@@ -213,5 +214,31 @@ public class ProcessingTask {
         } 
         paramEncode = paramEncode.replaceAll(" ", "+").trim();
         return paramEncode;
+    }
+
+    public String parseSoundcloud(String response) throws IOException, XmlPullParserException{
+        InputStream in;
+        in = IOUtils.toInputStream(response, "UTF-8");
+
+        XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+        XmlPullParser parser = factory.newPullParser();
+        parser.setInput(in, null);
+
+        int event = parser.getEventType();
+        while (event != XmlPullParser.END_DOCUMENT) {
+            String name = parser.getName();
+
+            if (event == XmlPullParser.START_TAG) {
+                if (name.equals("stream-url")) {
+                    if (parser.next() == XmlPullParser.TEXT) {
+                            streamLink = parser.getText();
+                            return streamLink;
+                    }
+                }
+
+            }
+            event = parser.next();
+        }
+        return streamLink;
     }
 }

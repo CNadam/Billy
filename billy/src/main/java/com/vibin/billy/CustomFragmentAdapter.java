@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.util.Log;
 
 import com.viewpagerindicator.IconPagerAdapter;
 
@@ -29,7 +28,7 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
     }
 
     public static Fragment newInstance(int position) {
-        Fragment1 f = new Fragment1();
+        SongsFragment f = new SongsFragment();
         Bundle args = new Bundle();
         args.putInt("position", position);
         f.setArguments(args);

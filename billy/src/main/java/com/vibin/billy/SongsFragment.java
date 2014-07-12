@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 
-public class Fragment1 extends ListFragment implements AdapterView.OnItemClickListener, SwipeRefreshLayout.OnRefreshListener {
+public class SongsFragment extends ListFragment implements AdapterView.OnItemClickListener, SwipeRefreshLayout.OnRefreshListener {
     ArrayList<ProcessingTask.BillyData> mData;
     String[] billySong, result;
     View v;
@@ -52,7 +52,7 @@ public class Fragment1 extends ListFragment implements AdapterView.OnItemClickLi
     final long ANIMATION_DELAY = 200;
     final long ANIMATION_DURATION = 350;
 
-    private String tag = Fragment1.class.getSimpleName(); // Tag is not final
+    private String tag = SongsFragment.class.getSimpleName(); // Tag is not final
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -271,6 +271,7 @@ public class Fragment1 extends ListFragment implements AdapterView.OnItemClickLi
             myintent.putExtra("album", album);
             myintent.putExtra("artist", artist);
             myintent.putExtra("artwork", artwork);
+            myintent.putExtra("index",i);
             startActivity(myintent);
         }
         else{
@@ -300,7 +301,7 @@ public class Fragment1 extends ListFragment implements AdapterView.OnItemClickLi
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.main, menu);
+        inflater.inflate(R.menu.refresh, menu);
         super.onCreateOptionsMenu(menu,inflater);
     }
 
@@ -319,10 +320,6 @@ public class Fragment1 extends ListFragment implements AdapterView.OnItemClickLi
                     Toast.makeText(getActivity(),"Please connect to Internet",Toast.LENGTH_LONG).show();
                     return false;
                 }
-            case R.id.action_settings:
-                Toast.makeText(getActivity(), "This is settings",
-                        Toast.LENGTH_LONG).show();
-                return true;
         }
         return super.onOptionsItemSelected(item);
     }
