@@ -129,9 +129,9 @@ public class ProcessingTask {
             
             if (trackName.contains("(")) {
                 trackName = trackName.substring(0, trackName.indexOf("("));
-            } else if (trackName.contains("feat")) {
+            } else if (trackName.toLowerCase().contains("feat.")) {
                 Log.d(TAG, trackName + " contains Featuring");
-                trackName = trackName.substring(0, trackName.indexOf("feat"));
+                trackName = trackName.substring(0, StringUtils.indexOfIgnoreCase(trackName,"feat."));
             } else if (trackName.contains("!")) {
                 trackName = trackName.substring(0, trackName.indexOf("!"));
             }
@@ -205,17 +205,27 @@ public class ProcessingTask {
         }
     }
 
-    public String paramEncode(String[] stuff, int i) {
-        paramEncode = stuff[i];
-        if (stuff[i].contains("&")) {
-            paramEncode = stuff[i].replaceAll("&", "and");
-        } else if (stuff[i].contains("#")) {
-            paramEncode = stuff[i].replace("#", "");
-        } 
+    /**
+     * @param songName the Song itself
+     * @return encoded Song string
+     */
+    public String paramEncode(String songName){
+        paramEncode = songName;
+        if (songName.contains("&")) {
+            paramEncode = songName.replaceAll("&", "and");
+        } else if (songName.contains("#")) {
+            paramEncode = songName.replace("#", "");
+        }
         paramEncode = paramEncode.replaceAll(" ", "+").trim();
         return paramEncode;
     }
 
+    /**
+     * @param response the JSON response
+     * @return the SoundCloud stream link
+     * @throws IOException
+     * @throws XmlPullParserException
+     */
     public String parseSoundcloud(String response) throws IOException, XmlPullParserException{
         InputStream in;
         in = IOUtils.toInputStream(response, "UTF-8");
@@ -232,6 +242,7 @@ public class ProcessingTask {
                 if (name.equals("stream-url")) {
                     if (parser.next() == XmlPullParser.TEXT) {
                             streamLink = parser.getText();
+                            streamLink = streamLink + "?client_id=d0f2d22083bc8233aab32f3f7d1d0bbc";
                             return streamLink;
                     }
                 }

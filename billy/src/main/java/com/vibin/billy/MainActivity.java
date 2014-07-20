@@ -21,7 +21,6 @@ public class MainActivity extends FragmentActivity {
     CustomFragmentAdapter mAdapter;
     TitlePageIndicator mIndicator;
     View customActionView;
-    CharSequence mTitle;
     MenuItem nowplaying;
 
     @Override
@@ -55,8 +54,7 @@ public class MainActivity extends FragmentActivity {
     @Override
     public void setTitle(CharSequence title) {
         getActionBar().setTitle("");
-        mTitle = title;
-        ((TextView) customActionView.findViewById(R.id.title)).setText(mTitle);
+        ((TextView) customActionView.findViewById(R.id.title)).setText(title);
     }
 
     @Override
@@ -70,7 +68,7 @@ public class MainActivity extends FragmentActivity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         nowplaying = menu.findItem(R.id.nowplaying);
-        nowplaying.setVisible(true);
+        nowplaying.setVisible(false);
         return true;
     }
 
@@ -91,3 +89,7 @@ public class MainActivity extends FragmentActivity {
     }
 
 }
+
+//TODO handle 2G/3G devices efficiently
+//TODO About page
+//TODO Intelligent SoundCloud track fetch

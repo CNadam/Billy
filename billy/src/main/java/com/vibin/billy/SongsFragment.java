@@ -94,7 +94,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        v = inflater.inflate(R.layout.fragment_1, container, false);
+        v = inflater.inflate(R.layout.fragment_songs, container, false);
         customBaseAdapter = new CustomBaseAdapter(getActivity(), mData, imgload);
         mIndex = 0;
         swipelayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_container);
@@ -215,8 +215,8 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         billySong = ft.parseBillboard(response);
 
         while (mIndex < billySong.length) {
-            searchparam = ft.paramEncode(billySong, mIndex); // Put Billboard song as iTunes search parameter
-            uri = getResources().getStringArray(R.array.url)[4] + searchparam + getResources().getStringArray(R.array.url)[5];
+            searchparam = ft.paramEncode(billySong[mIndex]);
+            uri = getResources().getString(R.string.itunes) + searchparam + getResources().getString(R.string.itunes_params);
             //Log.d(tag, uri);
             JsonObjectRequest jsonreq = new JsonObjectRequest(Request.Method.GET, uri, null, itunesComplete(), itunesError());
             req.add(jsonreq);
@@ -261,16 +261,13 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         if (billyapp.isConnected()) {
-            String song = mData.get(i).song;
-            String album = mData.get(i).album;
-            String artist = mData.get(i).artist;
-            String artwork = mData.get(i).artwork;
+            ProcessingTask.BillyData billyData = mData.get(i);
 
             Intent myintent = new Intent(getActivity(), DetailView.class);
-            myintent.putExtra("song", song);
-            myintent.putExtra("album", album);
-            myintent.putExtra("artist", artist);
-            myintent.putExtra("artwork", artwork);
+            myintent.putExtra("song", billyData.song);
+            myintent.putExtra("album", billyData.album);
+            myintent.putExtra("artist", billyData.artist);
+            myintent.putExtra("artwork", billyData.artwork);
             myintent.putExtra("index",i);
             startActivity(myintent);
         }

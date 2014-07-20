@@ -1,4 +1,5 @@
 <com.vibin.billy.NotifyingScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/scroll_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -14,12 +15,10 @@
             android:layout_width="match_parent"
             android:layout_height="350dp"
             android:layout_alignParentStart="false"
-            android:scaleType="centerCrop">
-        </com.android.volley.toolbox.NetworkImageView>
-
+            android:scaleType="centerCrop" />
 
         <ImageButton
-            android:id="@+id/imageButton"
+            android:id="@+id/streamButton"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_alignTop="@id/image_header"
@@ -27,32 +26,38 @@
             android:layout_marginTop="150dp"
             android:adjustViewBounds="true"
             android:alpha="1"
-            android:visibility="invisible"
             android:background="@null"
             android:scaleType="centerCrop"
-            android:src="@drawable/play" />
+            android:src="@drawable/play"
+            android:visibility="invisible"
+            tools:visibility="visible" />
 
         <ImageView
-            android:id="@+id/animate"
-            android:layout_width="110dp"
-            android:layout_height="110dp"
+            android:id="@+id/dashes"
+            android:layout_width="112dp"
+            android:layout_height="112dp"
             android:layout_alignTop="@id/image_header"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="145dp"
+            android:layout_marginTop="142.5dp"
             android:adjustViewBounds="true"
             android:alpha="1"
-            android:visibility="invisible"
             android:background="@null"
             android:scaleType="centerCrop"
-            android:src="@drawable/animate" />
+            android:src="@drawable/dashes"
+            android:visibility="invisible"
+            tools:visibility="visible" />
 
         <ProgressBar
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="5dp"
             android:layout_alignBottom="@id/image_header"
-            android:visibility="invisible"/>
+            android:progressDrawable="@drawable/progress_bar"
+            android:visibility="invisible"
+            tools:visibility="visible" />
+
+        <!--TODO-->
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -67,9 +72,6 @@
                 android:id="@+id/textView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/imageView"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="3dp"
                 android:layout_marginTop="10dp"
@@ -88,9 +90,6 @@
                     android:id="@+id/imageView2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
                     android:layout_marginLeft="15dp"
                     android:src="@drawable/disc" />
 
@@ -98,18 +97,14 @@
                     android:id="@+id/imageView3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignTop="@+id/textView"
                     android:layout_marginLeft="15dp"
-                    android:layout_toRightOf="@+id/imageView2"
                     android:src="@drawable/human" />
 
                 <ImageView
                     android:id="@+id/imageView4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/textView"
                     android:layout_marginLeft="15dp"
-                    android:layout_toRightOf="@+id/imageView3"
                     android:src="@drawable/musiq" />
             </LinearLayout>
 
@@ -124,9 +119,6 @@
                     android:id="@+id/imageView21"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
                     android:layout_marginLeft="15dp"
                     android:src="@drawable/disc" />
 
@@ -134,22 +126,16 @@
                     android:id="@+id/imageView31"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignTop="@+id/textView"
                     android:layout_marginLeft="15dp"
-                    android:layout_toRightOf="@+id/imageView2"
                     android:src="@drawable/human" />
 
                 <ImageView
                     android:id="@+id/imageView41"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/textView"
                     android:layout_marginLeft="15dp"
-                    android:layout_toRightOf="@+id/imageView3"
                     android:src="@drawable/musiq" />
             </LinearLayout>
-
         </LinearLayout>
-
     </RelativeLayout>
 </com.vibin.billy.NotifyingScrollView>

@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:paddingLeft="5dp"
-    android:paddingRight="5dp"
-    android:paddingTop="5dp"
-    xmlns:tools="http://schemas.android.com/tools">
+    android:background="#1c1c1c">
+
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/cardui"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content">
 
-        <com.android.volley.toolbox.NetworkImageView
+        <ImageView
             android:id="@+id/artwork"
-            android:layout_width="143dp"
-            android:layout_height="143dp" />
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            tools:src="@android:drawable/ic_delete"
+            />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -34,6 +33,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-thin"
                 android:textSize="25sp"
+                android:textColor="#fff"
                 tools:text="Get Lucky"/>
 
             <LinearLayout
@@ -50,6 +50,7 @@
                     android:fontFamily="sans-serif-condensed"
                     android:textSize="18sp"
                     android:textStyle="bold"
+                    android:textColor="#fff"
                     tools:text="Random Access Memories"/>
 
                 <TextView
@@ -59,7 +60,9 @@
                     android:fontFamily="sans-serif-condensed"
                     android:textSize="18sp"
                     android:textStyle="bold"
+                    android:textColor="#fff"
                     tools:text="Daft Punk"/>
+
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

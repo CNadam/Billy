@@ -1,12 +1,12 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:id="@android:id/background">
-<!--        <shape>
+        <shape>
             <gradient
                 android:startColor="@android:color/transparent"
                 android:endColor="@android:color/transparent"
                 />
-        </shape>-->
+        </shape>
     </item>
 
     <item android:id="@android:id/secondaryProgress">
