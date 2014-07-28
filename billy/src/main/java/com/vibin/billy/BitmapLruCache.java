@@ -1,10 +1,9 @@
 package com.vibin.billy;
 
-import com.android.volley.toolbox.ImageLoader;
-
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
-import android.util.Log;
+
+import com.android.volley.toolbox.ImageLoader;
 
 /**
  * Basic LRU Memory cache.

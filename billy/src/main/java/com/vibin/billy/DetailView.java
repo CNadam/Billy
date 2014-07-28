@@ -1,19 +1,16 @@
 package com.vibin.billy;
 
 import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.app.NotificationCompat;
+import android.text.Html;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,7 +22,6 @@ import android.view.animation.ScaleAnimation;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RemoteViews;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,17 +31,20 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.ImageRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.NetworkImageView;
 import com.android.volley.toolbox.StringRequest;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 
 public class DetailView extends Activity {
-    String song, artwork, artist, album, streamLink;
+    String song, artwork, artist, album, streamLink, lastFmBio;
     int songIndex, songLength;
     boolean isMusicPlaying, mBound;
     Drawable playIcon, pauseIcon;
@@ -63,11 +62,9 @@ public class DetailView extends Activity {
     RotateAnimation rotateAnim;
     ScaleAnimation scaleAnim;
     NetworkImageView hero;
-    Notification note;
-    NotificationManager noteMan;
-    Bitmap notifIcon;
     RequestQueue req;
-    RemoteViews notifView;
+    PlayerService mService;
+    Handler progressHandler;
 
     private static final String TAG = DetailView.class.getSimpleName();
 
@@ -88,6 +85,7 @@ public class DetailView extends Activity {
         streamBtn = (ImageButton) findViewById(R.id.streamButton);
         dashes = (ImageView) findViewById(R.id.dashes);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressHandler = new Handler();
         playIcon = getResources().getDrawable(R.drawable.play);
         pauseIcon = getResources().getDrawable(R.drawable.pause);
         setButtonListener();
@@ -97,6 +95,10 @@ public class DetailView extends Activity {
         Log.d(TAG, "scUrl is " + scUrl.substring(0, 100) + "...");
         StringRequest stringreq = new StringRequest(Request.Method.GET, scUrl, scComplete(), scError());
         req.add(stringreq);
+        final String lastFmBioUrl = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist="+artist.replaceAll(" ","+")+"&api_key=67b01760e70bb90ff51ae8590b3c2ba8&format=json";
+        JsonObjectRequest wikiSearch = new JsonObjectRequest(Request.Method.GET, lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
+        req.add(wikiSearch);
+
         ft = new ProcessingTask();
 
         customActionBar();
@@ -110,8 +112,6 @@ public class DetailView extends Activity {
         hero = (NetworkImageView) findViewById(R.id.image_header);
         hero.setImageUrl(artwork, imgload);
 
-        notifView = new RemoteViews(this.getPackageName(), R.layout.notification_view);
-        noteMan = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         ((NotifyingScrollView) findViewById(R.id.scroll_view)).setOnScrollChangedListener(mOnScrollChangedListener);
 
@@ -120,6 +120,33 @@ public class DetailView extends Activity {
         if (PlayerService.isRunning) {
             bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
         }
+    }
+
+    private Response.ErrorListener lastFmBioError() {
+        return new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                Log.d(TAG, volleyError.toString());
+            }
+        };
+    }
+
+    private Response.Listener<JSONObject> lastFmBioComplete() {
+        return new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject jsonObject) {
+                try {
+                    lastFmBio = jsonObject.getJSONObject("artist").getJSONObject("bio").getString("summary");
+                    lastFmBio = Html.fromHtml(lastFmBio).toString();
+                    TextView artistTitle = (TextView) findViewById(R.id.artistTitle);
+                    TextView artistBio = (TextView) findViewById(R.id.artistBio);
+                    artistTitle.setText(artist);
+                    artistBio.setText(lastFmBio);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
     }
 
     private Response.Listener<String> scComplete() {
@@ -164,26 +191,39 @@ public class DetailView extends Activity {
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.d(TAG, "Service connected");
             PlayerService.PlayerServiceBinder binder = (PlayerService.PlayerServiceBinder) service;
-            PlayerService mService = binder.getService();
+            mService = binder.getService();
+
+            if (PlayerService.isRunning && !PlayerService.isIdle) {
+                Log.d(TAG, "Service is running and is not idle");
+                if (song.equalsIgnoreCase(mService.song)) {
+                    Thread progressThread = new Thread(progress);
+                    progressThread.start();
+                    progressBar.setMax(mService.bp.getDuration() / 1000);
+                    progressBar.setVisibility(View.VISIBLE);
+                    if (mService.bp.isPlaying()) {
+                        isMusicPlaying = true;
+                        streamBtn.setImageDrawable(pauseIcon);
+                    }
+                }
+            }
 
             binder.setListener(new PlayerService.onBPChangedListener() {
                 @Override
                 public void onPrepared(int duration) {
                     dashes.clearAnimation();
-                    putNotification(); //TODO
                     dashes.setVisibility(View.GONE);
                     progressBar.setVisibility(View.VISIBLE);
-                    progressBar.setBackgroundColor(Color.TRANSPARENT);
+                    //progressBar.setBackgroundColor(Color.TRANSPARENT);
                     progressBar.setMax(duration);
                     songLength = duration;
-                    progress();
+                    Thread progressThread = new Thread(progress);
+                    progressThread.start();
                     streamBtn.setImageDrawable(pauseIcon);
                 }
 
                 // Only onCompletion and onError are called if stream-url is wrong (404, etc.)
                 @Override
                 public void onCompletion() {
-                    noteMan.cancelAll();
                     streamBtn.setImageDrawable(playIcon);
                     progressBar.setVisibility(View.GONE);
                     isMusicPlaying = false;
@@ -191,10 +231,28 @@ public class DetailView extends Activity {
 
                 @Override
                 public void onError(int i, int i2) {
-                    Toast.makeText(getBaseContext(), "Something's wrong. "+i+" "+i2,
+                    Toast.makeText(getBaseContext(), "Something's wrong. " + i + " " + i2,
                             Toast.LENGTH_LONG).show();
                     dashes.clearAnimation();
                     dashes.setVisibility(View.GONE);
+                }
+
+                public void onStop() {
+                    onCompletion();
+                    //unbindService(mConnection);
+                    //bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
+                }
+
+                public void onNotificationPausePressed() {
+                    streamBtn.setImageDrawable(playIcon);
+                    progressBar.setVisibility(View.GONE);
+                    isMusicPlaying = false;
+                }
+
+                public void onNotificationPlayPressed() {
+                    streamBtn.setImageDrawable(pauseIcon);
+                    progressBar.setVisibility(View.VISIBLE);
+                    isMusicPlaying = true;
                 }
             });
             mBound = true;
@@ -206,60 +264,72 @@ public class DetailView extends Activity {
             @Override
             public void onClick(View view) {
                 if (!isMusicPlaying) {
-                    //TODO check if streamLink is not a 404
-                    if (streamLink != null) {
-                        isMusicPlaying = true;
-                        dashes.setVisibility(View.VISIBLE);
-                        dashes.startAnimation(rotateAnim);
-                        serviceIntent.putExtra("streamLink", streamLink);
-                        serviceIntent.putExtra("songName", song);
-                        serviceIntent.putExtra("songIndex", songIndex);
-                        serviceIntent.putExtra("albumName", album);
-                        startService(serviceIntent);
-                        bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
+                    if (PlayerService.isRunning && !PlayerService.isIdle) {
+                        Log.d(TAG, "Service is running and is not idle");
+                        if (song.equalsIgnoreCase(mService.song)) {
+                            Log.d(TAG, "Song matched");
+                            mService.playMedia();
+                            streamBtn.setImageDrawable(pauseIcon);
+                            progressBar.setVisibility(View.VISIBLE);
+                            isMusicPlaying = true;
+                        } else {
+                            streamTrack();
+                        }
                     } else {
-                        Log.d(TAG, "streamLink is null");
-                        Toast.makeText(getBaseContext(), "The song cannot be streamed.",
-                                Toast.LENGTH_LONG).show();
+                        streamTrack();
                     }
                 } else {
                     streamBtn.setImageDrawable(playIcon);
                     dashes.clearAnimation();
                     dashes.setVisibility(View.INVISIBLE);
-                    unbindService(mConnection);
-                    stopService(serviceIntent);
+                    mService.doPause();
+                    //unbindService(mConnection);
+                    //stopService(serviceIntent);
                     isMusicPlaying = false;
-                    mBound = false;
-                    noteMan.cancelAll();
+                    //mBound = false;
                     progressBar.setVisibility(View.GONE);
                 }
             }
         });
     }
 
+    //TODO check if streamLink is not a 404
+    void streamTrack() {
+        if (streamLink != null) {
+            isMusicPlaying = true;
+            dashes.setVisibility(View.VISIBLE);
+            dashes.startAnimation(rotateAnim);
+            serviceIntent.putExtra("streamLink", streamLink);
+            serviceIntent.putExtra("songName", song);
+            serviceIntent.putExtra("songIndex", songIndex);
+            serviceIntent.putExtra("albumName", album);
+            serviceIntent.putExtra("artistName", artist);
+            serviceIntent.putExtra("artwork", artwork);
+            startService(serviceIntent);
+            bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
+        } else {
+            Log.d(TAG, "streamLink is null");
+            Toast.makeText(getBaseContext(), "The song cannot be streamed.",
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
     /**
      * Run the progressbar in a separate thread
      */
-    void progress() {
-        Thread progressThread = new Thread() {
-            public void run() {
-                int prog = 0;
-                while (prog < songLength) {
-                    if (isMusicPlaying) {
-                        progressBar.setProgress(prog);
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        prog++;
-                    } else
-                        return;
+
+    //TODO this thing crashes on notification dismiss
+    Runnable progress = new Runnable() {
+        @Override
+        public void run() {
+            if (PlayerService.isRunning) {
+                if (!PlayerService.isIdle) {
+                    progressBar.setProgress(mService.bp.getCurrentPosition()/1000);
                 }
             }
-        };
-        progressThread.start();
-    }
+            progressHandler.postDelayed(progress, 1000);
+        }
+    };
 
     /**
      * Animate the Play button and dashes
@@ -276,34 +346,6 @@ public class DetailView extends Activity {
         scaleAnim.setInterpolator(new BounceInterpolator());
     }
 
-    //TODO
-
-    /**
-     * Put a sticky notification for media controls
-     */
-    private void putNotification() {
-        note = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setOngoing(true)
-                .setContentTitle("Custom View").build();
-        note.bigContentView = notifView;
-        notifView.setTextViewText(R.id.song, song);
-        notifView.setTextViewText(R.id.artist, artist);
-        notifView.setTextViewText(R.id.album, album);
-        if (req.getCache().get(artwork) == null) {
-            ImageRequest imagereq = new ImageRequest(artwork,new Response.Listener<Bitmap>() {
-                @Override
-                public void onResponse(Bitmap bitmap) {
-                    notifIcon = bitmap;
-                }
-            },400,400,null,null);
-            req.add(imagereq);
-        } else {
-            notifIcon = BitmapFactory.decodeByteArray(req.getCache().get(artwork).data, 0, req.getCache().get(artwork).data.length);
-        }
-        notifView.setImageViewBitmap(R.id.artwork, notifIcon);
-        noteMan.notify(1, note);
-    }
 
     private NotifyingScrollView.OnScrollChangedListener mOnScrollChangedListener = new NotifyingScrollView.OnScrollChangedListener() {
         public void onScrollChanged(ScrollView who, int l, int t, int oldl, int oldt) {

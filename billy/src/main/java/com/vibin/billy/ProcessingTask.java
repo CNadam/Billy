@@ -40,6 +40,11 @@ public class ProcessingTask {
         BillyData() {
         }
 
+        public BillyData(Parcel in) {
+            super();
+            readFromParcel(in);
+        }
+
         public void setItunes(String album, String artist, String artwork, String song) {
             this.album = album;
             this.artist = artist;
@@ -59,6 +64,24 @@ public class ProcessingTask {
             parcel.writeString(artist);
             parcel.writeString(artwork);
         }
+
+        public void readFromParcel(Parcel in) {
+            song = in.readString();
+            album = in.readString();
+            artist = in.readString();
+            artwork = in.readString();
+        }
+
+        public static final Parcelable.Creator<BillyData> CREATOR = new Parcelable.Creator<BillyData>() {
+            public BillyData createFromParcel(Parcel in) {
+                return new BillyData(in);
+            }
+            public BillyData[] newArray(int size) {
+                return new BillyData[size];
+            }
+
+        };
+
     }
 
     /**
@@ -102,6 +125,10 @@ public class ProcessingTask {
         return billySong;
     }
 
+    public String[] getArtists(){
+            return billyArtist;
+    }
+
     /**
      * Parses JSON from iTunes
      *
@@ -140,7 +167,7 @@ public class ProcessingTask {
 
             // Trackname from Billboard and iTunes don't match
             if (Integer.parseInt(match) == -1) {
-                Log.e(TAG, "The unmatched billysong is " + trackName + trackName);
+                Log.e(TAG, "The unmatched billysong is " + trackName);
                 String matchArtist = Integer.toString(Arrays.asList(billyArtist).indexOf(artistName));
                 if (Integer.parseInt(matchArtist) == -1) {
                     counter++;
@@ -206,15 +233,15 @@ public class ProcessingTask {
     }
 
     /**
-     * @param songName the Song itself
+     * @param text the Song itself
      * @return encoded Song string
      */
-    public String paramEncode(String songName){
-        paramEncode = songName;
-        if (songName.contains("&")) {
-            paramEncode = songName.replaceAll("&", "and");
-        } else if (songName.contains("#")) {
-            paramEncode = songName.replace("#", "");
+    public String paramEncode(String text){
+        paramEncode = text;
+        if (text.contains("&")) {
+            paramEncode = text.replaceAll("&", "and");
+        } else if (text.contains("#")) {
+            paramEncode = text.replace("#", "");
         }
         paramEncode = paramEncode.replaceAll(" ", "+").trim();
         return paramEncode;

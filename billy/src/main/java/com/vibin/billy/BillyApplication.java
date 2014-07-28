@@ -2,7 +2,6 @@ package com.vibin.billy;
 
 import android.app.Application;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
