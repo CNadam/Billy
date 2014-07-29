@@ -67,20 +67,8 @@ public class MainActivity extends FragmentActivity {
     }
 
     @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        nowplaying = menu.findItem(R.id.nowplaying);
-        nowplaying.setVisible(false);
-        return true;
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId())
-        {
-            case R.id.nowplaying:
-                Toast.makeText(getBaseContext(), "This is now playing",
-                        Toast.LENGTH_LONG).show();
-                return true;
+        switch (item.getItemId()) {
             case R.id.action_settings:
                 Toast.makeText(getBaseContext(), "This is settings",
                         Toast.LENGTH_LONG).show();
@@ -94,3 +82,6 @@ public class MainActivity extends FragmentActivity {
 //TODO handle 2G/3G devices efficiently
 //TODO About page
 //TODO Intelligent SoundCloud track fetch
+//TODO Use RemoteController and put full screen lock image for KitKat+ devices
+//TODO crashing when you rotate device just after opening app
+//TODO replace MediaPlayer code with MediaExtractor

@@ -3,11 +3,11 @@
     package="com.vibin.billy" >
 
     <application
+        android:name=".BillyApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.Billy"
-        android:name=".BillyApplication">
+        android:theme="@style/Theme.Billy">
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
@@ -21,6 +21,7 @@
         <activity android:name=".DetailView"
         android:parentActivityName=".MainActivity"
         android:theme="@style/Theme.Billy.TransparentActionBar">
+
         </activity>
 
         <service android:name=".PlayerService"

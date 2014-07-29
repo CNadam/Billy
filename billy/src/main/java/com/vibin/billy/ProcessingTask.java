@@ -24,10 +24,12 @@ public class ProcessingTask {
 
     String[] billySong, billyArtist, result;
     JSONArray mJsonArray;
-    String artistName, collectionName, artworkUrl, trackName, extractedSong, extractedArtist, paramEncode,streamLink;
+    String artistName, collectionName, artworkUrl, trackName, extractedSong, extractedArtist, paramEncode, streamLink;
     int billySize;
 
-    public ProcessingTask(){}
+    public ProcessingTask() {
+    }
+
     public ProcessingTask(int billySize) {
         this.billySize = billySize;
         billySong = new String[billySize];
@@ -76,6 +78,7 @@ public class ProcessingTask {
             public BillyData createFromParcel(Parcel in) {
                 return new BillyData(in);
             }
+
             public BillyData[] newArray(int size) {
                 return new BillyData[size];
             }
@@ -125,8 +128,8 @@ public class ProcessingTask {
         return billySong;
     }
 
-    public String[] getArtists(){
-            return billyArtist;
+    public String[] getArtists() {
+        return billyArtist;
     }
 
     /**
@@ -152,13 +155,13 @@ public class ProcessingTask {
             // Capitalize first letter of every word
             if (!StringUtils.isAllUpperCase(trackName)) {
                 trackName = WordUtils.capitalize(trackName);
-            } 
-            
+            }
+
             if (trackName.contains("(")) {
                 trackName = trackName.substring(0, trackName.indexOf("("));
             } else if (trackName.toLowerCase().contains("feat.")) {
                 Log.d(TAG, trackName + " contains Featuring");
-                trackName = trackName.substring(0, StringUtils.indexOfIgnoreCase(trackName,"feat."));
+                trackName = trackName.substring(0, StringUtils.indexOfIgnoreCase(trackName, "feat."));
             } else if (trackName.contains("!")) {
                 trackName = trackName.substring(0, trackName.indexOf("!"));
             }
@@ -236,7 +239,7 @@ public class ProcessingTask {
      * @param text the Song itself
      * @return encoded Song string
      */
-    public String paramEncode(String text){
+    public String paramEncode(String text) {
         paramEncode = text;
         if (text.contains("&")) {
             paramEncode = text.replaceAll("&", "and");
@@ -253,7 +256,7 @@ public class ProcessingTask {
      * @throws IOException
      * @throws XmlPullParserException
      */
-    public String parseSoundcloud(String response) throws IOException, XmlPullParserException{
+    public String parseSoundcloud(String response) throws IOException, XmlPullParserException {
         InputStream in;
         in = IOUtils.toInputStream(response, "UTF-8");
 
@@ -268,9 +271,9 @@ public class ProcessingTask {
             if (event == XmlPullParser.START_TAG) {
                 if (name.equals("stream-url")) {
                     if (parser.next() == XmlPullParser.TEXT) {
-                            streamLink = parser.getText();
-                            streamLink = streamLink + "?client_id=d0f2d22083bc8233aab32f3f7d1d0bbc";
-                            return streamLink;
+                        streamLink = parser.getText();
+                        streamLink = streamLink + "?client_id=d0f2d22083bc8233aab32f3f7d1d0bbc";
+                        return streamLink;
                     }
                 }
 

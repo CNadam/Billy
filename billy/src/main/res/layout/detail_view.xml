@@ -39,6 +39,7 @@
             android:layout_height="112dp"
             android:layout_alignTop="@id/image_header"
             android:layout_centerHorizontal="true"
+            android:layout_marginBottom="20dp"
             android:layout_marginTop="142.5dp"
             android:adjustViewBounds="true"
             android:alpha="1"
@@ -48,16 +49,21 @@
             android:visibility="invisible"
             tools:visibility="visible" />
 
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="5dp"
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="fill_parent"
+            android:layout_height="30dp"
             android:layout_alignBottom="@id/image_header"
-            android:progressDrawable="@drawable/progress_bar"
-            android:visibility="invisible"
-            tools:visibility="visible" />
-
+            android:layout_marginLeft="-16dp"
+            android:indeterminate="false"
+            android:maxHeight="5dp"
+            android:minHeight="5dp"
+            android:progressDrawable="@drawable/seekbar_progress"
+            android:thumb="@android:color/transparent"
+            tools:progress="100"
+            tools:visibility="visible"
+            android:paddingRight="0dp"
+            android:paddingTop="25dp" />
         <!--TODO-->
 
         <LinearLayout
@@ -68,36 +74,68 @@
             android:padding="5dp">
 
             <LinearLayout
+                android:id="@+id/spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:visibility="visible"
+                tools:visibility="visible">
+
+                <ProgressBar
+                    style="?android:attr/progressBarStyleLarge"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:visibility="visible" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:fontFamily="sans-serif-condensed"
+                    android:gravity="center"
+                    android:text="@string/loadingText"
+                    android:textSize="24sp"
+                    android:visibility="visible" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/artistInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
                 android:background="@drawable/cardui"
                 android:orientation="vertical"
-                android:paddingBottom="10dp"
-                android:paddingTop="5dp"
+                android:paddingBottom="15dp"
                 android:paddingLeft="5dp"
-                android:paddingRight="5dp">
-            <TextView
-                android:id="@+id/artistTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal|left"
-                android:focusableInTouchMode="false"
-                android:fontFamily="sans-serif-light"
-                tools:text="Daft Punk"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:layout_marginTop="10dp"
-                android:paddingLeft="10dp"
-                android:paddingBottom="5dp"/>
+                android:paddingRight="5dp"
+                android:paddingTop="5dp"
+                android:visibility="gone"
+                tools:visibility="visible">
 
-            <TextView
-                android:id="@+id/artistBio"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
-                tools:text="Daft Punk is totally roxx"
-                android:paddingLeft="10dp"
-                android:ellipsize="end"
-                android:maxLines="4"/>
+                <TextView
+                    android:id="@+id/artistTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal|left"
+                    android:layout_marginTop="5dp"
+                    android:focusableInTouchMode="false"
+                    android:fontFamily="sans-serif-light"
+                    android:paddingBottom="5dp"
+                    android:paddingLeft="10dp"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    tools:text="Daft Punk" />
+
+                <TextView
+                    android:id="@+id/artistBio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif"
+                    android:paddingLeft="10dp"
+                    tools:text="Daft Punk is totally roxx" />
             </LinearLayout>
 
             <LinearLayout
@@ -105,30 +143,33 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/cardui"
                 android:orientation="vertical"
-                android:paddingBottom="10dp"
-                android:paddingTop="5dp"
+                android:paddingBottom="15dp"
                 android:paddingLeft="5dp"
-                android:paddingRight="5dp">
+                android:paddingRight="5dp"
+                android:paddingTop="5dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
                 <TextView
-                    android:id="@+id/lyricsTitle"
+                    android:id="@+id/topAlbums"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal|left"
+                    android:layout_marginTop="5dp"
                     android:focusableInTouchMode="false"
                     android:fontFamily="sans-serif-light"
-                    tools:text="Lyrics"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:layout_marginTop="10dp"
+                    android:paddingBottom="5dp"
                     android:paddingLeft="10dp"
-                    android:paddingBottom="5dp"/>
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    tools:text="Top Albums" />
 
                 <TextView
                     android:id="@+id/lyricsDesc"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
-                    tools:text="We're up all night to get lucky!"
-                    android:paddingLeft="10dp"/>
+                    android:paddingLeft="10dp"
+                    tools:text="We're up all night to get lucky!" />
             </LinearLayout>
 
 

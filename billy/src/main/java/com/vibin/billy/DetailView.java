@@ -5,7 +5,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,8 +20,8 @@ import android.view.animation.RotateAnimation;
 import android.view.animation.ScaleAnimation;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,17 +35,17 @@ import com.android.volley.toolbox.NetworkImageView;
 import com.android.volley.toolbox.StringRequest;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 
-public class DetailView extends Activity {
+public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListener {
     String song, artwork, artist, album, streamLink, lastFmBio;
     int songIndex, songLength;
-    boolean isMusicPlaying, mBound;
+    boolean isMusicPlaying, mBound, stopTh;
+    static boolean active;
     Drawable playIcon, pauseIcon;
     View customActionView;
     ImageButton streamBtn;
@@ -58,13 +57,15 @@ public class DetailView extends Activity {
     TextView actionBarText;
     Bundle itemData;
     ProcessingTask ft;
-    ProgressBar progressBar;
+    SeekBar seekBar;
     RotateAnimation rotateAnim;
     ScaleAnimation scaleAnim;
     NetworkImageView hero;
     RequestQueue req;
     PlayerService mService;
     Handler progressHandler;
+    String lastFmBioUrl;
+    float secondaryProgressFactor;
 
     private static final String TAG = DetailView.class.getSimpleName();
 
@@ -73,6 +74,7 @@ public class DetailView extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detail_view);
 
+        active = true;
         billyapp = (BillyApplication) this.getApplication();
 
         itemData = getIntent().getExtras();
@@ -84,22 +86,26 @@ public class DetailView extends Activity {
 
         streamBtn = (ImageButton) findViewById(R.id.streamButton);
         dashes = (ImageView) findViewById(R.id.dashes);
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        seekBar = (SeekBar) findViewById(R.id.seekBar);
+        seekBar.setAlpha(0.7f);
+        seekBar.setOnSeekBarChangeListener(this);
         progressHandler = new Handler();
         playIcon = getResources().getDrawable(R.drawable.play);
         pauseIcon = getResources().getDrawable(R.drawable.pause);
         setButtonListener();
 
-        req = billyapp.getRequestQueue();
-        final String scUrl = getResources().getString(R.string.soundcloud) + artist.replaceAll(" ", "+") + "+" + song.replaceAll(" ", "+") + getResources().getString(R.string.sc_params);
-        Log.d(TAG, "scUrl is " + scUrl.substring(0, 100) + "...");
-        StringRequest stringreq = new StringRequest(Request.Method.GET, scUrl, scComplete(), scError());
-        req.add(stringreq);
-        final String lastFmBioUrl = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist="+artist.replaceAll(" ","+")+"&api_key=67b01760e70bb90ff51ae8590b3c2ba8&format=json";
-        JsonObjectRequest wikiSearch = new JsonObjectRequest(Request.Method.GET, lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
-        req.add(wikiSearch);
-
-        ft = new ProcessingTask();
+        if (savedInstanceState == null) {
+            req = billyapp.getRequestQueue();
+            final String scUrl = getResources().getString(R.string.soundcloud) + artist.replaceAll(" ", "+") + "+" + song.replaceAll(" ", "+") + getResources().getString(R.string.sc_params);
+            Log.d(TAG, "scUrl is " + scUrl.substring(0, 100) + "...");
+            StringRequest stringreq = new StringRequest(Request.Method.GET, scUrl, scComplete(), scError());
+            req.add(stringreq);
+            lastFmBioUrl = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=" + artist.replaceAll(" ", "+") + "&autocorrect=1&api_key=67b01760e70bb90ff51ae8590b3c2ba8&format=json";
+            Log.d(TAG, lastFmBioUrl);
+            JsonObjectRequest wikiSearch = new JsonObjectRequest(Request.Method.GET, lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
+            req.add(wikiSearch);
+            ft = new ProcessingTask();
+        }
 
         customActionBar();
 
@@ -112,23 +118,34 @@ public class DetailView extends Activity {
         hero = (NetworkImageView) findViewById(R.id.image_header);
         hero.setImageUrl(artwork, imgload);
 
-
         ((NotifyingScrollView) findViewById(R.id.scroll_view)).setOnScrollChangedListener(mOnScrollChangedListener);
 
         serviceIntent = new Intent(this, PlayerService.class);
-
         if (PlayerService.isRunning) {
             bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
         }
     }
 
-    private Response.ErrorListener lastFmBioError() {
-        return new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError volleyError) {
-                Log.d(TAG, volleyError.toString());
-            }
-        };
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("lastFmBio", lastFmBio);
+        outState.putString("streamLink", streamLink);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        lastFmBio = savedInstanceState.getString("lastFmBio");
+        streamLink = savedInstanceState.getString("streamLink");
+        (findViewById(R.id.spinner)).setVisibility(View.GONE);
+        if (!lastFmBio.isEmpty()) {
+            ((TextView) findViewById(R.id.artistTitle)).setText(artist);
+            ((TextView) findViewById(R.id.artistBio)).setText(lastFmBio);
+            (findViewById(R.id.artistInfo)).setVisibility(View.VISIBLE);
+        }
+        animate();
+        streamBtn.setVisibility(View.VISIBLE);
     }
 
     private Response.Listener<JSONObject> lastFmBioComplete() {
@@ -136,15 +153,34 @@ public class DetailView extends Activity {
             @Override
             public void onResponse(JSONObject jsonObject) {
                 try {
-                    lastFmBio = jsonObject.getJSONObject("artist").getJSONObject("bio").getString("summary");
-                    lastFmBio = Html.fromHtml(lastFmBio).toString();
-                    TextView artistTitle = (TextView) findViewById(R.id.artistTitle);
-                    TextView artistBio = (TextView) findViewById(R.id.artistBio);
-                    artistTitle.setText(artist);
-                    artistBio.setText(lastFmBio);
+                    (findViewById(R.id.spinner)).setVisibility(View.GONE);
+                    lastFmBio = Html.fromHtml(jsonObject.getJSONObject("artist").getJSONObject("bio").getString("summary")).toString();
+                    if (!lastFmBio.isEmpty()) {
+                        String firstLine = lastFmBio.substring(0, lastFmBio.indexOf("."));
+                        if (firstLine.startsWith("There are") || firstLine.startsWith("There is")) {
+                            lastFmBio = lastFmBio.substring(lastFmBio.indexOf("1)") + 3);
+                        }
+                        lastFmBio = lastFmBio.substring(0, lastFmBio.indexOf(".", lastFmBio.indexOf(".") + 1) + 1);
+                        if (lastFmBio.length() > 250) {
+                            lastFmBio = lastFmBio.substring(0, lastFmBio.indexOf(".") + 1);
+                        }
+                        ((TextView) findViewById(R.id.artistTitle)).setText(artist);
+                        ((TextView) findViewById(R.id.artistBio)).setText(lastFmBio);
+                        (findViewById(R.id.artistInfo)).setVisibility(View.VISIBLE);
+                    }
                 } catch (JSONException e) {
+                    Log.d(TAG,"Last.FM URL is "+lastFmBioUrl);
                     e.printStackTrace();
                 }
+            }
+        };
+    }
+
+    private Response.ErrorListener lastFmBioError() {
+        return new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                Log.d(TAG, volleyError.toString());
             }
         };
     }
@@ -194,15 +230,18 @@ public class DetailView extends Activity {
             mService = binder.getService();
 
             if (PlayerService.isRunning && !PlayerService.isIdle) {
-                Log.d(TAG, "Service is running and is not idle");
+                Log.d(TAG, "Service is running and is not idle - onServiceConnected");
                 if (song.equalsIgnoreCase(mService.song)) {
-                    Thread progressThread = new Thread(progress);
-                    progressThread.start();
-                    progressBar.setMax(mService.bp.getDuration() / 1000);
-                    progressBar.setVisibility(View.VISIBLE);
                     if (mService.bp.isPlaying()) {
                         isMusicPlaying = true;
                         streamBtn.setImageDrawable(pauseIcon);
+                        Thread progressThread = new Thread(progress);
+                        progressThread.start();
+                        songLength = mService.bp.getDuration() / 1000;
+                        secondaryProgressFactor = (float) songLength/100;
+                        Log.d(TAG,"songlength, secondary "+songLength+" "+secondaryProgressFactor);
+                        seekBar.setMax(songLength);
+                        seekBar.setVisibility(View.VISIBLE);
                     }
                 }
             }
@@ -212,11 +251,12 @@ public class DetailView extends Activity {
                 public void onPrepared(int duration) {
                     dashes.clearAnimation();
                     dashes.setVisibility(View.GONE);
-                    progressBar.setVisibility(View.VISIBLE);
-                    //progressBar.setBackgroundColor(Color.TRANSPARENT);
-                    progressBar.setMax(duration);
+                    seekBar.setMax(duration);
                     songLength = duration;
+                    secondaryProgressFactor = (float) songLength/100;
+                    Log.d(TAG,"songlength, secondary "+songLength+" "+secondaryProgressFactor);
                     Thread progressThread = new Thread(progress);
+                    seekBar.setVisibility(View.VISIBLE);
                     progressThread.start();
                     streamBtn.setImageDrawable(pauseIcon);
                 }
@@ -225,7 +265,8 @@ public class DetailView extends Activity {
                 @Override
                 public void onCompletion() {
                     streamBtn.setImageDrawable(playIcon);
-                    progressBar.setVisibility(View.GONE);
+                    seekBar.setVisibility(View.GONE);
+                    stopTh = true;
                     isMusicPlaying = false;
                 }
 
@@ -237,21 +278,22 @@ public class DetailView extends Activity {
                     dashes.setVisibility(View.GONE);
                 }
 
+                @Override
                 public void onStop() {
                     onCompletion();
-                    //unbindService(mConnection);
-                    //bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
                 }
 
+                @Override
                 public void onNotificationPausePressed() {
                     streamBtn.setImageDrawable(playIcon);
-                    progressBar.setVisibility(View.GONE);
+                    seekBar.setVisibility(View.GONE);
                     isMusicPlaying = false;
                 }
 
+                @Override
                 public void onNotificationPlayPressed() {
                     streamBtn.setImageDrawable(pauseIcon);
-                    progressBar.setVisibility(View.VISIBLE);
+                    seekBar.setVisibility(View.VISIBLE);
                     isMusicPlaying = true;
                 }
             });
@@ -265,13 +307,15 @@ public class DetailView extends Activity {
             public void onClick(View view) {
                 if (!isMusicPlaying) {
                     if (PlayerService.isRunning && !PlayerService.isIdle) {
-                        Log.d(TAG, "Service is running and is not idle");
+                        Log.d(TAG, "Service is running and is not idle - onButtonClick");
                         if (song.equalsIgnoreCase(mService.song)) {
                             Log.d(TAG, "Song matched");
                             mService.playMedia();
-                            streamBtn.setImageDrawable(pauseIcon);
-                            progressBar.setVisibility(View.VISIBLE);
                             isMusicPlaying = true;
+                            streamBtn.setImageDrawable(pauseIcon);
+                            Thread progressThread = new Thread(progress);
+                            progressThread.start();
+                            seekBar.setVisibility(View.VISIBLE);
                         } else {
                             streamTrack();
                         }
@@ -283,11 +327,7 @@ public class DetailView extends Activity {
                     dashes.clearAnimation();
                     dashes.setVisibility(View.INVISIBLE);
                     mService.doPause();
-                    //unbindService(mConnection);
-                    //stopService(serviceIntent);
                     isMusicPlaying = false;
-                    //mBound = false;
-                    progressBar.setVisibility(View.GONE);
                 }
             }
         });
@@ -322,9 +362,15 @@ public class DetailView extends Activity {
     Runnable progress = new Runnable() {
         @Override
         public void run() {
-            if (PlayerService.isRunning) {
+            if(!DetailView.active || stopTh){
+                stopTh = false;
+                return;
+            }
+            else if (PlayerService.isRunning) {
                 if (!PlayerService.isIdle) {
-                    progressBar.setProgress(mService.bp.getCurrentPosition()/1000);
+                    seekBar.setProgress(mService.bp.getCurrentPosition() / 1000);
+                    seekBar.setSecondaryProgress((int) (mService.bufferPercent*secondaryProgressFactor));
+                    Log.d(TAG,"Max "+seekBar.getMax()+" progress "+seekBar.getProgress()+" secondary "+seekBar.getSecondaryProgress());
                 }
             }
             progressHandler.postDelayed(progress, 1000);
@@ -392,10 +438,32 @@ public class DetailView extends Activity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (mBound) {
             unbindService(mConnection);
         }
+        active = false;
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+        seekBar.setAlpha(1.0f);
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        seekBar.setAlpha(0.8f);
+        mService.bp.seekTo(seekBar.getProgress() * 1000);
+    }
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
     }
 }

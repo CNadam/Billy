@@ -23,11 +23,12 @@ import com.android.volley.toolbox.ImageRequest;
 
 import java.io.IOException;
 
-public class PlayerService extends Service implements MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener,MediaPlayer.OnPreparedListener,MediaPlayer.OnInfoListener {
+public class PlayerService extends Service implements MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnInfoListener, MediaPlayer.OnSeekCompleteListener {
     private static final String TAG = "Player".getClass().getSimpleName();
     MediaPlayer bp = new MediaPlayer();
     String streamLink, song, album, artist, artwork;
     int songIndex;
+    int bufferPercent;
     Notification note;
     NotificationManager noteMan;
     Bitmap notifIcon;
@@ -47,12 +48,18 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         bp.pause();
     }
 
-    public interface onBPChangedListener{
+
+    public interface onBPChangedListener {
         void onPrepared(int duration);
+
         void onCompletion();
+
         void onError(int i, int i2);
+
         void onStop();
+
         void onNotificationPausePressed();
+
         void onNotificationPlayPressed();
     }
 
@@ -87,9 +94,10 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         bp.setOnCompletionListener(this);
         bp.setOnErrorListener(this);
         bp.setOnInfoListener(this);
+        bp.setOnSeekCompleteListener(this);
         bp.reset();
 
-        Log.d(TAG,"Service's oncreate");
+        Log.d(TAG, "Service's oncreate");
     }
 
     @Override
@@ -103,7 +111,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         song = intent.getStringExtra("songName");
         album = intent.getStringExtra("albumName");
         artist = intent.getStringExtra("artistName");
-        songIndex = intent.getIntExtra("songIndex",50);
+        songIndex = intent.getIntExtra("songIndex", 50);
         artwork = intent.getStringExtra("artwork");
 
         bp.reset();
@@ -123,13 +131,14 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         isIdle = false;
-        BPlistener.onPrepared(bp.getDuration()/1000);
+        BPlistener.onPrepared(bp.getDuration() / 1000);
         playMedia();
     }
 
 
     @Override
     public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
+        bufferPercent = i;
     }
 
     @Override
@@ -149,19 +158,19 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     public boolean onError(MediaPlayer mediaPlayer, int i, int i2) {
         stopForeground(true);
         //unregisterReceiver(NotificationMediaControl);
-        BPlistener.onError(i,i2);
-        switch(i){
+        BPlistener.onError(i, i2);
+        switch (i) {
             case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
-                Log.d(TAG,"MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK "+ i2);
+                Log.d(TAG, "MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK " + i2);
                 break;
             case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
-                Log.d(TAG,"MEDIA_ERROR_SERVER_DIED "+i2);
+                Log.d(TAG, "MEDIA_ERROR_SERVER_DIED " + i2);
                 break;
             case MediaPlayer.MEDIA_ERROR_IO:
-                Log.d(TAG,"MEDIA_ERROR_IO "+i2);
+                Log.d(TAG, "MEDIA_ERROR_IO " + i2);
                 break;
             case MediaPlayer.MEDIA_ERROR_UNKNOWN:
-                Log.d(TAG,"MEDIA_ERROR_UNKNOWN "+i2);
+                Log.d(TAG, "MEDIA_ERROR_UNKNOWN " + i2);
                 break;
         }
         return false;
@@ -173,11 +182,16 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     }
 
     @Override
+    public void onSeekComplete(MediaPlayer mediaPlayer) {
+
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         isRunning = false;
         if (bp != null) {
-            if (bp.isPlaying()){
+            if (bp.isPlaying()) {
                 bp.stop();
             }
             bp.reset();
@@ -188,7 +202,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     }
 
     public void playMedia() {
-        if(!bp.isPlaying()){
+        if (!bp.isPlaying()) {
             bp.start();
             putNotification();
         }
@@ -196,8 +210,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
 
     public void stopMedia() {
-        if(bp.isPlaying())
-        {
+        if (bp.isPlaying()) {
             bp.stop();
             BPlistener.onStop();
         }
@@ -220,12 +233,12 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
         //TODO check if this is actually fetching
         if (req.getCache().get(artwork) == null) {
-            ImageRequest imagereq = new ImageRequest(artwork,new Response.Listener<Bitmap>() {
+            ImageRequest imagereq = new ImageRequest(artwork, new Response.Listener<Bitmap>() {
                 @Override
                 public void onResponse(Bitmap bitmap) {
                     notifIcon = bitmap;
                 }
-            },400,400,null,null);
+            }, 400, 400, null, null);
             req.add(imagereq);
         } else {
             notifIcon = BitmapFactory.decodeByteArray(req.getCache().get(artwork).data, 0, req.getCache().get(artwork).data.length);
@@ -233,17 +246,17 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         notifView.setImageViewBitmap(R.id.artwork, notifIcon);
         Intent pauseIntent = new Intent("com.vibin.billy.ACTION_PAUSE");
         Intent quitIntent = new Intent("com.vibin.billy.ACTION_QUIT");
-        PendingIntent pendingPauseIntent = PendingIntent.getBroadcast(getBaseContext(),100,pauseIntent,0);
-        PendingIntent pendingQuitIntent = PendingIntent.getBroadcast(getBaseContext(),100,quitIntent,0);
-        notifView.setOnClickPendingIntent(R.id.control,pendingPauseIntent);
-        notifView.setOnClickPendingIntent(R.id.dismiss,pendingQuitIntent);
+        PendingIntent pendingPauseIntent = PendingIntent.getBroadcast(getBaseContext(), 100, pauseIntent, 0);
+        PendingIntent pendingQuitIntent = PendingIntent.getBroadcast(getBaseContext(), 100, quitIntent, 0);
+        notifView.setOnClickPendingIntent(R.id.control, pendingPauseIntent);
+        notifView.setOnClickPendingIntent(R.id.dismiss, pendingQuitIntent);
         startForeground(1, note);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.vibin.billy.ACTION_PAUSE");
         filter.addAction("com.vibin.billy.ACTION_PLAY");
         filter.addAction("com.vibin.billy.ACTION_QUIT");
-        registerReceiver(NotificationMediaControl,filter);
+        registerReceiver(NotificationMediaControl, filter);
     }
 
     private final BroadcastReceiver NotificationMediaControl = new BroadcastReceiver() {
@@ -251,24 +264,24 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
-            if(action.equalsIgnoreCase("com.vibin.billy.ACTION_PAUSE")){
+            if (action.equalsIgnoreCase("com.vibin.billy.ACTION_PAUSE")) {
                 bp.pause();
                 BPlistener.onNotificationPausePressed();
                 notifView.setInt(R.id.control, "setImageResource", R.drawable.notification_play);
                 Intent playIntent = new Intent("com.vibin.billy.ACTION_PLAY");
-                PendingIntent pendingIntent = PendingIntent.getBroadcast(getBaseContext(),100,playIntent,0);
-                notifView.setOnClickPendingIntent(R.id.control,pendingIntent);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(getBaseContext(), 100, playIntent, 0);
+                notifView.setOnClickPendingIntent(R.id.control, pendingIntent);
             }
 
-            if(action.equalsIgnoreCase("com.vibin.billy.ACTION_PLAY")){
+            if (action.equalsIgnoreCase("com.vibin.billy.ACTION_PLAY")) {
                 bp.start();
                 BPlistener.onNotificationPlayPressed();
                 notifView.setInt(R.id.control, "setImageResource", R.drawable.notification_pause);
                 Intent pauseIntent = new Intent("com.vibin.billy.ACTION_PAUSE");
-                PendingIntent pendingIntent = PendingIntent.getBroadcast(getBaseContext(),100,pauseIntent,0);
-                notifView.setOnClickPendingIntent(R.id.control,pendingIntent);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(getBaseContext(), 100, pauseIntent, 0);
+                notifView.setOnClickPendingIntent(R.id.control, pendingIntent);
             }
-            if(action.equalsIgnoreCase("com.vibin.billy.ACTION_QUIT")){
+            if (action.equalsIgnoreCase("com.vibin.billy.ACTION_QUIT")) {
                 stopForeground(true);
                 stopMedia();
                 stopSelf();

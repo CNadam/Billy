@@ -12,7 +12,7 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
 
     private static final String TAG = CustomFragmentAdapter.class.getSimpleName();
     protected static final String[] CONTENT = new String[]{
-            "Most Popular", "Pop", "Rock", "Dance" //TODO add more genres
+            "Most Popular", "Pop", "Rock", "Dance"
     };
     private int mCount = CONTENT.length;
     Context c;
