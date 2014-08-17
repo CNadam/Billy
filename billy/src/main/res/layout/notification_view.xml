@@ -89,17 +89,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/notification_dismiss"
-                android:cropToPadding="false"
-                android:adjustViewBounds="false"
-                android:layout_gravity="right"
-                android:layout_margin="2dp" />
+                android:layout_gravity="right"/>
 
-            <ImageButton
+            <ImageView
                 android:id="@+id/control"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:background="@drawable/notification_pause"
+                android:background="@null"
                 android:layout_margin="15dp" />
 
         </LinearLayout>

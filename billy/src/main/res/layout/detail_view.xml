@@ -18,7 +18,7 @@
             android:layout_alignParentStart="false"
             android:scaleType="centerCrop" />
 
-        <ImageButton
+        <com.vibin.billy.NotifyingImageButton
             android:id="@+id/streamButton"
             android:layout_width="100dp"
             android:layout_height="100dp"
@@ -33,7 +33,7 @@
             android:visibility="invisible"
             tools:visibility="visible" />
 
-        <ImageView
+        <com.vibin.billy.NotifyingImageView
             android:id="@+id/dashes"
             android:layout_width="112dp"
             android:layout_height="112dp"
@@ -58,13 +58,13 @@
             android:indeterminate="false"
             android:maxHeight="5dp"
             android:minHeight="5dp"
+            android:paddingRight="0dp"
+            android:paddingTop="25dp"
             android:progressDrawable="@drawable/seekbar_progress"
             android:thumb="@android:color/transparent"
+            android:visibility="gone"
             tools:progress="100"
-            tools:visibility="visible"
-            android:paddingRight="0dp"
-            android:paddingTop="25dp" />
-        <!--TODO-->
+            tools:visibility="visible" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -108,7 +108,7 @@
                 android:layout_marginBottom="10dp"
                 android:background="@drawable/cardui"
                 android:orientation="vertical"
-                android:paddingBottom="15dp"
+                android:paddingBottom="10dp"
                 android:paddingLeft="5dp"
                 android:paddingRight="5dp"
                 android:paddingTop="5dp"
@@ -139,11 +139,12 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/topAlbums"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/cardui"
                 android:orientation="vertical"
-                android:paddingBottom="15dp"
+                android:paddingBottom="10dp"
                 android:paddingLeft="5dp"
                 android:paddingRight="5dp"
                 android:paddingTop="5dp"
@@ -151,26 +152,140 @@
                 tools:visibility="visible">
 
                 <TextView
-                    android:id="@+id/topAlbums"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal|left"
+                    android:layout_gravity="left"
                     android:layout_marginTop="5dp"
-                    android:focusableInTouchMode="false"
                     android:fontFamily="sans-serif-light"
                     android:paddingBottom="5dp"
                     android:paddingLeft="10dp"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    tools:text="Top Albums" />
+                    android:text="@string/topalbums"
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
 
-                <TextView
-                    android:id="@+id/lyricsDesc"
+                <RelativeLayout
+                    android:id="@+id/topAlbumImages"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif"
-                    android:paddingLeft="10dp"
-                    tools:text="We're up all night to get lucky!" />
+                    android:gravity="center_horizontal"
+                    android:orientation="horizontal">
+
+                    <RelativeLayout
+                        android:id="@+id/relate0"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <com.android.volley.toolbox.NetworkImageView
+                            android:id="@+id/relatedImage0"
+                            android:layout_width="110dp"
+                            android:layout_height="110dp" />
+
+                        <TextView
+                            android:id="@+id/relatedText0"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/relatedImage0"
+                            android:layout_centerHorizontal="true"
+                            android:paddingTop="3dp"
+                            tools:text="First album" />
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/relate1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_toRightOf="@+id/relate0"
+                        android:orientation="vertical">
+
+                        <com.android.volley.toolbox.NetworkImageView
+                            android:id="@+id/relatedImage1"
+                            android:layout_width="110dp"
+                            android:layout_height="110dp" />
+
+                        <TextView
+                            android:id="@+id/relatedText1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/relatedImage1"
+                            android:layout_centerHorizontal="true"
+                            android:paddingTop="3dp"
+                            tools:text="Second album" />
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_toRightOf="@+id/relate1"
+                        android:orientation="vertical">
+
+                        <com.android.volley.toolbox.NetworkImageView
+                            android:id="@+id/relatedImage2"
+                            android:layout_width="110dp"
+                            android:layout_height="110dp" />
+
+                        <TextView
+                            android:id="@+id/relatedText2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/relatedImage2"
+                            android:layout_centerHorizontal="true"
+                            android:paddingTop="3dp"
+                            tools:text="Third album" />
+                    </RelativeLayout>
+                </RelativeLayout>
+
             </LinearLayout>
+
+            <RelativeLayout
+                android:id="@+id/youTube"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/cardui"
+                android:orientation="vertical"
+                android:paddingBottom="10dp"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:paddingTop="5dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_marginTop="5dp"
+                    android:fontFamily="sans-serif-light"
+                    android:paddingBottom="5dp"
+                    android:paddingLeft="10dp"
+                    android:text="@string/watch"
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
+
+                <!-- empty SurfaceView to get rid of YouTube flickering bug -->
+                <SurfaceView
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone" />
+
+                <FrameLayout
+                    android:id="@+id/youTubeFrame"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="visible">
+<!--
+                    <ImageButton
+                        android:id="@+id/youTubePlay"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_gravity="center"
+                        android:background="@null"
+                        android:src="@drawable/youtube_play" />-->
+
+
+                    </FrameLayout>
+
+            </RelativeLayout>
 
 
         </LinearLayout>

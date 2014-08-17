@@ -2,6 +2,7 @@ package com.vibin.billy;
 
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
+import android.util.Log;
 
 import com.android.volley.toolbox.ImageLoader;
 
@@ -45,6 +46,8 @@ public class BitmapLruCache
         final int maxMemory =
                 (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSize = maxMemory / 8;
+
+        Log.d(TAG,"cachesize is "+cacheSize);
 
         return cacheSize;
     }

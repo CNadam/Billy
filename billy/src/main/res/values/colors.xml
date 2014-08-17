@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="billyred">#FFEA5157</color>
-    <color name="billygreen">#FF4DC25C</color>
-    <color name="seekbar">#fff92d2d</color> <!--slightly darker billyred-->
+    <color name="seekbar">#CE474C</color> <!--slightly darker billyred-->
     <color name="secondaryprogress">#96ea5157</color>
+    <color name="billygreen">#FF4DC25C</color>
 </resources>

@@ -1,6 +1,7 @@
 package com.vibin.billy;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ListFragment;
@@ -39,6 +40,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     ArrayList<ProcessingTask.BillyData> mData;
     String[] billySong, billyArtist, result;
     LinearLayout spinner;
+    View v;
     boolean spinnerVisible;
     CustomBaseAdapter customBaseAdapter;
     CustomDatabaseAdapter customDatabaseAdapter;
@@ -64,13 +66,20 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         billyapp = (BillyApplication) getActivity().getApplication();
         billySize = billyapp.getBillySize();
         imgload = billyapp.getImageLoader();
+        req = billyapp.getRequestQueue();
+
+        billySong = new String[billySize];
+        billyArtist = new String[billySize];
+        ft = new ProcessingTask(billySize);
         mData = new ArrayList<ProcessingTask.BillyData>(billySize);
         while (mData.size() < billySize) {
             mData.add(new ProcessingTask.BillyData());
         }
+
         customDatabaseAdapter = new CustomDatabaseAdapter(getActivity());
         setHasOptionsMenu(true);
 
+        rssurl = getResources().getStringArray(R.array.url)[position];
         table_name = getResources().getStringArray(R.array.table)[position];
         if (!billyapp.isConnected()) {
             Log.d(tag, "No internet connection");
@@ -83,25 +92,22 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
         //Spawn requests only on new Instance
         if (savedInstanceState == null && billyapp.isConnected()) {
-            Log.d(tag, "Instance is null");
-            rssurl = getResources().getStringArray(R.array.url)[position];
-            billySong = new String[billySize];
-            billyArtist = new String[billySize];
-            req = billyapp.getRequestQueue();
-            ft = new ProcessingTask(billySize);
-
-            spinnerVisible = true;
-
-            // Get Billboard XML
-            StringRequest stringreq = new StringRequest(Request.Method.GET, rssurl, billyComplete(), billyError());
-            req.add(stringreq);
+                performRequests();
         }
+    }
+
+    private void performRequests() {
+        spinnerVisible = true;
+
+        StringRequest stringreq = new StringRequest(Request.Method.GET, rssurl, billyComplete(), billyError());
+        stringreq.setTag("billyreq");
+        req.add(stringreq);
     }
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_songs, container, false);
+        v = inflater.inflate(R.layout.fragment_songs, container, false);
         customBaseAdapter = new CustomBaseAdapter(getActivity(), mData, imgload);
         spinner = (LinearLayout) v.findViewById(R.id.spinner);
         if (spinnerVisible) {
@@ -119,10 +125,17 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
         // Restore instance, on Orientation change
         if (savedInstanceState != null) {
-            Log.d(tag, "Instance is NOT null!");
+            Log.d(tag,"not null");
             mData = savedInstanceState.getParcelableArrayList("MDATA");
-            customBaseAdapter.updateArrayList(mData);
-            customBaseAdapter.notifyDataSetChanged();
+            if(mData == null)
+            {
+                Log.d(tag,"mdata is indeed null");
+                performRequests();
+            }
+            else {
+                customBaseAdapter.updateArrayList(mData);
+                customBaseAdapter.notifyDataSetChanged();
+            }
         } else if (!billyapp.isConnected()) {
             customBaseAdapter.updateArrayList(mData);
             customBaseAdapter.notifyDataSetChanged();
@@ -157,20 +170,16 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         outState.putParcelableArrayList("MDATA", mData);
 
         // If connected to internet, write to database, but only once
-        if (onlyOnce == 0 && billyapp.isConnected() && !mData.isEmpty()) {
-            Gson gson = new Gson();
-            String jsonMdata = gson.toJson(mData);
-            long yolo = customDatabaseAdapter.insertArrayList(jsonMdata, table_name);
-            onlyOnce++;
-            Log.d(tag, "Arraylist is serialized and yolo is " + yolo);
-        }
-        else if(mData.isEmpty())
-        {
-            Log.e(tag,"ArrayList is empty");
+        if (onlyOnce == 0 && billyapp.isConnected()) {
+            if(checkArrayList(mData)) {
+                Gson gson = new Gson();
+                String jsonMdata = gson.toJson(mData);
+                long yolo = customDatabaseAdapter.insertArrayList(jsonMdata, table_name);
+                onlyOnce++;
+            }
         }
         super.onSaveInstanceState(outState);
     }
-
 
     // Listeners for Billboard request
     private Response.Listener<String> billyComplete() {
@@ -179,7 +188,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             public void onResponse(String response) {
                 spinnerVisible = false;
                 spinner.setVisibility(View.GONE);
-                getListView().setVisibility(View.VISIBLE);
+                v.findViewById(android.R.id.list).setVisibility(View.VISIBLE);
                 try {
                     Cache.Entry entry = req.getCache().get(rssurl);
                     String data = new String(entry.data, "UTF-8");
@@ -188,6 +197,10 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                         Log.d(tag, "Pull to refresh");
                         if (!response.equalsIgnoreCase(data)) {
                             Toast.makeText(getActivity(), "New songs have loaded", Toast.LENGTH_LONG).show();
+                        }
+                        else{
+                            Toast.makeText(getActivity(), "No new songs available",
+                               Toast.LENGTH_LONG).show();
                         }
                         handleXML(response);
                         pulltorefresh = false;
@@ -241,13 +254,19 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     }
 
     private void callitunes(int mIndex) {
-        searchparam = ft.paramEncode(billyArtist[mIndex]) + "+" + ft.paramEncode(billySong[mIndex]);
-        uri = getResources().getString(R.string.itunes) + searchparam + getResources().getString(R.string.itunes_params);
-        Log.d(tag, uri);
-        JsonObjectRequest jsonreq = new JsonObjectRequest(Request.Method.GET, uri, null, itunesComplete(), itunesError());
-        req.add(jsonreq);
+        try {
+            searchparam = ft.paramEncode(billyArtist[mIndex]) + "+" + ft.paramEncode(billySong[mIndex]);
+            uri = getResources().getString(R.string.itunes) + searchparam + getResources().getString(R.string.itunes_params);
+            Log.d(tag, uri);
+            JsonObjectRequest jsonreq = new JsonObjectRequest(Request.Method.GET, uri, null, itunesComplete(), itunesError());
+            req.add(jsonreq);
+        } catch (NullPointerException e) {
+            pulltorefresh = true;
+            StringRequest stringreq = new StringRequest(Request.Method.GET, rssurl, billyComplete(), billyError());
+            req.add(stringreq);
+            e.printStackTrace();
+        }
     }
-
 
     /**
      * Parses JSONObject, populates {@code mData}, notifies the BaseAdapter
@@ -295,8 +314,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 myintent.putExtra("index", i);
                 startActivity(myintent);
             } else {
-                Toast.makeText(getActivity(), "Tap the card to refresh",
-                        Toast.LENGTH_LONG).show();
+                //Toast.makeText(getActivity(), "Tap the card to refresh", Toast.LENGTH_LONG).show();
                 callitunes(i);
                 customBaseAdapter.notifyDataSetChanged();
             }
@@ -344,5 +362,30 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 }
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        req.cancelAll("billyreq");
+    }
+
+    private boolean checkArrayList(ArrayList<ProcessingTask.BillyData> mData) {
+        int i = 0;
+        try {
+            while(i < mData.size()){
+                if(mData.get(i) == null)
+                {
+                    return false;
+                }
+                else if(mData.get(i).artwork.isEmpty()){
+                    return false;
+                }
+                i++;
+            }
+        } catch (NullPointerException e) {
+            return false;
+        }
+        return true;
     }
 }

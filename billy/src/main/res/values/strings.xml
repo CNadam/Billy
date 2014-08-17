@@ -19,9 +19,22 @@
         <item name="dance">http://www1.billboard.com/rss/charts/dance-electronic-songs</item>
     </string-array>
 
+    <string-array name="albumArtQuality">
+        <item>Normal</item>
+        <item>High</item>
+    </string-array>
+
+    <string-array name="album_art_values">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
     <string name="itunes">http://itunes.apple.com/search?term=</string>
     <string name="itunes_params">&amp;limit=2</string>
     <string name="soundcloud">https://api.soundcloud.com/tracks.format?consumer_key=d0f2d22083bc8233aab32f3f7d1d0bbc&amp;q=</string>
     <string name="sc_params">&amp;filter=all&amp;track_type=original&amp;limit=2</string>
     <string name="loadingText">Loading…</string>
+    <string name="topalbums">Top Albums</string>
+    <string name="album_art_title">Album Art Quality</string>
+    <string name="watch">Watch Video</string>
 </resources>

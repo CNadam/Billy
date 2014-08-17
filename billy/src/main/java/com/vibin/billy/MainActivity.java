@@ -1,6 +1,7 @@
 package com.vibin.billy;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
@@ -22,7 +23,6 @@ public class MainActivity extends FragmentActivity {
     CustomFragmentAdapter mAdapter;
     TitlePageIndicator mIndicator;
     View customActionView;
-    MenuItem nowplaying;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,8 +70,10 @@ public class MainActivity extends FragmentActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_settings:
-                Toast.makeText(getBaseContext(), "This is settings",
-                        Toast.LENGTH_LONG).show();
+                Intent settingsIntent = new Intent(this,Settings.class);
+                startActivity(settingsIntent);
+                return true;
+            case R.id.about:
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -79,9 +81,11 @@ public class MainActivity extends FragmentActivity {
 
 }
 
-//TODO handle 2G/3G devices efficiently
-//TODO About page
-//TODO Intelligent SoundCloud track fetch
-//TODO Use RemoteController and put full screen lock image for KitKat+ devices
+//TODO service quits automatically when playing after sometime
 //TODO crashing when you rotate device just after opening app
+//TODO About page
+//TODO handle 2G/3G devices efficiently API Level 17
+//TODO Notification click intent flags
+//TODO Intelligent SoundCloud track fetch
 //TODO replace MediaPlayer code with MediaExtractor
+//TODO Use RemoteController and put full screen lock image for KitKat+ devices

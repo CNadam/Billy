@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
@@ -19,6 +20,8 @@ import android.widget.RemoteViews;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.ImageRequest;
 
 import java.io.IOException;
@@ -40,14 +43,10 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     public static boolean isRunning;
     public static boolean isIdle = true;
 
-    public int getCurrentPosition() {
-        return bp.getCurrentPosition();
-    }
-
     public void doPause() {
         bp.pause();
+        putNotification();
     }
-
 
     public interface onBPChangedListener {
         void onPrepared(int duration);
@@ -61,6 +60,8 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         void onNotificationPausePressed();
 
         void onNotificationPlayPressed();
+
+        void doUnbind();
     }
 
     // Return this instance of LocalService so clients can call public methods
@@ -118,6 +119,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
         if (!bp.isPlaying()) {
             try {
+                //bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
                 bp.setDataSource(streamLink);
 
                 bp.prepareAsync();
@@ -143,6 +145,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
+        Log.d(TAG, "Service oncompletion");
         BPlistener.onCompletion();
         stopForeground(true);
         try {
@@ -151,7 +154,6 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
             e.printStackTrace();
         }
         stopMedia();
-        //stopSelf();
     }
 
     @Override
@@ -189,7 +191,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     @Override
     public void onDestroy() {
         super.onDestroy();
-        isRunning = false;
+        Log.d(TAG, "Service ondestroy");
         if (bp != null) {
             if (bp.isPlaying()) {
                 bp.stop();
@@ -198,7 +200,13 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
             isIdle = true;
             bp.release();
         }
-        unregisterReceiver(NotificationMediaControl);
+        stopForeground(true);
+        try {
+            unregisterReceiver(NotificationMediaControl);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+        isRunning = false;
     }
 
     public void playMedia() {
@@ -216,40 +224,59 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         }
     }
 
-    //TODO
-
     /**
      * Put a sticky notification for media controls
      */
     private void putNotification() {
+        Intent resultIntent = new Intent(this, DetailView.class);
+        resultIntent.putExtra("song", song);
+        resultIntent.putExtra("album", album);
+        resultIntent.putExtra("artist", artist);
+        resultIntent.putExtra("artwork", artwork);
+        resultIntent.putExtra("index", songIndex);
+        //resultIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        //resultIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        resultIntent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         note = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setOngoing(true)
-                .setContentTitle("Custom View").build();
+                .setContentIntent(resultPendingIntent)
+                .setPriority(Notification.PRIORITY_MAX)
+                .setContentTitle("Billy").build();
         note.bigContentView = notifView;
         notifView.setTextViewText(R.id.song, song);
         notifView.setTextViewText(R.id.artist, artist);
         notifView.setTextViewText(R.id.album, album);
 
-        //TODO check if this is actually fetching
-        if (req.getCache().get(artwork) == null) {
-            ImageRequest imagereq = new ImageRequest(artwork, new Response.Listener<Bitmap>() {
-                @Override
-                public void onResponse(Bitmap bitmap) {
-                    notifIcon = bitmap;
-                }
-            }, 400, 400, null, null);
-            req.add(imagereq);
-        } else {
-            notifIcon = BitmapFactory.decodeByteArray(req.getCache().get(artwork).data, 0, req.getCache().get(artwork).data.length);
-        }
-        notifView.setImageViewBitmap(R.id.artwork, notifIcon);
+        billyapp.getImageLoader().get(artwork, new ImageLoader.ImageListener() {
+            @Override
+            public void onResponse(ImageLoader.ImageContainer imageContainer, boolean b) {
+                notifIcon = imageContainer.getBitmap();
+                notifView.setImageViewBitmap(R.id.artwork, notifIcon);
+            }
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                Log.d(TAG, volleyError.toString());
+            }
+        });
+
+        Intent playIntent = new Intent("com.vibin.billy.ACTION_PLAY");
         Intent pauseIntent = new Intent("com.vibin.billy.ACTION_PAUSE");
         Intent quitIntent = new Intent("com.vibin.billy.ACTION_QUIT");
-        PendingIntent pendingPauseIntent = PendingIntent.getBroadcast(getBaseContext(), 100, pauseIntent, 0);
         PendingIntent pendingQuitIntent = PendingIntent.getBroadcast(getBaseContext(), 100, quitIntent, 0);
-        notifView.setOnClickPendingIntent(R.id.control, pendingPauseIntent);
         notifView.setOnClickPendingIntent(R.id.dismiss, pendingQuitIntent);
+        if(bp.isPlaying())
+        {
+            notifView.setImageViewResource(R.id.control,R.drawable.notification_pause);
+            PendingIntent pendingPauseIntent = PendingIntent.getBroadcast(getBaseContext(), 100, pauseIntent, 0);
+            notifView.setOnClickPendingIntent(R.id.control, pendingPauseIntent);
+        }
+        else{
+            notifView.setImageViewResource(R.id.control,R.drawable.notification_play);
+            PendingIntent pendingPlayIntent = PendingIntent.getBroadcast(getBaseContext(), 100, playIntent, 0);
+            notifView.setOnClickPendingIntent(R.id.control, pendingPlayIntent);
+        }
         startForeground(1, note);
 
         IntentFilter filter = new IntentFilter();
@@ -267,26 +294,30 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
             if (action.equalsIgnoreCase("com.vibin.billy.ACTION_PAUSE")) {
                 bp.pause();
                 BPlistener.onNotificationPausePressed();
-                notifView.setInt(R.id.control, "setImageResource", R.drawable.notification_play);
-                Intent playIntent = new Intent("com.vibin.billy.ACTION_PLAY");
-                PendingIntent pendingIntent = PendingIntent.getBroadcast(getBaseContext(), 100, playIntent, 0);
-                notifView.setOnClickPendingIntent(R.id.control, pendingIntent);
+                putNotification();
             }
 
             if (action.equalsIgnoreCase("com.vibin.billy.ACTION_PLAY")) {
                 bp.start();
                 BPlistener.onNotificationPlayPressed();
-                notifView.setInt(R.id.control, "setImageResource", R.drawable.notification_pause);
-                Intent pauseIntent = new Intent("com.vibin.billy.ACTION_PAUSE");
-                PendingIntent pendingIntent = PendingIntent.getBroadcast(getBaseContext(), 100, pauseIntent, 0);
-                notifView.setOnClickPendingIntent(R.id.control, pendingIntent);
+                putNotification();
             }
             if (action.equalsIgnoreCase("com.vibin.billy.ACTION_QUIT")) {
                 stopForeground(true);
                 stopMedia();
+                BPlistener.doUnbind();
                 stopSelf();
             }
         }
     };
 
+    public void uncaughtException() {
+        try {
+            onDestroy();
+        }
+        catch(Throwable e)
+        {
+            e.printStackTrace();
+        }
+    }
 }

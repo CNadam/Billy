@@ -1,25 +1,35 @@
 package com.vibin.billy;
 
-import android.app.Activity;
+import android.app.ActionBar;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.app.FragmentActivity;
 import android.text.Html;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.view.animation.ScaleAnimation;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -33,23 +43,33 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.NetworkImageView;
 import com.android.volley.toolbox.StringRequest;
+import com.google.android.youtube.player.YouTubeInitializationResult;
+import com.google.android.youtube.player.YouTubePlayer;
+import com.google.android.youtube.player.YouTubePlayerFragment;
+import com.google.android.youtube.player.YouTubePlayerSupportFragment;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.Arrays;
 
-public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListener {
-    String song, artwork, artist, album, streamLink, lastFmBio;
+import static com.google.android.youtube.player.YouTubePlayer.PlayerStateChangeListener;
+
+public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarChangeListener {
+    String song, artwork, artist, album, streamLink, lastFmBio, videoId;
+    String[] relatedAlbumImg, relatedAlbums;
     int songIndex, songLength;
-    boolean isMusicPlaying, mBound, stopTh;
-    static boolean active;
+    boolean isMusicPlaying, stopTh;
+    static boolean isFullScreen;
+    static boolean active, mBound;
     Drawable playIcon, pauseIcon;
     View customActionView;
-    ImageButton streamBtn;
-    ImageView dashes;
+    NotifyingImageButton streamBtn;
+    NotifyingImageView dashes;
     Intent serviceIntent;
     BillyApplication billyapp;
     Drawable mActionBarBackgroundDrawable;
@@ -61,12 +81,15 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
     RotateAnimation rotateAnim;
     ScaleAnimation scaleAnim;
     NetworkImageView hero;
+    ImageLoader imgload;
     RequestQueue req;
     PlayerService mService;
     Handler progressHandler;
-    String lastFmBioUrl;
     float secondaryProgressFactor;
+    YouTubePlayerSupportFragment mYoutubePlayerFragment;
+    static YouTubePlayer youtubePlayer;
 
+    private static final String youtubeKey = "AIzaSyBTd_9XHpK-Jj7ZW8sNAstNKwSU18gf-6g";
     private static final String TAG = DetailView.class.getSimpleName();
 
     @Override
@@ -76,6 +99,7 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
 
         active = true;
         billyapp = (BillyApplication) this.getApplication();
+        imgload = billyapp.getImageLoader();
 
         itemData = getIntent().getExtras();
         song = itemData.getString("song");
@@ -84,37 +108,47 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
         artwork = itemData.getString("artwork");
         songIndex = itemData.getInt("index");
 
-        streamBtn = (ImageButton) findViewById(R.id.streamButton);
-        dashes = (ImageView) findViewById(R.id.dashes);
+        relatedAlbumImg = new String[3];
+        relatedAlbums = new String[3];
+        streamBtn = (NotifyingImageButton) findViewById(R.id.streamButton);
+        dashes = (NotifyingImageView) findViewById(R.id.dashes);
         seekBar = (SeekBar) findViewById(R.id.seekBar);
         seekBar.setAlpha(0.7f);
         seekBar.setOnSeekBarChangeListener(this);
+
+        //TODO Manage uncaught exceptions
+/*        Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread thread, Throwable throwable) {
+                try {
+                    Thread.getDefaultUncaughtExceptionHandler().uncaughtException(thread, throwable);
+                    mService.uncaughtException();
+                }
+                catch(Exception e)
+                {
+                    Log.d(TAG, e.toString());
+                }
+            }
+        });*/
+
         progressHandler = new Handler();
         playIcon = getResources().getDrawable(R.drawable.play);
         pauseIcon = getResources().getDrawable(R.drawable.pause);
         setButtonListener();
 
+        streamBtn.setLayoutChangedListener(new NotifyingImageButton.OnLayoutChangedListener() {
+            @Override
+            public void onLayout(boolean changed, int l, int t, int r, int b) {
+                animate();
+            }
+        });
+
         if (savedInstanceState == null) {
-            req = billyapp.getRequestQueue();
-            final String scUrl = getResources().getString(R.string.soundcloud) + artist.replaceAll(" ", "+") + "+" + song.replaceAll(" ", "+") + getResources().getString(R.string.sc_params);
-            Log.d(TAG, "scUrl is " + scUrl.substring(0, 100) + "...");
-            StringRequest stringreq = new StringRequest(Request.Method.GET, scUrl, scComplete(), scError());
-            req.add(stringreq);
-            lastFmBioUrl = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=" + artist.replaceAll(" ", "+") + "&autocorrect=1&api_key=67b01760e70bb90ff51ae8590b3c2ba8&format=json";
-            Log.d(TAG, lastFmBioUrl);
-            JsonObjectRequest wikiSearch = new JsonObjectRequest(Request.Method.GET, lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
-            req.add(wikiSearch);
-            ft = new ProcessingTask();
+            performRequests();
         }
 
         customActionBar();
 
-        tintManager = new SystemBarTintManager(this);
-        tintManager.setStatusBarTintEnabled(true);
-        tintManager.setTintColor(getResources().getColor(R.color.billyred));
-        tintManager.setTintAlpha(0);
-
-        ImageLoader imgload = billyapp.getImageLoader();
         hero = (NetworkImageView) findViewById(R.id.image_header);
         hero.setImageUrl(artwork, imgload);
 
@@ -126,11 +160,39 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
         }
     }
 
+    private void performRequests() {
+        req = billyapp.getRequestQueue();
+
+        final String scUrl = getResources().getString(R.string.soundcloud) + artist.replaceAll(" ", "+").replaceAll("\u00eb", "e") + "+" + song.replaceAll(" ", "+") + getResources().getString(R.string.sc_params);
+        final String lastFmBioUrl = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=" + artist.replaceAll(" ", "+") + "&autocorrect=1&api_key=67b01760e70bb90ff51ae8590b3c2ba8&format=json";
+        final String lastFmTopAlbumsUrl = "http://ws.audioscrobbler.com/2.0/?method=artist.gettopalbums&artist=" + artist.replaceAll(" ", "+") + "&autocorrect=1&limit=3&api_key=67b01760e70bb90ff51ae8590b3c2ba8&format=json";
+        final String youtubeUrl = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=" + artist.replaceAll(" ", "+").replaceAll("\u00eb", "e") + "+" + song.replaceAll(" ", "+") + "&maxResults=2&type=video&key=" + youtubeKey;
+        StringRequest stringreq = new StringRequest(Request.Method.GET, scUrl, scComplete(), scError());
+        JsonObjectRequest lastFmBio = new JsonObjectRequest(Request.Method.GET, lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
+        JsonObjectRequest lastFmTopAlbums = new JsonObjectRequest(Request.Method.GET, lastFmTopAlbumsUrl, null, lastFmTopAlbumsComplete(), lastFmTopAlbumsError());
+        JsonObjectRequest youtubeSearch = new JsonObjectRequest(Request.Method.GET, youtubeUrl, null, youtubeSearchComplete(), youtubeSearchError());
+
+        //Log.d(TAG, "scUrl is " + scUrl.substring(0, 100) + "...");
+        Log.d(TAG, "scUrl is " + scUrl);
+        Log.d(TAG,"topalbum "+lastFmTopAlbumsUrl);
+        Log.d(TAG, "YoutubeURL is " + youtubeUrl);
+
+        req.add(stringreq);
+        req.add(lastFmTopAlbums);
+        req.add(lastFmBio);
+        req.add(youtubeSearch);
+
+        ft = new ProcessingTask();
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString("lastFmBio", lastFmBio);
         outState.putString("streamLink", streamLink);
+        outState.putStringArray("relatedAlbumImg", relatedAlbumImg);
+        outState.putStringArray("relatedAlbums", relatedAlbums);
+        outState.putString("videoId",videoId);
     }
 
     @Override
@@ -138,51 +200,19 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
         super.onRestoreInstanceState(savedInstanceState);
         lastFmBio = savedInstanceState.getString("lastFmBio");
         streamLink = savedInstanceState.getString("streamLink");
-        (findViewById(R.id.spinner)).setVisibility(View.GONE);
-        if (!lastFmBio.isEmpty()) {
-            ((TextView) findViewById(R.id.artistTitle)).setText(artist);
-            ((TextView) findViewById(R.id.artistBio)).setText(lastFmBio);
-            (findViewById(R.id.artistInfo)).setVisibility(View.VISIBLE);
+        relatedAlbums = savedInstanceState.getStringArray("relatedAlbums");
+        relatedAlbumImg = savedInstanceState.getStringArray("relatedAlbumImg");
+        videoId = savedInstanceState.getString("videoId");
+        if (lastFmBio.isEmpty() || streamLink.isEmpty() || Arrays.asList(relatedAlbumImg).contains(null) || Arrays.asList(relatedAlbumImg).contains(null) || videoId.isEmpty()) {
+            Log.d(TAG,"some data is null, requests performed again");
+            performRequests();
+        } else {
+            streamBtn.setVisibility(View.VISIBLE);
+            (findViewById(R.id.spinner)).setVisibility(View.GONE);
+            setLastFmBio();
+            setRelatedAlbums();
+            setYoutube(videoId);
         }
-        animate();
-        streamBtn.setVisibility(View.VISIBLE);
-    }
-
-    private Response.Listener<JSONObject> lastFmBioComplete() {
-        return new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject jsonObject) {
-                try {
-                    (findViewById(R.id.spinner)).setVisibility(View.GONE);
-                    lastFmBio = Html.fromHtml(jsonObject.getJSONObject("artist").getJSONObject("bio").getString("summary")).toString();
-                    if (!lastFmBio.isEmpty()) {
-                        String firstLine = lastFmBio.substring(0, lastFmBio.indexOf("."));
-                        if (firstLine.startsWith("There are") || firstLine.startsWith("There is")) {
-                            lastFmBio = lastFmBio.substring(lastFmBio.indexOf("1)") + 3);
-                        }
-                        lastFmBio = lastFmBio.substring(0, lastFmBio.indexOf(".", lastFmBio.indexOf(".") + 1) + 1);
-                        if (lastFmBio.length() > 250) {
-                            lastFmBio = lastFmBio.substring(0, lastFmBio.indexOf(".") + 1);
-                        }
-                        ((TextView) findViewById(R.id.artistTitle)).setText(artist);
-                        ((TextView) findViewById(R.id.artistBio)).setText(lastFmBio);
-                        (findViewById(R.id.artistInfo)).setVisibility(View.VISIBLE);
-                    }
-                } catch (JSONException e) {
-                    Log.d(TAG,"Last.FM URL is "+lastFmBioUrl);
-                    e.printStackTrace();
-                }
-            }
-        };
-    }
-
-    private Response.ErrorListener lastFmBioError() {
-        return new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError volleyError) {
-                Log.d(TAG, volleyError.toString());
-            }
-        };
     }
 
     private Response.Listener<String> scComplete() {
@@ -191,9 +221,11 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
             public void onResponse(String response) {
                 try {
                     streamLink = ft.parseSoundcloud(response);
+                    //streamLink = "https://ec-hls-media.soundcloud.com/playlist/OM6ZltKo22zf.128.mp3/playlist.m3u8?f10880d39085a94a0418a7e062b03d52bbdc0e179b82bde1d76ce4ad1a476e0aa49ee43247155726311c5d77ec8a1001a3f9d1e6ae1204b7d251f059104a2bfb4c9f9fbce72d6ab284af54464e022ea558284df25cb10cb0a6fb9224";
                     Log.d(TAG, "streamLink is " + streamLink);
-                    animate();
-                    streamBtn.startAnimation(scaleAnim);
+                    if(scaleAnim != null) {
+                        streamBtn.startAnimation(scaleAnim);
+                    }
                     streamBtn.setVisibility(View.VISIBLE);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -212,6 +244,137 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
             }
         };
     }
+
+    private Response.Listener<JSONObject> lastFmBioComplete() {
+        return new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject jsonObject) {
+                try {
+                    (findViewById(R.id.spinner)).setVisibility(View.GONE);
+                    lastFmBio = Html.fromHtml(jsonObject.getJSONObject("artist").getJSONObject("bio").getString("summary")).toString();
+                    if (!lastFmBio.isEmpty()) {
+                        String firstLine = lastFmBio.substring(0, lastFmBio.indexOf("."));
+                        if (firstLine.startsWith("There are") || firstLine.startsWith("There is")) {
+                            lastFmBio = lastFmBio.substring(lastFmBio.indexOf("1)") + 3);
+                        }
+                        lastFmBio = lastFmBio.substring(0, lastFmBio.indexOf(".", lastFmBio.indexOf(".") + 1) + 1);
+                        if (lastFmBio.length() > 250) {
+                            lastFmBio = lastFmBio.substring(0, lastFmBio.indexOf(".") + 1);
+                        }
+                        setLastFmBio();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+    }
+
+    private Response.ErrorListener lastFmBioError() {
+        return new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                Log.d(TAG, volleyError.toString());
+            }
+        };
+    }
+
+    private Response.Listener<JSONObject> lastFmTopAlbumsComplete() {
+        return new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject jsonObject) {
+                try {
+                    JSONArray jsonArray = jsonObject.getJSONObject("topalbums").getJSONArray("album");
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject obj = jsonArray.getJSONObject(i);
+                        relatedAlbums[i] = obj.getString("name");
+                        relatedAlbumImg[i] = obj.getJSONArray("image").getJSONObject(3).getString("#text");
+                    }
+
+                    setRelatedAlbums();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+    }
+
+    private Response.ErrorListener lastFmTopAlbumsError() {
+        return new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                Log.e(TAG, volleyError.toString());
+            }
+        };
+    }
+
+    private Response.Listener<JSONObject> youtubeSearchComplete() {
+        return new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject jsonObject) {
+                try {
+                    videoId = jsonObject.getJSONArray("items").getJSONObject(0).getJSONObject("id").getString("videoId");
+                    setYoutube(videoId);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+    }
+
+    private Response.ErrorListener youtubeSearchError() {
+        return new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                Log.d(TAG, volleyError.toString());
+            }
+        };
+    }
+
+    private void setLastFmBio() {
+        ((TextView) findViewById(R.id.artistTitle)).setText(artist);
+        ((TextView) findViewById(R.id.artistBio)).setText(lastFmBio);
+        (findViewById(R.id.artistInfo)).setVisibility(View.VISIBLE);
+    }
+
+    private void setRelatedAlbums() {
+        Resources res = getResources();
+        RelativeLayout rela = (RelativeLayout) findViewById(R.id.topAlbumImages);
+        for (int i = 0; i < relatedAlbums.length; i++) {
+            int id = res.getIdentifier("relatedImage" + i, "id", getPackageName());
+            NetworkImageView v = (NetworkImageView) rela.findViewById(id);
+            v.setImageUrl(relatedAlbumImg[i], imgload);
+
+            TextView tv = (TextView) rela.findViewById(res.getIdentifier("relatedText" + i, "id", getBaseContext().getPackageName()));
+            try {
+                if (relatedAlbums[i].length() > 16) {
+                    tv.setText(relatedAlbums[i].substring(0, 14) + "…");
+                } else {
+                    tv.setText(relatedAlbums[i]);
+                }
+            } catch (NullPointerException e) {
+                Log.d(TAG, "NullPointer we meet again");
+            }
+        }
+
+        (findViewById(R.id.topAlbums)).setVisibility(View.VISIBLE);
+    }
+
+    private void setYoutube(final String videoId) {
+        Log.d(TAG,((FrameLayout) findViewById(R.id.youTubeFrame)).getChildCount()+"");
+
+        Log.d(TAG,"videoId is "+videoId);
+        mYoutubePlayerFragment = PlayerYouTubeFrag.newInstance(videoId);
+        getSupportFragmentManager().beginTransaction().add(R.id.youTubeFrame, mYoutubePlayerFragment, "youTubeFragment").commit();
+
+        Log.d(TAG, ((FrameLayout) findViewById(R.id.youTubeFrame)).getChildCount() + "");
+
+        ((RelativeLayout) findViewById(R.id.youTube)).setVisibility(View.VISIBLE);
+
+        Log.d(TAG,((FrameLayout) findViewById(R.id.youTubeFrame)).getChildCount()+"");
+        Log.d(TAG,((FrameLayout) findViewById(R.id.youTubeFrame)).getChildAt(0).toString());
+    }
+
 
     /**
      * Bind this and PlayerService
@@ -232,16 +395,10 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
             if (PlayerService.isRunning && !PlayerService.isIdle) {
                 Log.d(TAG, "Service is running and is not idle - onServiceConnected");
                 if (song.equalsIgnoreCase(mService.song)) {
+                    setSeekBar();
                     if (mService.bp.isPlaying()) {
                         isMusicPlaying = true;
                         streamBtn.setImageDrawable(pauseIcon);
-                        Thread progressThread = new Thread(progress);
-                        progressThread.start();
-                        songLength = mService.bp.getDuration() / 1000;
-                        secondaryProgressFactor = (float) songLength/100;
-                        Log.d(TAG,"songlength, secondary "+songLength+" "+secondaryProgressFactor);
-                        seekBar.setMax(songLength);
-                        seekBar.setVisibility(View.VISIBLE);
                     }
                 }
             }
@@ -251,13 +408,8 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
                 public void onPrepared(int duration) {
                     dashes.clearAnimation();
                     dashes.setVisibility(View.GONE);
-                    seekBar.setMax(duration);
                     songLength = duration;
-                    secondaryProgressFactor = (float) songLength/100;
-                    Log.d(TAG,"songlength, secondary "+songLength+" "+secondaryProgressFactor);
-                    Thread progressThread = new Thread(progress);
-                    seekBar.setVisibility(View.VISIBLE);
-                    progressThread.start();
+                    setSeekBar();
                     streamBtn.setImageDrawable(pauseIcon);
                 }
 
@@ -296,10 +448,29 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
                     seekBar.setVisibility(View.VISIBLE);
                     isMusicPlaying = true;
                 }
+
+                @Override
+                public void doUnbind() {
+                    if (mBound) {
+                        unbindService(mConnection);
+                        mBound = false;
+                    }
+                }
+
             });
             mBound = true;
         }
     };
+
+    private void setSeekBar() {
+        Thread progressThread = new Thread(progress);
+        progressThread.start();
+        songLength = mService.bp.getDuration() / 1000;
+        secondaryProgressFactor = (float) songLength / 100;
+        Log.d(TAG, "songlength, secondary " + songLength + " " + secondaryProgressFactor);
+        seekBar.setMax(songLength);
+        seekBar.setVisibility(View.VISIBLE);
+    }
 
     private void setButtonListener() {
         streamBtn.setOnClickListener(new View.OnClickListener() {
@@ -313,8 +484,6 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
                             mService.playMedia();
                             isMusicPlaying = true;
                             streamBtn.setImageDrawable(pauseIcon);
-                            Thread progressThread = new Thread(progress);
-                            progressThread.start();
                             seekBar.setVisibility(View.VISIBLE);
                         } else {
                             streamTrack();
@@ -333,7 +502,6 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
         });
     }
 
-    //TODO check if streamLink is not a 404
     void streamTrack() {
         if (streamLink != null) {
             isMusicPlaying = true;
@@ -358,19 +526,17 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
      * Run the progressbar in a separate thread
      */
 
-    //TODO this thing crashes on notification dismiss
     Runnable progress = new Runnable() {
         @Override
         public void run() {
-            if(!DetailView.active || stopTh){
+            if (!DetailView.active || stopTh) {
                 stopTh = false;
                 return;
-            }
-            else if (PlayerService.isRunning) {
+            } else if (PlayerService.isRunning) {
                 if (!PlayerService.isIdle) {
                     seekBar.setProgress(mService.bp.getCurrentPosition() / 1000);
-                    seekBar.setSecondaryProgress((int) (mService.bufferPercent*secondaryProgressFactor));
-                    Log.d(TAG,"Max "+seekBar.getMax()+" progress "+seekBar.getProgress()+" secondary "+seekBar.getSecondaryProgress());
+                    seekBar.setSecondaryProgress((int) (mService.bufferPercent * secondaryProgressFactor));
+                    //Log.d(TAG, "Max " + seekBar.getMax() + " progress " + seekBar.getProgress() + " secondary " + seekBar.getSecondaryProgress());
                 }
             }
             progressHandler.postDelayed(progress, 1000);
@@ -391,7 +557,6 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
         scaleAnim.setDuration(800);
         scaleAnim.setInterpolator(new BounceInterpolator());
     }
-
 
     private NotifyingScrollView.OnScrollChangedListener mOnScrollChangedListener = new NotifyingScrollView.OnScrollChangedListener() {
         public void onScrollChanged(ScrollView who, int l, int t, int oldl, int oldt) {
@@ -417,6 +582,11 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
         getActionBar().setCustomView(customActionView);
         actionBarText.setAlpha(0);
         setTitle(song);
+
+        tintManager = new SystemBarTintManager(this);
+        tintManager.setStatusBarTintEnabled(true);
+        tintManager.setTintColor(getResources().getColor(R.color.billyred));
+        tintManager.setTintAlpha(0);
     }
 
     @Override
@@ -448,6 +618,7 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
         super.onDestroy();
         if (mBound) {
             unbindService(mConnection);
+            mBound = false;
         }
         active = false;
     }
@@ -465,5 +636,112 @@ public class DetailView extends Activity implements SeekBar.OnSeekBarChangeListe
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+    }
+
+    //TODO Set clicklistener for a play button
+    public static class PlayerYouTubeFrag extends YouTubePlayerSupportFragment{
+
+        private String videoId;
+
+        public static PlayerYouTubeFrag newInstance(String videoId) {
+
+            PlayerYouTubeFrag playerYouTubeFrag = new PlayerYouTubeFrag();
+
+            Bundle bundle = new Bundle();
+            bundle.putString("videoId", videoId);
+            playerYouTubeFrag.setArguments(bundle);
+
+            return playerYouTubeFrag;
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater layoutInflater, ViewGroup viewGroup, Bundle bundle) {
+            init();
+
+            return super.onCreateView(layoutInflater, viewGroup, bundle);
+        }
+
+        private void init() {
+            videoId = getArguments().getString("videoId");
+            initialize(youtubeKey, new YouTubePlayer.OnInitializedListener() {
+                @Override
+                public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+                    youtubePlayer = youTubePlayer;
+                    youtubePlayer.setOnFullscreenListener(new YouTubePlayer.OnFullscreenListener() {
+                        @Override
+                        public void onFullscreen(boolean b) {
+                            isFullScreen = b;
+                        }
+                    });
+
+                    youTubePlayer.setPlaybackEventListener(new YouTubePlayer.PlaybackEventListener() {
+                        @Override
+                        public void onPlaying() {
+                            Log.d(TAG,"starting video");
+                            youtubePlayer.setFullscreen(true);
+                        }
+
+                        @Override
+                        public void onPaused() {
+
+                        }
+
+                        @Override
+                        public void onStopped() {
+
+                        }
+
+                        @Override
+                        public void onBuffering(boolean b) {
+
+                        }
+
+                        @Override
+                        public void onSeekTo(int i) {
+
+                        }
+                    });
+
+                    if (!b) {
+                        youtubePlayer.cueVideo(videoId);
+                        youtubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.MINIMAL);
+                        youTubePlayer.setFullscreenControlFlags(YouTubePlayer.FULLSCREEN_FLAG_CONTROL_ORIENTATION);
+                    }
+                }
+
+                @Override
+                public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+                    Log.d(TAG, "Player initialization failed");
+                }
+            });
+        }
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.d(TAG,"video is fullscreen: "+isFullScreen);
+        if(isFullScreen)
+        {
+            youtubePlayer.pause();
+            youtubePlayer.setFullscreen(false);
+        }
+        else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+/*        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            if (youtubePlayer != null)
+                youtubePlayer.setFullscreen(true);
+        }
+        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            if (youtubePlayer != null)
+                youtubePlayer.setFullscreen(false);
+        }*/
     }
 }
