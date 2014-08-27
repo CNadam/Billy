@@ -17,7 +17,6 @@
         <item name="pop">http://www1.billboard.com/rss/charts/pop-songs</item>
         <item name="rock">http://www1.billboard.com/rss/charts/rock-songs</item>
         <item name="dance">http://www1.billboard.com/rss/charts/dance-electronic-songs</item>
-        <item name="metal">http://www1.billboard.com/rss/charts/hot-mainstream-rock-tracks</item>
     </string-array>
 
     <string-array name="albumArtQuality">

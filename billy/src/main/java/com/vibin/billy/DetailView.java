@@ -41,7 +41,6 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.NetworkImageView;
 import com.android.volley.toolbox.StringRequest;
 import com.google.android.youtube.player.YouTubeIntents;
-import com.nullwire.trace.ExceptionHandler;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 import org.json.JSONArray;
@@ -87,7 +86,6 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        ExceptionHandler.register(getBaseContext(), "http://vibinreddy.me/ExceptionScript.php");
         setContentView(R.layout.detail_view);
 
         active = true;
@@ -204,15 +202,20 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
         relatedAlbumImg = savedInstanceState.getStringArray("relatedAlbumImg");
         thumbnail = savedInstanceState.getString("thumbnail");
         videoId = savedInstanceState.getString("videoId");
-        if (lastFmBio.isEmpty() || streamLink.isEmpty() || Arrays.asList(relatedAlbumImg).contains(null) || Arrays.asList(relatedAlbumImg).contains(null) || thumbnail.isEmpty()) {
-            Log.d(TAG, "some data is null, requests performed again");
-            performRequests();
-        } else {
-            streamBtn.setVisibility(View.VISIBLE);
-            (findViewById(R.id.spinner)).setVisibility(View.GONE);
-            setLastFmBio();
-            setRelatedAlbums();
-            setYoutube(thumbnail, videoId);
+        try {
+            if (lastFmBio.isEmpty() || streamLink.isEmpty() || Arrays.asList(relatedAlbumImg).contains(null) || Arrays.asList(relatedAlbumImg).contains(null) || thumbnail.isEmpty()) {
+                Log.d(TAG, "some data is null, requests performed again");
+                performRequests();
+            } else {
+                streamBtn.setVisibility(View.VISIBLE);
+                (findViewById(R.id.spinner)).setVisibility(View.GONE);
+                setLastFmBio();
+                setRelatedAlbums();
+                setYoutube(thumbnail, videoId);
+            }
+        }
+        catch(NullPointerException e){
+            Log.d(TAG,e.toString());
         }
     }
 

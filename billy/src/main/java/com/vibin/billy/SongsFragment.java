@@ -28,7 +28,6 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.nullwire.trace.ExceptionHandler;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -65,7 +64,6 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        ExceptionHandler.register(getActivity(), "http://vibinreddy.me/ExceptionScript.php");
         position = getArguments().getInt("position");
         tag = tag.substring(0, tag.length() - 1) + Integer.toString(position);
         billyapp = (BillyApplication) getActivity().getApplication();

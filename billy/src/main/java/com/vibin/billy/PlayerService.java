@@ -22,7 +22,6 @@ import android.widget.RemoteViews;
 import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
-import com.nullwire.trace.ExceptionHandler;
 
 import java.io.IOException;
 
@@ -43,7 +42,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     private onBPChangedListener BPlistener;
     private final IBinder mBinder = new PlayerServiceBinder();
     public static boolean isRunning;
-    public static boolean isInCall;
+    public static boolean isInCall, isInCallMusicPaused;
     public static boolean isIdle = true;
 
     public void doPause() {
@@ -87,7 +86,6 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     public void onCreate() {
         super.onCreate();
 
-        ExceptionHandler.register(getBaseContext(), "http://vibinreddy.me/ExceptionScript.php");
         billyapp = (BillyApplication) this.getApplication();
 
         isRunning = true;
@@ -151,18 +149,24 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                     case TelephonyManager.CALL_STATE_RINGING:
                         isInCall = true;
                         if (bp != null) {
-                            bp.pause();
-                            putNotification();
-                            BPlistener.onNotificationPausePressed();
+                            if(bp.isPlaying()) {
+                                isInCallMusicPaused = true;
+                                bp.pause();
+                                putNotification();
+                                BPlistener.onNotificationPausePressed();
+                            }
                         }
                         break;
                     case TelephonyManager.CALL_STATE_IDLE:
                         if(isInCall) {
                             isInCall = false;
-                            if (bp != null) {
-                                bp.start();
-                                putNotification();
-                                BPlistener.onNotificationPlayPressed();
+                            if(isInCallMusicPaused) {
+                                isInCallMusicPaused = false;
+                                if (bp != null) {
+                                    bp.start();
+                                    putNotification();
+                                    BPlistener.onNotificationPlayPressed();
+                                }
                             }
                         }
                 }

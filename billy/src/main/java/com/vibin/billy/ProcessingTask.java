@@ -121,7 +121,7 @@ public class ProcessingTask {
                     }
                 }
 
-            } else {
+            } else if(i>billySize){
                 break;
             }
             event = parser.next();

@@ -6,7 +6,6 @@ import android.preference.PreferenceFragment;
 import android.view.View;
 import android.widget.TextView;
 
-import com.nullwire.trace.ExceptionHandler;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 public class Settings extends Activity {
@@ -17,7 +16,6 @@ public class Settings extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ExceptionHandler.register(getBaseContext(), "http://vibinreddy.me/ExceptionScript.php");
         setContentView(R.layout.settings_view);
         getFragmentManager().beginTransaction().replace(R.id.settingsLinear, new SettingsFragment()).commit();
         setActionBar();

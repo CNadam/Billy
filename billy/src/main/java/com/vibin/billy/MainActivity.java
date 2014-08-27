@@ -1,6 +1,5 @@
 package com.vibin.billy;
 
-
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -18,7 +17,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.TextView;
 
-import com.nullwire.trace.ExceptionHandler;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.viewpagerindicator.TitlePageIndicator;
 
@@ -34,8 +32,6 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        ExceptionHandler.register(getBaseContext(), "http://vibinreddy.me/ExceptionScript.php");
 
         setContentView(R.layout.activity_main);
         customActionBar();
@@ -136,6 +132,7 @@ public class MainActivity extends FragmentActivity {
 
 }
 
+//TODO Allow reordering
 //TODO service quits automatically when playing after sometime
 //TODO handle 2G/3G devices efficiently API Level 17
 //TODO Notification click intent flags
