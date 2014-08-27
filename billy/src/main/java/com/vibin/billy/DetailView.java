@@ -1,34 +1,31 @@
 package com.vibin.billy;
 
-import android.app.ActionBar;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.res.Configuration;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.text.Html;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.view.animation.ScaleAnimation;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
@@ -43,10 +40,8 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.NetworkImageView;
 import com.android.volley.toolbox.StringRequest;
-import com.google.android.youtube.player.YouTubeInitializationResult;
-import com.google.android.youtube.player.YouTubePlayer;
-import com.google.android.youtube.player.YouTubePlayerFragment;
-import com.google.android.youtube.player.YouTubePlayerSupportFragment;
+import com.google.android.youtube.player.YouTubeIntents;
+import com.nullwire.trace.ExceptionHandler;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 import org.json.JSONArray;
@@ -57,19 +52,16 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static com.google.android.youtube.player.YouTubePlayer.PlayerStateChangeListener;
-
 public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarChangeListener {
-    String song, artwork, artist, album, streamLink, lastFmBio, videoId;
+    String song, artwork, artist, album, streamLink, lastFmBio, thumbnail, videoId;
     String[] relatedAlbumImg, relatedAlbums;
     int songIndex, songLength;
-    boolean isMusicPlaying, stopTh;
-    static boolean isFullScreen;
+    boolean isMusicPlaying, stopTh, isCurrentSongBG, isLoadingAnimOn;
     static boolean active, mBound;
     Drawable playIcon, pauseIcon;
     View customActionView;
-    NotifyingImageButton streamBtn;
-    NotifyingImageView dashes;
+    ImageButton streamBtn;
+    ImageView dashes;
     Intent serviceIntent;
     BillyApplication billyapp;
     Drawable mActionBarBackgroundDrawable;
@@ -85,9 +77,8 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
     RequestQueue req;
     PlayerService mService;
     Handler progressHandler;
+    Thread progressThread;
     float secondaryProgressFactor;
-    YouTubePlayerSupportFragment mYoutubePlayerFragment;
-    static YouTubePlayer youtubePlayer;
 
     private static final String youtubeKey = "AIzaSyBTd_9XHpK-Jj7ZW8sNAstNKwSU18gf-6g";
     private static final String TAG = DetailView.class.getSimpleName();
@@ -95,6 +86,8 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        ExceptionHandler.register(getBaseContext(), "http://vibinreddy.me/ExceptionScript.php");
         setContentView(R.layout.detail_view);
 
         active = true;
@@ -104,16 +97,23 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
         itemData = getIntent().getExtras();
         song = itemData.getString("song");
         artist = itemData.getString("artist");
+        if (artist.contains(",")) {
+            artist = artist.substring(0, artist.indexOf(","));
+        }
         album = itemData.getString("album");
         artwork = itemData.getString("artwork");
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        if (Integer.parseInt(pref.getString("albumArtQuality", "1")) == 2) {
+            artwork = artwork.replaceAll("400x400", "600x600");
+        }
         songIndex = itemData.getInt("index");
 
         relatedAlbumImg = new String[3];
         relatedAlbums = new String[3];
-        streamBtn = (NotifyingImageButton) findViewById(R.id.streamButton);
-        dashes = (NotifyingImageView) findViewById(R.id.dashes);
+        streamBtn = (ImageButton) findViewById(R.id.streamButton);
+        dashes = (ImageView) findViewById(R.id.dashes);
         seekBar = (SeekBar) findViewById(R.id.seekBar);
-        seekBar.setAlpha(0.7f);
+        seekBar.setAlpha(0.85f);
         seekBar.setOnSeekBarChangeListener(this);
 
         //TODO Manage uncaught exceptions
@@ -136,9 +136,10 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
         pauseIcon = getResources().getDrawable(R.drawable.pause);
         setButtonListener();
 
-        streamBtn.setLayoutChangedListener(new NotifyingImageButton.OnLayoutChangedListener() {
+        dashes.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
-            public void onLayout(boolean changed, int l, int t, int r, int b) {
+            public void onGlobalLayout() {
+                dashes.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 animate();
             }
         });
@@ -152,8 +153,6 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
         hero = (NetworkImageView) findViewById(R.id.image_header);
         hero.setImageUrl(artwork, imgload);
 
-        ((NotifyingScrollView) findViewById(R.id.scroll_view)).setOnScrollChangedListener(mOnScrollChangedListener);
-
         serviceIntent = new Intent(this, PlayerService.class);
         if (PlayerService.isRunning) {
             bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
@@ -166,7 +165,7 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
         final String scUrl = getResources().getString(R.string.soundcloud) + artist.replaceAll(" ", "+").replaceAll("\u00eb", "e") + "+" + song.replaceAll(" ", "+") + getResources().getString(R.string.sc_params);
         final String lastFmBioUrl = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=" + artist.replaceAll(" ", "+") + "&autocorrect=1&api_key=67b01760e70bb90ff51ae8590b3c2ba8&format=json";
         final String lastFmTopAlbumsUrl = "http://ws.audioscrobbler.com/2.0/?method=artist.gettopalbums&artist=" + artist.replaceAll(" ", "+") + "&autocorrect=1&limit=3&api_key=67b01760e70bb90ff51ae8590b3c2ba8&format=json";
-        final String youtubeUrl = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=" + artist.replaceAll(" ", "+").replaceAll("\u00eb", "e") + "+" + song.replaceAll(" ", "+") + "&maxResults=2&type=video&key=" + youtubeKey;
+        final String youtubeUrl = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=" + artist.replaceAll(" ", "+").replaceAll("\u00eb", "e") + "+" + song.replaceAll(" ", "+").replaceAll("#", "") + "&maxResults=2&type=video&key=" + youtubeKey;
         StringRequest stringreq = new StringRequest(Request.Method.GET, scUrl, scComplete(), scError());
         JsonObjectRequest lastFmBio = new JsonObjectRequest(Request.Method.GET, lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
         JsonObjectRequest lastFmTopAlbums = new JsonObjectRequest(Request.Method.GET, lastFmTopAlbumsUrl, null, lastFmTopAlbumsComplete(), lastFmTopAlbumsError());
@@ -174,7 +173,7 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
 
         //Log.d(TAG, "scUrl is " + scUrl.substring(0, 100) + "...");
         Log.d(TAG, "scUrl is " + scUrl);
-        Log.d(TAG,"topalbum "+lastFmTopAlbumsUrl);
+        Log.d(TAG, "topalbum " + lastFmTopAlbumsUrl);
         Log.d(TAG, "YoutubeURL is " + youtubeUrl);
 
         req.add(stringreq);
@@ -192,7 +191,8 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
         outState.putString("streamLink", streamLink);
         outState.putStringArray("relatedAlbumImg", relatedAlbumImg);
         outState.putStringArray("relatedAlbums", relatedAlbums);
-        outState.putString("videoId",videoId);
+        outState.putString("thumbnail", thumbnail);
+        outState.putString("videoId", videoId);
     }
 
     @Override
@@ -202,16 +202,17 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
         streamLink = savedInstanceState.getString("streamLink");
         relatedAlbums = savedInstanceState.getStringArray("relatedAlbums");
         relatedAlbumImg = savedInstanceState.getStringArray("relatedAlbumImg");
+        thumbnail = savedInstanceState.getString("thumbnail");
         videoId = savedInstanceState.getString("videoId");
-        if (lastFmBio.isEmpty() || streamLink.isEmpty() || Arrays.asList(relatedAlbumImg).contains(null) || Arrays.asList(relatedAlbumImg).contains(null) || videoId.isEmpty()) {
-            Log.d(TAG,"some data is null, requests performed again");
+        if (lastFmBio.isEmpty() || streamLink.isEmpty() || Arrays.asList(relatedAlbumImg).contains(null) || Arrays.asList(relatedAlbumImg).contains(null) || thumbnail.isEmpty()) {
+            Log.d(TAG, "some data is null, requests performed again");
             performRequests();
         } else {
             streamBtn.setVisibility(View.VISIBLE);
             (findViewById(R.id.spinner)).setVisibility(View.GONE);
             setLastFmBio();
             setRelatedAlbums();
-            setYoutube(videoId);
+            setYoutube(thumbnail, videoId);
         }
     }
 
@@ -221,18 +222,51 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
             public void onResponse(String response) {
                 try {
                     streamLink = ft.parseSoundcloud(response);
-                    //streamLink = "https://ec-hls-media.soundcloud.com/playlist/OM6ZltKo22zf.128.mp3/playlist.m3u8?f10880d39085a94a0418a7e062b03d52bbdc0e179b82bde1d76ce4ad1a476e0aa49ee43247155726311c5d77ec8a1001a3f9d1e6ae1204b7d251f059104a2bfb4c9f9fbce72d6ab284af54464e022ea558284df25cb10cb0a6fb9224";
-                    Log.d(TAG, "streamLink is " + streamLink);
-                    if(scaleAnim != null) {
+                    //JsonObjectRequest i1 = new JsonObjectRequest(Request.Method.GET, "https://api.soundcloud.com/i1/tracks/133433134/streams?client_id=apigee", null, i1Complete(), i1Error());
+                    //streamLink = "https://ec-hls-media.soundcloud.com/playlist/OM6ZltKo22zf.128.mp3/playlist.m3u8?f10880d39085a94a0418a7e062b03d52bbdc0e179b82bde1d76ce4ac1947690c3ec32da3f4fe1a31765c3542d200e0f73a0611cd5a10f3b7d6fd2fe68ec9690e3553c642ec3f32627b20fc02b5dcd5463a6293ae2929dd917b1eea32";
+                    //req.add(i1);
+                    if (scaleAnim != null) {
                         streamBtn.startAnimation(scaleAnim);
                     }
                     streamBtn.setVisibility(View.VISIBLE);
+                    Log.d(TAG, "original streamLink is " + streamLink);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 }
             }
+
+/*            private Response.ErrorListener i1Error() {
+                return new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        Log.d(TAG, "Something failed.");
+                    }
+                };
+            }
+
+            private Response.Listener<JSONObject> i1Complete() {
+                return new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject jsonObject) {
+                        try {
+                            jsonObject.getString("http_mp3_128_url");
+                        } catch (JSONException e) {
+                            try {
+                                streamLink = jsonObject.getString("hls_mp3_128_url");
+                            } catch (JSONException e1) {
+                                e1.printStackTrace();
+                            }
+                            e.printStackTrace();
+                        }
+                        if (scaleAnim != null) {
+                            streamBtn.startAnimation(scaleAnim);
+                        }
+                        streamBtn.setVisibility(View.VISIBLE);
+                    }
+                };
+            }*/
         };
     }
 
@@ -290,7 +324,6 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
                         relatedAlbums[i] = obj.getString("name");
                         relatedAlbumImg[i] = obj.getJSONArray("image").getJSONObject(3).getString("#text");
                     }
-
                     setRelatedAlbums();
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -314,7 +347,8 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
             public void onResponse(JSONObject jsonObject) {
                 try {
                     videoId = jsonObject.getJSONArray("items").getJSONObject(0).getJSONObject("id").getString("videoId");
-                    setYoutube(videoId);
+                    thumbnail = jsonObject.getJSONArray("items").getJSONObject(0).getJSONObject("snippet").getJSONObject("thumbnails").getJSONObject("high").getString("url");
+                    setYoutube(thumbnail, videoId);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -360,19 +394,50 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
         (findViewById(R.id.topAlbums)).setVisibility(View.VISIBLE);
     }
 
-    private void setYoutube(final String videoId) {
-        Log.d(TAG,((FrameLayout) findViewById(R.id.youTubeFrame)).getChildCount()+"");
-
-        Log.d(TAG,"videoId is "+videoId);
-        mYoutubePlayerFragment = PlayerYouTubeFrag.newInstance(videoId);
-        getSupportFragmentManager().beginTransaction().add(R.id.youTubeFrame, mYoutubePlayerFragment, "youTubeFragment").commit();
-
-        Log.d(TAG, ((FrameLayout) findViewById(R.id.youTubeFrame)).getChildCount() + "");
-
+    private void setYoutube(String thumbnail, final String videoId) {
+        final NetworkImageView youTubeThumbnail = (NetworkImageView) findViewById(R.id.youTubeThumbnail);
+        youTubeThumbnail.setImageUrl(thumbnail, imgload);
         ((RelativeLayout) findViewById(R.id.youTube)).setVisibility(View.VISIBLE);
-
-        Log.d(TAG,((FrameLayout) findViewById(R.id.youTubeFrame)).getChildCount()+"");
-        Log.d(TAG,((FrameLayout) findViewById(R.id.youTubeFrame)).getChildAt(0).toString());
+        final ImageButton youTubePlay = (ImageButton) findViewById(R.id.youTubePlay);
+        View.OnTouchListener opacityListener = new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (view == youTubePlay || view == youTubeThumbnail) {
+                    if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                        youTubePlay.setAlpha(1f);
+                    } else {
+                        youTubePlay.setAlpha(.8f);
+                    }
+                }
+                return false;
+            }
+        };
+        View.OnClickListener startYouTube = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (YouTubeIntents.isYouTubeInstalled(getBaseContext())) {
+                    if (YouTubeIntents.canResolvePlayVideoIntent(getBaseContext())) {
+                        Intent intent = YouTubeIntents.createPlayVideoIntentWithOptions(getBaseContext(), videoId, true, true);
+                        if (isMusicPlaying && PlayerService.isRunning) {
+                            mService.doPause();
+                        }
+                        if (!isLoadingAnimOn) {
+                            startActivity(intent);
+                        }
+                    } else {
+                        Toast.makeText(getBaseContext(), "Please update the YouTube app.",
+                                Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    Toast.makeText(getBaseContext(), "Install YouTube app to watch videos.",
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        };
+        youTubeThumbnail.setOnTouchListener(opacityListener);
+        youTubeThumbnail.setOnClickListener(startYouTube);
+        youTubePlay.setOnTouchListener(opacityListener);
+        youTubePlay.setOnClickListener(startYouTube);
     }
 
 
@@ -392,12 +457,13 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
             PlayerService.PlayerServiceBinder binder = (PlayerService.PlayerServiceBinder) service;
             mService = binder.getService();
 
+            isMusicPlaying = mService.bp.isPlaying();
             if (PlayerService.isRunning && !PlayerService.isIdle) {
                 Log.d(TAG, "Service is running and is not idle - onServiceConnected");
                 if (song.equalsIgnoreCase(mService.song)) {
+                    isCurrentSongBG = true;
                     setSeekBar();
-                    if (mService.bp.isPlaying()) {
-                        isMusicPlaying = true;
+                    if (isMusicPlaying) {
                         streamBtn.setImageDrawable(pauseIcon);
                     }
                 }
@@ -406,11 +472,14 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
             binder.setListener(new PlayerService.onBPChangedListener() {
                 @Override
                 public void onPrepared(int duration) {
+                    isMusicPlaying = true;
                     dashes.clearAnimation();
+                    isLoadingAnimOn = false;
                     dashes.setVisibility(View.GONE);
                     songLength = duration;
                     setSeekBar();
                     streamBtn.setImageDrawable(pauseIcon);
+                    isCurrentSongBG = true;
                 }
 
                 // Only onCompletion and onError are called if stream-url is wrong (404, etc.)
@@ -424,7 +493,7 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
 
                 @Override
                 public void onError(int i, int i2) {
-                    Toast.makeText(getBaseContext(), "Something's wrong. " + i + " " + i2,
+                    Toast.makeText(getBaseContext(), "An error has occurred. " + i + " " + i2,
                             Toast.LENGTH_LONG).show();
                     dashes.clearAnimation();
                     dashes.setVisibility(View.GONE);
@@ -438,7 +507,7 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
                 @Override
                 public void onNotificationPausePressed() {
                     streamBtn.setImageDrawable(playIcon);
-                    seekBar.setVisibility(View.GONE);
+                    //seekBar.setVisibility(View.GONE);
                     isMusicPlaying = false;
                 }
 
@@ -450,7 +519,8 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
                 }
 
                 @Override
-                public void doUnbind() {
+                public void onNotificationStopPressed() {
+                    seekBar.setVisibility(View.GONE);
                     if (mBound) {
                         unbindService(mConnection);
                         mBound = false;
@@ -463,7 +533,7 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
     };
 
     private void setSeekBar() {
-        Thread progressThread = new Thread(progress);
+        progressThread = new Thread(progress);
         progressThread.start();
         songLength = mService.bp.getDuration() / 1000;
         secondaryProgressFactor = (float) songLength / 100;
@@ -476,37 +546,43 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
         streamBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!isMusicPlaying) {
-                    if (PlayerService.isRunning && !PlayerService.isIdle) {
-                        Log.d(TAG, "Service is running and is not idle - onButtonClick");
-                        if (song.equalsIgnoreCase(mService.song)) {
+                if (!isLoadingAnimOn) {
+                    if (isCurrentSongBG) {
+                        if (!isMusicPlaying) {
                             Log.d(TAG, "Song matched");
-                            mService.playMedia();
-                            isMusicPlaying = true;
-                            streamBtn.setImageDrawable(pauseIcon);
-                            seekBar.setVisibility(View.VISIBLE);
+                            if (PlayerService.isRunning) {
+                                mService.playMedia();
+                                isMusicPlaying = true;
+                                streamBtn.setImageDrawable(pauseIcon);
+                                if (!progressThread.isAlive()) {
+                                    setSeekBar();
+                                }
+                                seekBar.setVisibility(View.VISIBLE);
+                            } else {
+                                streamTrack();
+                            }
                         } else {
-                            streamTrack();
+                            streamBtn.setImageDrawable(playIcon);
+                            dashes.clearAnimation();
+                            dashes.setVisibility(View.INVISIBLE);
+                            mService.doPause();
+                            isMusicPlaying = false;
                         }
                     } else {
                         streamTrack();
                     }
-                } else {
-                    streamBtn.setImageDrawable(playIcon);
-                    dashes.clearAnimation();
-                    dashes.setVisibility(View.INVISIBLE);
-                    mService.doPause();
-                    isMusicPlaying = false;
                 }
             }
         });
     }
+
 
     void streamTrack() {
         if (streamLink != null) {
             isMusicPlaying = true;
             dashes.setVisibility(View.VISIBLE);
             dashes.startAnimation(rotateAnim);
+            isLoadingAnimOn = true;
             serviceIntent.putExtra("streamLink", streamLink);
             serviceIntent.putExtra("songName", song);
             serviceIntent.putExtra("songIndex", songIndex);
@@ -515,12 +591,14 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
             serviceIntent.putExtra("artwork", artwork);
             startService(serviceIntent);
             bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
+
         } else {
             Log.d(TAG, "streamLink is null");
             Toast.makeText(getBaseContext(), "The song cannot be streamed.",
                     Toast.LENGTH_LONG).show();
         }
     }
+
 
     /**
      * Run the progressbar in a separate thread
@@ -536,12 +614,16 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
                 if (!PlayerService.isIdle) {
                     seekBar.setProgress(mService.bp.getCurrentPosition() / 1000);
                     seekBar.setSecondaryProgress((int) (mService.bufferPercent * secondaryProgressFactor));
+                    if (seekBar.getProgress() == mService.bp.getDuration() / 1000) {
+                        stopTh = true;
+                    }
                     //Log.d(TAG, "Max " + seekBar.getMax() + " progress " + seekBar.getProgress() + " secondary " + seekBar.getSecondaryProgress());
                 }
             }
             progressHandler.postDelayed(progress, 1000);
         }
     };
+
 
     /**
      * Animate the Play button and dashes
@@ -570,23 +652,36 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
     };
 
     private void customActionBar() {
-        mActionBarBackgroundDrawable = getResources().getDrawable(R.drawable.ab_solid_billy);
-        mActionBarBackgroundDrawable.setAlpha(1);
-        getActionBar().setBackgroundDrawable(mActionBarBackgroundDrawable);
         getActionBar().setDisplayShowTitleEnabled(false);
         getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setDisplayShowCustomEnabled(true);
 
         customActionView = getLayoutInflater().inflate(R.layout.custom_actionbar, null);
-        actionBarText = (TextView) customActionView.findViewById(R.id.title);
         getActionBar().setCustomView(customActionView);
-        actionBarText.setAlpha(0);
         setTitle(song);
 
-        tintManager = new SystemBarTintManager(this);
-        tintManager.setStatusBarTintEnabled(true);
-        tintManager.setTintColor(getResources().getColor(R.color.billyred));
-        tintManager.setTintAlpha(0);
+        /**
+         * Transit action bar color if running JellyBean 4.2 or newer
+         */
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.JELLY_BEAN) {
+            Log.d(TAG, "LOL");
+            getActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.ab_solid_billy));
+            getBaseContext().setTheme(R.style.Theme_Billy);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            mActionBarBackgroundDrawable = getResources().getDrawable(R.drawable.ab_solid_billy);
+            mActionBarBackgroundDrawable.setAlpha(1);
+            getActionBar().setBackgroundDrawable(mActionBarBackgroundDrawable);
+            actionBarText = (TextView) customActionView.findViewById(R.id.title);
+            actionBarText.setAlpha(0);
+
+            tintManager = new SystemBarTintManager(this);
+            tintManager.setStatusBarTintEnabled(true);
+            tintManager.setTintColor(getResources().getColor(R.color.billyred));
+            tintManager.setTintAlpha(0);
+
+            ((NotifyingScrollView) findViewById(R.id.scroll_view)).setOnScrollChangedListener(mOnScrollChangedListener);
+        }
     }
 
     @Override
@@ -630,118 +725,11 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-        seekBar.setAlpha(0.8f);
+        seekBar.setAlpha(0.85f);
         mService.bp.seekTo(seekBar.getProgress() * 1000);
     }
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-    }
-
-    //TODO Set clicklistener for a play button
-    public static class PlayerYouTubeFrag extends YouTubePlayerSupportFragment{
-
-        private String videoId;
-
-        public static PlayerYouTubeFrag newInstance(String videoId) {
-
-            PlayerYouTubeFrag playerYouTubeFrag = new PlayerYouTubeFrag();
-
-            Bundle bundle = new Bundle();
-            bundle.putString("videoId", videoId);
-            playerYouTubeFrag.setArguments(bundle);
-
-            return playerYouTubeFrag;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater layoutInflater, ViewGroup viewGroup, Bundle bundle) {
-            init();
-
-            return super.onCreateView(layoutInflater, viewGroup, bundle);
-        }
-
-        private void init() {
-            videoId = getArguments().getString("videoId");
-            initialize(youtubeKey, new YouTubePlayer.OnInitializedListener() {
-                @Override
-                public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
-                    youtubePlayer = youTubePlayer;
-                    youtubePlayer.setOnFullscreenListener(new YouTubePlayer.OnFullscreenListener() {
-                        @Override
-                        public void onFullscreen(boolean b) {
-                            isFullScreen = b;
-                        }
-                    });
-
-                    youTubePlayer.setPlaybackEventListener(new YouTubePlayer.PlaybackEventListener() {
-                        @Override
-                        public void onPlaying() {
-                            Log.d(TAG,"starting video");
-                            youtubePlayer.setFullscreen(true);
-                        }
-
-                        @Override
-                        public void onPaused() {
-
-                        }
-
-                        @Override
-                        public void onStopped() {
-
-                        }
-
-                        @Override
-                        public void onBuffering(boolean b) {
-
-                        }
-
-                        @Override
-                        public void onSeekTo(int i) {
-
-                        }
-                    });
-
-                    if (!b) {
-                        youtubePlayer.cueVideo(videoId);
-                        youtubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.MINIMAL);
-                        youTubePlayer.setFullscreenControlFlags(YouTubePlayer.FULLSCREEN_FLAG_CONTROL_ORIENTATION);
-                    }
-                }
-
-                @Override
-                public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
-                    Log.d(TAG, "Player initialization failed");
-                }
-            });
-        }
-
-    }
-
-    @Override
-    public void onBackPressed() {
-        Log.d(TAG,"video is fullscreen: "+isFullScreen);
-        if(isFullScreen)
-        {
-            youtubePlayer.pause();
-            youtubePlayer.setFullscreen(false);
-        }
-        else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-
-/*        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            if (youtubePlayer != null)
-                youtubePlayer.setFullscreen(true);
-        }
-        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            if (youtubePlayer != null)
-                youtubePlayer.setFullscreen(false);
-        }*/
     }
 }

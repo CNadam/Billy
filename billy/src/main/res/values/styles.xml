@@ -5,6 +5,7 @@
         <item name="android:actionBarStyle">@style/ActionBar.Solid.Billy</item>
         <item name="android:actionOverflowButtonStyle">@style/OverFlow</item>
         <item name="android:homeAsUpIndicator">@drawable/up</item>
+        <item name="android:actionBarItemBackground">@drawable/actionitem_background</item>
     </style>
 
     <style name="Theme.Billy.TransparentActionBar" parent="Theme.Billy">

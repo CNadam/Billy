@@ -9,6 +9,7 @@ import android.util.Log;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
+import com.crashlytics.android.Crashlytics;
 
 
 public class BillyApplication extends Application {
@@ -27,6 +28,7 @@ public class BillyApplication extends Application {
     }
 
     private void init() {
+        Crashlytics.start(this);
         req = Volley.newRequestQueue(this);
         createImageLoader();
     }

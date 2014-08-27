@@ -18,7 +18,7 @@
             android:layout_alignParentStart="false"
             android:scaleType="centerCrop" />
 
-        <com.vibin.billy.NotifyingImageButton
+        <ImageButton
             android:id="@+id/streamButton"
             android:layout_width="100dp"
             android:layout_height="100dp"
@@ -33,7 +33,7 @@
             android:visibility="invisible"
             tools:visibility="visible" />
 
-        <com.vibin.billy.NotifyingImageView
+        <ImageView
             android:id="@+id/dashes"
             android:layout_width="112dp"
             android:layout_height="112dp"
@@ -144,6 +144,7 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/cardui"
                 android:orientation="vertical"
+                android:layout_marginBottom="10dp"
                 android:paddingBottom="10dp"
                 android:paddingLeft="5dp"
                 android:paddingRight="5dp"
@@ -252,6 +253,7 @@
                 tools:visibility="visible">
 
                 <TextView
+                    android:id="@+id/youTubeTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="left"
@@ -262,28 +264,23 @@
                     android:text="@string/watch"
                     android:textAppearance="?android:attr/textAppearanceLarge" />
 
-                <!-- empty SurfaceView to get rid of YouTube flickering bug -->
-                <SurfaceView
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:visibility="gone" />
-
-                <FrameLayout
-                    android:id="@+id/youTubeFrame"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="visible">
-<!--
-                    <ImageButton
-                        android:id="@+id/youTubePlay"
-                        android:layout_width="90dp"
-                        android:layout_height="90dp"
-                        android:layout_gravity="center"
-                        android:background="@null"
-                        android:src="@drawable/youtube_play" />-->
-
-
-                    </FrameLayout>
+                <com.android.volley.toolbox.NetworkImageView xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:id="@+id/youTubeThumbnail"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:scaleType="centerCrop"
+                    android:layout_below="@+id/youTubeTitle"/>
+                <ImageButton
+                    android:id="@+id/youTubePlay"
+                    android:layout_width="80dp"
+                    android:layout_height="57dp"
+                    android:src="@drawable/youtube_play"
+                    android:background="@null"
+                    android:layout_marginTop="120dp"
+                    android:layout_centerHorizontal="true"
+                    android:scaleType="fitXY"
+                    android:alpha="0.8"
+                    />
 
             </RelativeLayout>
 

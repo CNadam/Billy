@@ -26,6 +26,7 @@ public class ProcessingTask {
     JSONArray mJsonArray;
     String artistName, collectionName, artworkUrl, trackName, extractedSong, extractedArtist, paramEncode, streamLink;
     int billySize;
+    boolean ignore;
 
     public ProcessingTask() {
     }
@@ -120,7 +121,7 @@ public class ProcessingTask {
                     }
                 }
 
-            } else if (i > billySize) {
+            } else {
                 break;
             }
             event = parser.next();
@@ -258,6 +259,8 @@ public class ProcessingTask {
      */
     public String parseSoundcloud(String response) throws IOException, XmlPullParserException {
         InputStream in;
+        String firstLink="";
+        boolean firstTrack = false;
         in = IOUtils.toInputStream(response, "UTF-8");
 
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
@@ -269,17 +272,40 @@ public class ProcessingTask {
             String name = parser.getName();
 
             if (event == XmlPullParser.START_TAG) {
-                if (name.equals("stream-url")) {
+                if(name.equals("title")){
                     if (parser.next() == XmlPullParser.TEXT) {
-                        streamLink = parser.getText();
-                        streamLink = streamLink + "?client_id=d0f2d22083bc8233aab32f3f7d1d0bbc";
-                        return streamLink;
+                        if(parser.getText().toLowerCase().contains("remix") || parser.getText().toLowerCase().contains("cover") || parser.getText().toLowerCase().contains("download")){
+                            Log.d(TAG,"track ignored: "+parser.getText());
+                            ignore = true;
+                        }
                     }
                 }
-
+                if (name.equals("stream-url")) {
+                    if(firstLink.isEmpty() && parser.next() == XmlPullParser.TEXT)
+                    {
+                        firstLink = parser.getText()+"?client_id=d0f2d22083bc8233aab32f3f7d1d0bbc";
+                        firstTrack = true;
+                    }
+                    if(firstTrack)
+                    {
+                        firstTrack = false;
+                        if(!ignore){
+                            streamLink = firstLink;
+                            return streamLink;
+                        }
+                    }
+                    else if (parser.next() == XmlPullParser.TEXT && !ignore) {
+                        Log.d(TAG,"ignore is "+ignore);
+                        streamLink = parser.getText()+"?client_id=d0f2d22083bc8233aab32f3f7d1d0bbc";
+                        return streamLink;
+                    }
+                    if(ignore){
+                        ignore = false;
+                    }
+                }
             }
             event = parser.next();
         }
-        return streamLink;
+        return firstLink;
     }
 }

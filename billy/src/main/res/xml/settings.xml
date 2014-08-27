@@ -2,11 +2,12 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
-        android:title="Quality">
+        android:title="General">
     <ListPreference
         android:key="albumArtQuality"
         android:entries="@array/albumArtQuality"
         android:entryValues="@array/album_art_values"
-        android:title="@string/album_art_title" />
+        android:title="@string/album_art_title"
+        android:defaultValue="1"/>
     </PreferenceCategory>
 </PreferenceScreen>

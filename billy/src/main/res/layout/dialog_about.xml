@@ -1,0 +1,40 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/edit_name"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <TextView
+        android:id="@+id/dialog_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="About"
+        android:textSize="24sp"
+        android:fontFamily="sans-serif-condensed"
+        android:textAllCaps="true"
+        android:textColor="@color/billyred"
+        android:textStyle="bold"
+        android:paddingRight="5dp"
+        android:layout_marginBottom="5dp"/>
+    <TextView
+        android:id="@+id/dialog_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:text="Hello. I'm Billy. I bring you the most popular songs right now.\n\nGot a second? Please rate me."
+        android:fontFamily="sans-serif"
+        android:layout_below="@+id/dialog_title"
+        android:layout_marginBottom="5dp"
+        />
+
+    <Button
+        android:id="@+id/playStoreButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rate on Play Store"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/dialog_desc"/>
+
+</RelativeLayout>

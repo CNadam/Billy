@@ -9,20 +9,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.ImageRequest;
+import com.nullwire.trace.ExceptionHandler;
 
 import java.io.IOException;
 
@@ -38,9 +38,12 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     RequestQueue req;
     RemoteViews notifView;
     BillyApplication billyapp;
+    PhoneStateListener PSlistener;
+    TelephonyManager telephony;
     private onBPChangedListener BPlistener;
     private final IBinder mBinder = new PlayerServiceBinder();
     public static boolean isRunning;
+    public static boolean isInCall;
     public static boolean isIdle = true;
 
     public void doPause() {
@@ -61,7 +64,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
         void onNotificationPlayPressed();
 
-        void doUnbind();
+        void onNotificationStopPressed();
     }
 
     // Return this instance of LocalService so clients can call public methods
@@ -83,6 +86,8 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     @Override
     public void onCreate() {
         super.onCreate();
+
+        ExceptionHandler.register(getBaseContext(), "http://vibinreddy.me/ExceptionScript.php");
         billyapp = (BillyApplication) this.getApplication();
 
         isRunning = true;
@@ -108,32 +113,69 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        streamLink = intent.getStringExtra("streamLink");
-        song = intent.getStringExtra("songName");
-        album = intent.getStringExtra("albumName");
-        artist = intent.getStringExtra("artistName");
-        songIndex = intent.getIntExtra("songIndex", 50);
-        artwork = intent.getStringExtra("artwork");
+        if(intent != null) {
+            setupPhoneListener();
+            streamLink = intent.getStringExtra("streamLink");
+            song = intent.getStringExtra("songName");
+            album = intent.getStringExtra("albumName");
+            artist = intent.getStringExtra("artistName");
+            songIndex = intent.getIntExtra("songIndex", 50);
+            artwork = intent.getStringExtra("artwork");
 
-        bp.reset();
+            bp.reset();
 
-        if (!bp.isPlaying()) {
-            try {
-                //bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
-                bp.setDataSource(streamLink);
+            if (!bp.isPlaying()) {
+                try {
+                    bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
+                    //bp.setDataSource(streamLink);
 
-                bp.prepareAsync();
-            } catch (IOException e) {
-                e.printStackTrace();
+                    bp.prepareAsync();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
         return START_STICKY;
     }
 
+    private void setupPhoneListener() {
+        telephony = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        PSlistener = new PhoneStateListener() {
+            @Override
+            public void onCallStateChanged(int state, String incomingNumber) {
+                super.onCallStateChanged(state, incomingNumber);
+                switch (state) {
+                    /**
+                     * Lifting or cancelling a call is equivalent to pressing pause/play Notification buttons
+                     */
+                    case TelephonyManager.CALL_STATE_RINGING:
+                        isInCall = true;
+                        if (bp != null) {
+                            bp.pause();
+                            putNotification();
+                            BPlistener.onNotificationPausePressed();
+                        }
+                        break;
+                    case TelephonyManager.CALL_STATE_IDLE:
+                        if(isInCall) {
+                            isInCall = false;
+                            if (bp != null) {
+                                bp.start();
+                                putNotification();
+                                BPlistener.onNotificationPlayPressed();
+                            }
+                        }
+                }
+
+            }
+        };
+        telephony.listen(PSlistener, PhoneStateListener.LISTEN_CALL_STATE);
+    }
+
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         isIdle = false;
-        BPlistener.onPrepared(bp.getDuration() / 1000);
+        BPlistener.onPrepared(mediaPlayer.getDuration() / 1000);
         playMedia();
     }
 
@@ -206,6 +248,9 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
+        if(PSlistener != null) {
+            telephony.listen(PSlistener, PhoneStateListener.LISTEN_NONE);
+        }
         isRunning = false;
     }
 
@@ -255,6 +300,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                 notifIcon = imageContainer.getBitmap();
                 notifView.setImageViewBitmap(R.id.artwork, notifIcon);
             }
+
             @Override
             public void onErrorResponse(VolleyError volleyError) {
                 Log.d(TAG, volleyError.toString());
@@ -266,14 +312,12 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         Intent quitIntent = new Intent("com.vibin.billy.ACTION_QUIT");
         PendingIntent pendingQuitIntent = PendingIntent.getBroadcast(getBaseContext(), 100, quitIntent, 0);
         notifView.setOnClickPendingIntent(R.id.dismiss, pendingQuitIntent);
-        if(bp.isPlaying())
-        {
-            notifView.setImageViewResource(R.id.control,R.drawable.notification_pause);
+        if (bp.isPlaying()) {
+            notifView.setImageViewResource(R.id.control, R.drawable.notification_pause);
             PendingIntent pendingPauseIntent = PendingIntent.getBroadcast(getBaseContext(), 100, pauseIntent, 0);
             notifView.setOnClickPendingIntent(R.id.control, pendingPauseIntent);
-        }
-        else{
-            notifView.setImageViewResource(R.id.control,R.drawable.notification_play);
+        } else {
+            notifView.setImageViewResource(R.id.control, R.drawable.notification_play);
             PendingIntent pendingPlayIntent = PendingIntent.getBroadcast(getBaseContext(), 100, playIntent, 0);
             notifView.setOnClickPendingIntent(R.id.control, pendingPlayIntent);
         }
@@ -305,7 +349,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
             if (action.equalsIgnoreCase("com.vibin.billy.ACTION_QUIT")) {
                 stopForeground(true);
                 stopMedia();
-                BPlistener.doUnbind();
+                BPlistener.onNotificationStopPressed();
                 stopSelf();
             }
         }
@@ -314,9 +358,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     public void uncaughtException() {
         try {
             onDestroy();
-        }
-        catch(Throwable e)
-        {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }

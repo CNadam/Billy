@@ -1,7 +1,8 @@
 package com.vibin.billy;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ListFragment;
@@ -27,6 +28,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.nullwire.trace.ExceptionHandler;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,6 +41,7 @@ import java.util.ArrayList;
 public class SongsFragment extends ListFragment implements AdapterView.OnItemClickListener, SwipeRefreshLayout.OnRefreshListener {
     ArrayList<ProcessingTask.BillyData> mData;
     String[] billySong, billyArtist, result;
+    String jsonMdata;
     LinearLayout spinner;
     View v;
     boolean spinnerVisible;
@@ -61,6 +64,8 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        ExceptionHandler.register(getActivity(), "http://vibinreddy.me/ExceptionScript.php");
         position = getArguments().getInt("position");
         tag = tag.substring(0, tag.length() - 1) + Integer.toString(position);
         billyapp = (BillyApplication) getActivity().getApplication();
@@ -83,16 +88,18 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         table_name = getResources().getStringArray(R.array.table)[position];
         if (!billyapp.isConnected()) {
             Log.d(tag, "No internet connection");
-            String jsonMdata = customDatabaseAdapter.getArrayList(table_name);
+            jsonMdata = customDatabaseAdapter.getArrayList(table_name);
             Log.d(tag, "jsonMdata is " + jsonMdata);
-            Gson gson = new Gson();
-            mData = gson.fromJson(jsonMdata, new TypeToken<ArrayList<ProcessingTask.BillyData>>() {
-            }.getType());
+            if (jsonMdata != null) {
+                Gson gson = new Gson();
+                mData = gson.fromJson(jsonMdata, new TypeToken<ArrayList<ProcessingTask.BillyData>>() {
+                }.getType());
+            }
         }
 
         //Spawn requests only on new Instance
         if (savedInstanceState == null && billyapp.isConnected()) {
-                performRequests();
+            performRequests();
         }
     }
 
@@ -108,6 +115,22 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         v = inflater.inflate(R.layout.fragment_songs, container, false);
+        if (jsonMdata == null && !billyapp.isConnected()) {
+            v.findViewById(android.R.id.list).setVisibility(View.GONE);
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+            alertDialogBuilder.setTitle("Connection error");
+            alertDialogBuilder
+                    .setMessage("Please connect to Internet.")
+                    .setCancelable(false)
+                    .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            android.os.Process.killProcess(android.os.Process.myPid());
+                        }
+                    });
+
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+        }
         customBaseAdapter = new CustomBaseAdapter(getActivity(), mData, imgload);
         spinner = (LinearLayout) v.findViewById(R.id.spinner);
         if (spinnerVisible) {
@@ -125,14 +148,12 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
         // Restore instance, on Orientation change
         if (savedInstanceState != null) {
-            Log.d(tag,"not null");
+            Log.d(tag, "not null");
             mData = savedInstanceState.getParcelableArrayList("MDATA");
-            if(mData == null)
-            {
-                Log.d(tag,"mdata is indeed null");
+            if (mData == null) {
+                Log.d(tag, "mdata is indeed null");
                 performRequests();
-            }
-            else {
+            } else {
                 customBaseAdapter.updateArrayList(mData);
                 customBaseAdapter.notifyDataSetChanged();
             }
@@ -167,11 +188,12 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putParcelableArrayList("MDATA", mData);
-
+        if(checkArrayList(mData)) {
+            outState.putParcelableArrayList("MDATA", mData);
+        }
         // If connected to internet, write to database, but only once
         if (onlyOnce == 0 && billyapp.isConnected()) {
-            if(checkArrayList(mData)) {
+            if (checkArrayList(mData)) {
                 Gson gson = new Gson();
                 String jsonMdata = gson.toJson(mData);
                 long yolo = customDatabaseAdapter.insertArrayList(jsonMdata, table_name);
@@ -197,10 +219,9 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                         Log.d(tag, "Pull to refresh");
                         if (!response.equalsIgnoreCase(data)) {
                             Toast.makeText(getActivity(), "New songs have loaded", Toast.LENGTH_LONG).show();
-                        }
-                        else{
+                        } else {
                             Toast.makeText(getActivity(), "No new songs available",
-                               Toast.LENGTH_LONG).show();
+                                    Toast.LENGTH_LONG).show();
                         }
                         handleXML(response);
                         pulltorefresh = false;
@@ -373,12 +394,10 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     private boolean checkArrayList(ArrayList<ProcessingTask.BillyData> mData) {
         int i = 0;
         try {
-            while(i < mData.size()){
-                if(mData.get(i) == null)
-                {
+            while (i < mData.size()) {
+                if (mData.get(i) == null) {
                     return false;
-                }
-                else if(mData.get(i).artwork.isEmpty()){
+                } else if (mData.get(i).artwork.isEmpty()) {
                     return false;
                 }
                 i++;

@@ -21,7 +21,6 @@
         <activity
             android:name=".DetailView"
             android:parentActivityName=".MainActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
             android:theme="@style/Theme.Billy.TransparentActionBar">
         </activity>
 
@@ -34,9 +33,11 @@
             android:name=".Settings"
             android:parentActivityName=".MainActivity">
         </activity>
+        <meta-data android:name="com.crashlytics.ApiKey" android:value="019d3efb4ece685c209cd7098275f51694ab2a96"/>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
