@@ -9,7 +9,7 @@
     </style>
 
     <style name="Theme.Billy.TransparentActionBar" parent="Theme.Billy">
-        <item name ="android:windowActionBarOverlay">true</item>
+        <item name="android:windowActionBarOverlay">true</item>
         <item name="android:actionBarStyle">@style/ActionBar.Transparent.Billy</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>

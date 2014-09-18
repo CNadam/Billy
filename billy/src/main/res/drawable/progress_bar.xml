@@ -4,8 +4,7 @@
         <shape>
             <gradient
                 android:startColor="@android:color/transparent"
-                android:endColor="@android:color/transparent"
-                />
+                android:endColor="@android:color/transparent" />
         </shape>
     </item>
 
@@ -14,8 +13,7 @@
             <shape>
                 <gradient
                     android:startColor="@android:color/transparent"
-                    android:endColor="@android:color/transparent"
-                    />
+                    android:endColor="@android:color/transparent" />
             </shape>
         </clip>
     </item>
@@ -25,8 +23,7 @@
             <shape>
                 <gradient
                     android:startColor="#EA5157"
-                    android:endColor="#EA5157"
-                    />
+                    android:endColor="#EA5157" />
             </shape>
         </clip>
     </item>

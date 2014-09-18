@@ -21,8 +21,7 @@
         <activity
             android:name=".DetailView"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/Theme.Billy.TransparentActionBar">
-        </activity>
+            android:theme="@style/AppTheme.SwipeableActivity.Light"></activity>
 
         <service
             android:name=".PlayerService"

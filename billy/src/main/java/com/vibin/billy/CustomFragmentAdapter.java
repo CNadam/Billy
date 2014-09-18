@@ -8,6 +8,8 @@ import android.support.v4.app.FragmentPagerAdapter;
 
 import com.viewpagerindicator.IconPagerAdapter;
 
+import java.util.Arrays;
+
 public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconPagerAdapter {
 
     private static final String TAG = CustomFragmentAdapter.class.getSimpleName();
@@ -15,11 +17,11 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
             "Most Popular", "Pop", "Rock", "Dance"
     };
     private int mCount = CONTENT.length;
-    Context c;
+    static Context c;
 
     public CustomFragmentAdapter(FragmentManager fm, Context c) {
         super(fm);
-        this.c = c;
+        CustomFragmentAdapter.c = c; //because the Context object is static
     }
 
     @Override
@@ -28,6 +30,11 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
     }
 
     public static Fragment newInstance(int position) {
+//       Log.d(TAG,c.getResources().getStringArray(R.array.screens)[position]+" fromArrayItself");
+//       Log.d(TAG,Arrays.asList(c.getResources().getStringArray(R.array.screens)).indexOf((CONTENT[position]))+" "+CONTENT[position]+"");
+
+        // This takes care of dynamic positioning of Fragments
+        position = Arrays.asList(c.getResources().getStringArray(R.array.screens)).indexOf((CONTENT[position]));
         SongsFragment f = new SongsFragment();
         Bundle args = new Bundle();
         args.putInt("position", position);

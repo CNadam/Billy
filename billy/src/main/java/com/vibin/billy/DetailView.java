@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentActivity;
 import android.text.Html;
 import android.util.Log;
 import android.view.MenuItem;
@@ -41,17 +40,21 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.NetworkImageView;
 import com.android.volley.toolbox.StringRequest;
 import com.google.android.youtube.player.YouTubeIntents;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.FileAsyncHttpResponseHandler;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
+import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarChangeListener {
+public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChangeListener {
     String song, artwork, artist, album, streamLink, lastFmBio, thumbnail, videoId;
     String[] relatedAlbumImg, relatedAlbums;
     int songIndex, songLength;
@@ -157,7 +160,14 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
         }
     }
 
+/*    @Override
+    public void enableSwipeToDismiss() {
+        Log.d(TAG,"Swipe to dismiss enabled. ");
+        super.enableSwipeToDismiss();
+    }*/
+
     private void performRequests() {
+        super.enableSwipeToDismiss();
         req = billyapp.getRequestQueue();
 
         final String scUrl = getResources().getString(R.string.soundcloud) + artist.replaceAll(" ", "+").replaceAll("\u00eb", "e") + "+" + song.replaceAll(" ", "+") + getResources().getString(R.string.sc_params);
@@ -213,9 +223,8 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
                 setRelatedAlbums();
                 setYoutube(thumbnail, videoId);
             }
-        }
-        catch(NullPointerException e){
-            Log.d(TAG,e.toString());
+        } catch (NullPointerException e) {
+            Log.d(TAG, e.toString());
         }
     }
 
@@ -225,9 +234,8 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
             public void onResponse(String response) {
                 try {
                     streamLink = ft.parseSoundcloud(response);
-                    //JsonObjectRequest i1 = new JsonObjectRequest(Request.Method.GET, "https://api.soundcloud.com/i1/tracks/133433134/streams?client_id=apigee", null, i1Complete(), i1Error());
-                    //streamLink = "https://ec-hls-media.soundcloud.com/playlist/OM6ZltKo22zf.128.mp3/playlist.m3u8?f10880d39085a94a0418a7e062b03d52bbdc0e179b82bde1d76ce4ac1947690c3ec32da3f4fe1a31765c3542d200e0f73a0611cd5a10f3b7d6fd2fe68ec9690e3553c642ec3f32627b20fc02b5dcd5463a6293ae2929dd917b1eea32";
-                    //req.add(i1);
+                    JsonObjectRequest i1 = new JsonObjectRequest(Request.Method.GET, "https://api.soundcloud.com/i1/tracks/133433134/streams?client_id=apigee", null, i1Complete(), i1Error());
+//                    req.add(i1);
                     if (scaleAnim != null) {
                         streamBtn.startAnimation(scaleAnim);
                     }
@@ -240,38 +248,46 @@ public class DetailView extends FragmentActivity implements SeekBar.OnSeekBarCha
                 }
             }
 
-/*            private Response.ErrorListener i1Error() {
-                return new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError volleyError) {
-                        Log.d(TAG, "Something failed.");
-                    }
-                };
-            }
-
             private Response.Listener<JSONObject> i1Complete() {
                 return new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject jsonObject) {
                         try {
-                            jsonObject.getString("http_mp3_128_url");
+                            String hlsurl = jsonObject.getString("hls_mp3_128_url");
+                            AsyncHttpClient ac = new AsyncHttpClient();
+                            ac.get(getBaseContext(), hlsurl, new FileAsyncHttpResponseHandler(getBaseContext()) {
+                                @Override
+                                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
+                                    Toast.makeText(getBaseContext(), "File failed.",
+                                            Toast.LENGTH_LONG).show();
+                                }
+
+                                @Override
+                                public void onSuccess(int statusCode, Header[] headers, File file) {
+                                    Toast.makeText(getBaseContext(), "File download success",
+                                            Toast.LENGTH_LONG).show();
+
+                                }
+                            });
                         } catch (JSONException e) {
-                            try {
-                                streamLink = jsonObject.getString("hls_mp3_128_url");
-                            } catch (JSONException e1) {
-                                e1.printStackTrace();
-                            }
                             e.printStackTrace();
                         }
-                        if (scaleAnim != null) {
-                            streamBtn.startAnimation(scaleAnim);
-                        }
-                        streamBtn.setVisibility(View.VISIBLE);
                     }
                 };
-            }*/
+            }
+
         };
     }
+
+    private Response.ErrorListener i1Error() {
+        return new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                Log.d(TAG, "" + volleyError);
+            }
+        };
+    }
+
 
     private Response.ErrorListener scError() {
         return new Response.ErrorListener() {

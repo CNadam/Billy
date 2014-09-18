@@ -148,7 +148,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                      */
                     case TelephonyManager.CALL_STATE_RINGING:
                         isInCall = true;
-                        if (bp != null) {
+                        if (bp != null && !isIdle) {
                             if(bp.isPlaying()) {
                                 isInCallMusicPaused = true;
                                 bp.pause();

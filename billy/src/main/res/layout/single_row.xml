@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-thin"
                 android:textSize="24sp"
-                tools:text="Get Lucky"/>
+                tools:text="Get Lucky" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -50,7 +50,7 @@
                     android:fontFamily="sans-serif-condensed"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    tools:text="Random Access Memories"/>
+                    tools:text="Random Access Memories" />
 
                 <TextView
                     android:id="@+id/artist"
@@ -59,7 +59,7 @@
                     android:fontFamily="sans-serif-condensed"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    tools:text="Daft Punk"/>
+                    tools:text="Daft Punk" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

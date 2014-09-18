@@ -75,22 +75,24 @@ public class MainActivity extends FragmentActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_settings:
-                Intent settingsIntent = new Intent(this,Settings.class);
+                Intent settingsIntent = new Intent(this, Settings.class);
                 startActivity(settingsIntent);
                 return true;
             case R.id.about:
                 AboutDialog ab = AboutDialog.newInstance();
-                ab.show(getSupportFragmentManager(),"ab");
+                ab.show(getSupportFragmentManager(), "ab");
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    public static class AboutDialog extends DialogFragment{
+    public static class AboutDialog extends DialogFragment {
         View v;
+
         public AboutDialog() {
         }
-        public static AboutDialog newInstance(){
+
+        public static AboutDialog newInstance() {
             AboutDialog frag = new AboutDialog();
             Bundle args = new Bundle();
             frag.setArguments(args);

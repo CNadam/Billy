@@ -17,9 +17,16 @@ repositories {
 }
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'billykey'
+            keyPassword 'forrapid'
+            storeFile file('/Users/vibinreddy/Documents/workspace/billy.jks')
+            storePassword 'forrapid'
+        }
+    }
     compileSdkVersion 19
     buildToolsVersion '19.1.0'
-
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 19
@@ -62,4 +69,5 @@ dependencies {
     compile 'com.android.support:support-v4:19.+'
     compile files('libs/YouTubeAndroidPlayerApi.jar')
     compile 'com.crashlytics.android:crashlytics:1.+'
+    compile 'com.loopj.android:android-async-http:1.4.5'
 }

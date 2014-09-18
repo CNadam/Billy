@@ -47,7 +47,7 @@ public class BitmapLruCache
                 (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSize = maxMemory / 8;
 
-        Log.d(TAG,"cachesize is "+cacheSize);
+        Log.d(TAG, "cachesize is " + cacheSize);
 
         return cacheSize;
     }

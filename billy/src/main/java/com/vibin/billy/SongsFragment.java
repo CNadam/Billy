@@ -26,6 +26,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
+import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -186,7 +187,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        if(checkArrayList(mData)) {
+        if (checkArrayList(mData)) {
             outState.putParcelableArrayList("MDATA", mData);
         }
         // If connected to internet, write to database, but only once
@@ -298,10 +299,16 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                     result = ft.parseItunes(jsonObject);
 
                     if (result != null) {
-                        // Log.d(tag, "Match is" +Integer.parseInt(result[4]));
-                        mData.get(Integer.parseInt(result[4])).setItunes(result[0], result[1], result[2], result[3]);
-                        customBaseAdapter.updateArrayList(mData);
-                        customBaseAdapter.notifyDataSetChanged();
+                        try {
+                            // Log.d(tag, "Match is" +Integer.parseInt(result[4]));
+                            mData.get(Integer.parseInt(result[4])).setItunes(result[0], result[1], result[2], result[3]);
+                            customBaseAdapter.updateArrayList(mData);
+                            customBaseAdapter.notifyDataSetChanged();
+                        } catch (NullPointerException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        Crashlytics.log(Log.ERROR, tag, "Result object from iTunes is null for this track.");
                     }
                 } catch (JSONException e) {
                     Log.d(tag, e + "mIndex is" + mIndex);
