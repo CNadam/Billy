@@ -9,8 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
@@ -23,12 +21,16 @@ import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 
-import java.io.IOException;
+import org.videolan.libvlc.LibVLC;
+import org.videolan.libvlc.LibVlcException;
+import org.videolan.libvlc.MediaList;
 
-public class PlayerService extends Service implements MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnInfoListener, MediaPlayer.OnSeekCompleteListener {
-    private static final String TAG = PlayerService.class.getSimpleName();
-    MediaPlayer bp = new MediaPlayer();
+
+public class PPlayerService extends Service {
+    private static final String TAG = PPlayerService.class.getSimpleName();
     String streamLink, song, album, artist, artwork;
+    LibVLC bp;
+    MediaList list;
     int songIndex;
     int bufferPercent;
     Notification note;
@@ -40,7 +42,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     PhoneStateListener PSlistener;
     TelephonyManager telephony;
     private onBPChangedListener BPlistener;
-    private final IBinder mBinder = new PlayerServiceBinder();
+    private final IBinder mBinder = new PPlayerServiceBinder();
     public static boolean isRunning;
     public static boolean isInCall, isInCallMusicPaused;
     public static boolean isIdle = true;
@@ -69,9 +71,9 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     /**
      * Returns this instance of LocalService so clients can call public methods
      */
-    public class PlayerServiceBinder extends Binder {
-        public PlayerService getService() {
-            return PlayerService.this;
+    public class PPlayerServiceBinder extends Binder {
+        public PPlayerService getService() {
+            return PPlayerService.this;
         }
 
         public void setListener(onBPChangedListener listener) {
@@ -88,6 +90,14 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     public void onCreate() {
         super.onCreate();
 
+        try {
+            bp = LibVLC.getInstance();
+            bp.init(getBaseContext());
+        } catch (LibVlcException e) {
+            e.printStackTrace();
+        }
+
+
         Log.d(TAG, "Service's onCreate");
         billyapp = (BillyApplication) this.getApplication();
 
@@ -95,14 +105,6 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         notifView = new RemoteViews(this.getPackageName(), R.layout.notification_view);
         noteMan = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         req = billyapp.getRequestQueue();
-
-        bp.setOnPreparedListener(this);
-        bp.setOnBufferingUpdateListener(this);
-        bp.setOnCompletionListener(this);
-        bp.setOnErrorListener(this);
-        bp.setOnInfoListener(this);
-        bp.setOnSeekCompleteListener(this);
-        bp.reset();
     }
 
     @Override
@@ -121,17 +123,26 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
             songIndex = intent.getIntExtra("songIndex", 50);
             artwork = intent.getStringExtra("artwork");
 
-            bp.reset();
+            //bp.reset();
 
             if (!bp.isPlaying()) {
-                try {
-                    bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
-                    //bp.setDataSource(streamLink);
+                //bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
 
-                    bp.prepareAsync();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+/*
+                    URLConnection con = new URL(streamLink).openConnection();
+                    con.connect();
+                    InputStream is = con.getInputStream();
+                    streamLink = con.getURL().toString();
+                    is.close();
+*/
+//                  streamLink="http://ec-media.soundcloud.com/p7Uw60gtODDZ.128.mp3?f10880d39085a94a0418a7ef69b03d522cd6dfee9399eeb9a522009e6bf9b93b1c57cf78a3e4865f4b47b62a40b86e0209984a23f40484b51853d2c1e8a7dc8285658d0e8e&AWSAccessKeyId=AKIAJNIGGLK7XA7YZSNQ&Expires=1412417762&Signature=Oz5cUbgp06dzFOy3aTBm0txXSIY%3D";
+                list = bp.getPrimaryMediaList();
+                list.clear();
+
+                list.add(LibVLC.PathToURI(streamLink));
+                Log.d(TAG, "service " + streamLink);
+
+                playMedia();
             }
         }
         return START_STICKY;
@@ -168,7 +179,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                             if (isInCallMusicPaused) {
                                 isInCallMusicPaused = false;
                                 if (bp != null) {
-                                    bp.start();
+                                    bp.play();
                                     putNotification();
                                     BPlistener.onNotificationPlayPressed();
                                 }
@@ -181,94 +192,13 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         telephony.listen(PSlistener, PhoneStateListener.LISTEN_CALL_STATE);
     }
 
-    @Override
-    public void onPrepared(MediaPlayer mediaPlayer) {
-        isIdle = false;
-        BPlistener.onPrepared(mediaPlayer.getDuration() / 1000); //ms
-        playMedia();
-    }
-
-
-    @Override
-    public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
-        bufferPercent = i;
-    }
-
-    @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-        Log.d(TAG, "Service onCompletion");
-        BPlistener.onCompletion();
-        stopForeground(true);
-        try {
-            unregisterReceiver(NotificationMediaControl);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        }
-        stopMedia();
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mediaPlayer, int i, int i2) {
-        stopForeground(true);
-        BPlistener.onError(i, i2);
-        switch (i) {
-            case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
-                Log.d(TAG, "MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK " + i2);
-                break;
-            case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
-                Log.d(TAG, "MEDIA_ERROR_SERVER_DIED " + i2);
-                break;
-            case MediaPlayer.MEDIA_ERROR_IO:
-                Log.d(TAG, "MEDIA_ERROR_IO " + i2);
-                break;
-            case MediaPlayer.MEDIA_ERROR_UNKNOWN:
-                Log.d(TAG, "MEDIA_ERROR_UNKNOWN " + i2);
-                break;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean onInfo(MediaPlayer mediaPlayer, int i, int i2) {
-        return false;
-    }
-
-    @Override
-    public void onSeekComplete(MediaPlayer mediaPlayer) {
-
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "Service onDestroy");
-        if (bp != null) {
-            if (bp.isPlaying()) {
-                bp.stop();
-            }
-            isIdle = true;
-            bp.reset();
-            bp.release();
-        }
-        stopForeground(true);
-        try {
-            unregisterReceiver(NotificationMediaControl);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        }
-        if (PSlistener != null) {
-            telephony.listen(PSlistener, PhoneStateListener.LISTEN_NONE);
-        }
-        isRunning = false;
-    }
 
     public void playMedia() {
         if (!bp.isPlaying()) {
-            bp.start();
+            bp.playIndex(0);
             putNotification();
         }
     }
-
 
     public void stopMedia() {
         if (bp.isPlaying()) {
@@ -350,7 +280,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
             }
 
             if (action.equalsIgnoreCase("com.vibin.billy.ACTION_PLAY")) {
-                bp.start();
+                bp.play();
                 BPlistener.onNotificationPlayPressed();
                 putNotification();
             }

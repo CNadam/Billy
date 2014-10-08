@@ -3,4 +3,9 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
+    <dimen name="listitem_paddingtop">5dp</dimen>
+    <dimen name="listitem_dimen">143dp</dimen>
+    <!--Same for both width and height -->
+    <dimen name="listitem_dimen_compact">120dp</dimen>
+    <!--Same for both width and height -->
 </resources>

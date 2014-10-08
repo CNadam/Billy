@@ -13,15 +13,16 @@ import java.util.Arrays;
 public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconPagerAdapter {
 
     private static final String TAG = CustomFragmentAdapter.class.getSimpleName();
-    protected static final String[] CONTENT = new String[]{
-            "Most Popular", "Pop", "Rock", "Dance"
-    };
-    private int mCount = CONTENT.length;
+    protected static String[] content;
+    private int mCount;
+
     static Context c;
 
-    public CustomFragmentAdapter(FragmentManager fm, Context c) {
+    public CustomFragmentAdapter(FragmentManager fm, Context c, BillyApplication billyapp) {
         super(fm);
-        CustomFragmentAdapter.c = c; //because the Context object is static
+        CustomFragmentAdapter.c = c;
+        content = billyapp.getScreensList();
+        mCount = content.length;
     }
 
     @Override
@@ -29,12 +30,13 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
         return 0;
     }
 
+    /**
+     * We get the dynamic index of Fragment by searching it in the default {@code R.array.screens} array
+     *
+     * @param position the Fragment requested by user
+     */
     public static Fragment newInstance(int position) {
-//       Log.d(TAG,c.getResources().getStringArray(R.array.screens)[position]+" fromArrayItself");
-//       Log.d(TAG,Arrays.asList(c.getResources().getStringArray(R.array.screens)).indexOf((CONTENT[position]))+" "+CONTENT[position]+"");
-
-        // This takes care of dynamic positioning of Fragments
-        position = Arrays.asList(c.getResources().getStringArray(R.array.screens)).indexOf((CONTENT[position]));
+        position = Arrays.asList(c.getResources().getStringArray(R.array.screens)).indexOf((content[position]));
         SongsFragment f = new SongsFragment();
         Bundle args = new Bundle();
         args.putInt("position", position);
@@ -49,7 +51,7 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
 
     @Override
     public CharSequence getPageTitle(int position) {
-        return CONTENT[position];
+        return content[position];
     }
 
     @Override

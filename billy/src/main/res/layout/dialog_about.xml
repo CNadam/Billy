@@ -24,7 +24,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:text="Hello. I'm Billy. I bring you the most popular songs right now.\n\nGot a second? Please rate me."
+        android:text="@string/aboutdesc"
         android:fontFamily="sans-serif"
         android:layout_below="@+id/dialog_title"
         android:layout_marginBottom="5dp" />
@@ -33,7 +33,7 @@
         android:id="@+id/playStoreButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Rate on Play Store"
+        android:text="@string/rate"
         android:layout_centerHorizontal="true"
         android:layout_below="@id/dialog_desc" />
 

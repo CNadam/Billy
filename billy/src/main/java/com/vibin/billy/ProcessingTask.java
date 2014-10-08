@@ -1,12 +1,15 @@
 package com.vibin.billy;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,25 +19,39 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
+import java.util.regex.Pattern;
 
 public class ProcessingTask {
 
     private static final String TAG = ProcessingTask.class.getSimpleName();
 
-    String[] billySong, billyArtist, result;
-    JSONArray mJsonArray;
-    String artistName, collectionName, artworkUrl, trackName, extractedSong, extractedArtist, paramEncode, streamLink;
+    String[] billySong, billyArtist;
     int billySize;
-    boolean ignore;
+    Context context;
+    int quality;
 
-    public ProcessingTask() {
+    public ProcessingTask(Context c) {
+        this.context = c;
     }
 
-    public ProcessingTask(int billySize) {
+    /**
+     * Used for populating arrays of song and artist names
+     *
+     * @param billySize Number of songs
+     */
+    public ProcessingTask(int billySize, Context c) {
         this.billySize = billySize;
         billySong = new String[billySize];
         billyArtist = new String[billySize];
+        this.context = c;
+        getArtworkUrlResolution();
+    }
+
+    public ProcessingTask(String[] billySong, String[] billyArtist, Context c) {
+        this.billySong = billySong;
+        this.billyArtist = billyArtist;
+        this.context = c;
+        getArtworkUrlResolution();
     }
 
     public static class BillyData implements Parcelable {
@@ -110,18 +127,18 @@ public class ProcessingTask {
             String name = parser.getName();
 
             if (i <= billySize && event == XmlPullParser.START_TAG) {
-                if (name.equals("title")) {
+                if (name.equals("description")) {
                     if (parser.next() == XmlPullParser.TEXT) {
-                        if (i != 0) {
-                            billySong[i - 1] = extractSong(parser.getText()).trim();
-                            billyArtist[i - 1] = extractArtist(parser.getText()).trim();
-                            Log.d(TAG, billySong[i - 1] + " " + billyArtist[i - 1]);
+                        billySong[i] = extractSong(parser.getText());
+                        billyArtist[i] = extractArtist(parser.getText());
+                        if (response.length() > 10000) {
+                            //Log.d(TAG, billySong[i] + " " + billyArtist[i]);
                         }
                         i++;
                     }
                 }
 
-            } else if (i > billySize) {
+            } else if (i >= billySize) {
                 break;
             }
             event = parser.next();
@@ -130,7 +147,7 @@ public class ProcessingTask {
     }
 
     public String[] getArtists() {
-        return billyArtist;
+        return billySong;
     }
 
     /**
@@ -142,16 +159,27 @@ public class ProcessingTask {
      */
     public String[] parseItunes(JSONObject jsonObject) throws JSONException {
         int counter = 0;
-        while (counter <= 1) {
+        String trackName, artworkUrl, collectionName, artistName;
+        JSONArray mJsonArray;
+        while (counter < 2) {
             mJsonArray = jsonObject.getJSONArray("results");
             if (jsonObject.getInt("resultCount") == 0) {
-                Log.e(TAG, "resultCount is zero");
+                Log.e(TAG, "resultCount is zero " + jsonObject.toString());
                 Log.e(TAG, "Artist name is " + mJsonArray.getJSONObject(counter).getString("artistName"));
             }
             artistName = mJsonArray.getJSONObject(counter).getString("artistName");
             collectionName = mJsonArray.getJSONObject(counter).getString("collectionName");
-            artworkUrl = mJsonArray.getJSONObject(counter).getString("artworkUrl100").replaceAll("100x100", "400x400");
+            artworkUrl = mJsonArray.getJSONObject(counter).getString("artworkUrl100");
             trackName = mJsonArray.getJSONObject(counter).getString("trackName");
+
+            // Change quality of artwork according to user settings
+            if (quality == 2) {
+                artworkUrl = artworkUrl.replaceAll("100x100", "600x600");
+            } else {
+                artworkUrl = artworkUrl.replaceAll("100x100", "400x400");
+            }
+
+            Log.d(TAG, "artwork url is " + artworkUrl);
 
             // Capitalize first letter of every word
             if (!StringUtils.isAllUpperCase(trackName)) {
@@ -166,82 +194,91 @@ public class ProcessingTask {
             } else if (trackName.contains("!")) {
                 trackName = trackName.substring(0, trackName.indexOf("!"));
             }
-            trackName = trackName.trim();
-            String match = Integer.toString(Arrays.asList(billySong).indexOf(trackName));
 
-            // Trackname from Billboard and iTunes don't match
-            if (Integer.parseInt(match) == -1) {
+            // Replace Smart Quotes with Dumb Quotes
+            trackName = replaceSmartQuotes(trackName).trim();
+
+            int match = matchMagic(billySong, trackName);
+
+            // Track name from Billboard and iTunes don't match, also LOL
+            if (match == -1) {
                 Log.e(TAG, "The unmatched billysong is " + trackName);
-                String matchArtist = Integer.toString(Arrays.asList(billyArtist).indexOf(artistName));
-                if (Integer.parseInt(matchArtist) == -1) {
-                    counter++;
+                int matchArtist = matchMagic(billyArtist, artistName);
+                counter++;
+                if (matchArtist == -1) {
                     Log.e(TAG, "Artists haven't matched " + artistName + " and counter is " + counter);
                 } else {
                     Log.e(TAG, "Something wrong with text manipulation " + trackName + artistName);
-                    return null;
+                    //       return null;
                 }
             } else {
                 // Most ideal situation
-                result = new String[]{collectionName, artistName, artworkUrl, trackName, match};
-                return result;
+                return new String[]{collectionName, artistName, artworkUrl, trackName, match + ""};
             }
         }
         return null;
     }
 
-    /*
-        String Utility Methods
-    */
+    /**
+     * Parse song substring from Billboard <title> tag
+     */
     private String extractSong(String text) {
-        extractedSong = text.substring(text.indexOf(":") + 2, text.indexOf(","));
-        if (!extractedSong.contains("(") && !extractedSong.contains("!") && !extractedSong.contains("#") && !extractedSong.contains("&")) {
-            return extractedSong;
-        } else if (extractedSong.contains("!")) {
-            //Log.d(TAG, "Exclamation mark detected "+extractedSong);
-            return extractedSong.replace("!", "");
-        } else if (extractedSong.contains("(")) {
-            //Log.d(TAG, "Brackets detected "+extractedSong);
-            return extractedSong.substring(0, extractedSong.indexOf("("));
+        char symbols[] = {'!', '(', '#', '&', '+'};
+//        String extractedSong = text.substring(text.indexOf(":") + 2, text.indexOf(","));
+        String extractedSong = text.substring(0, text.indexOf("by"));
+        if (StringUtils.containsAny(extractedSong, symbols)) {
+            if (extractedSong.contains("!")) {
+                extractedSong = extractedSong.replace("!", "");
+            } else if (extractedSong.contains("(")) {
+                extractedSong = extractedSong.substring(0, extractedSong.indexOf("("));
+            } else if (extractedSong.contains("+")) {
+                extractedSong = extractedSong.replace("+", "and");
+            }
         }
-/*        else if(extractedSong.contains("#")){
-            Log.d(TAG, "Hash sign detected "+extractedSong +  extractedSong.substring(1));
-            return extractedSong.substring(1);
-        }*/
-/*        else if(extractedSong.contains("&"))
-        {
-            Log.d(TAG, "Ampersand detected "+extractedSong);
-            return extractedSong.replace("&","and");
-        }*/
-        else {
-            //Log.e(TAG, "The song "+text+" couldn't be extracted properly");
-            return extractedSong;
-        }
-    }
-
-    private String extractArtist(String text) {
-        extractedArtist = text.substring(text.indexOf(",") + 2);
-        if (!extractedArtist.contains("Featuring") && !extractedArtist.contains("Ft")) {
-            return extractedArtist;
-        } else if (extractedArtist.contains("Featuring")) {
-            //Log.d(TAG, "Contains featuring "+ extractedArtist);
-            extractedArtist = extractedArtist.substring(0, extractedArtist.indexOf("Featuring"));
-            return extractedArtist;
-        } else if (extractedArtist.contains("Ft")) {
-            //Log.d(TAG, "Contains Ft "+ extractedArtist);
-            extractedArtist = extractedArtist.substring(0, extractedArtist.indexOf("Ft"));
-            return extractedArtist;
-        } else {
-            //Log.e(TAG, "The song "+text+" couldn't be extracted properly");
-            return extractedArtist;
-        }
+        return extractedSong.trim();
     }
 
     /**
+     * Parse artist substring from Billboard <title> tags
+     */
+    private String extractArtist(String text) {
+//        String extractedArtist = text.substring(text.indexOf(",") + 2);
+        String extractedArtist = text.substring(text.indexOf("by") + 3, text.indexOf("ranks"));
+        if (extractedArtist.contains("Featuring")) {
+            extractedArtist = extractedArtist.substring(0, extractedArtist.indexOf("Featuring"));
+        } else if (extractedArtist.contains("Ft")) {
+            extractedArtist = extractedArtist.substring(0, extractedArtist.indexOf("Ft"));
+        } else if (extractedArtist.contains("Duet")) {
+            extractedArtist = extractedArtist.substring(0, extractedArtist.indexOf("Duet"));
+        }
+        return extractedArtist.trim();
+    }
+
+    /**
+     * Searches for given String in the String array and returns index. Case-insensitive.
+     */
+
+    private int matchMagic(String[] billySong, String trackName) {
+        int index = 0;
+        for (String name : billySong) {
+            if (name == null) {
+                Log.d(TAG, "Index is " + index + " trackName is " + trackName);
+            }
+            if (name.equalsIgnoreCase(trackName)) {
+                return index;
+            }
+            index++;
+        }
+        return -1;
+    }
+
+    /**
+     * Encode the song name to be concatenated to URL
+     *
      * @param text the Song itself
-     * @return encoded Song string
      */
     public String paramEncode(String text) {
-        paramEncode = text;
+        String paramEncode = text;
         if (text.contains("&")) {
             paramEncode = text.replaceAll("&", "and");
         } else if (text.contains("#")) {
@@ -252,17 +289,68 @@ public class ProcessingTask {
     }
 
     /**
+     * Replaces microsoft "smart quotes" (curly " and ') with their
+     * ascii counterparts aka 'dumb quotes'
+     * via GData Utils
+     */
+
+    String replaceSmartQuotes(String str) {
+        str = replaceChars(str, "\u0091\u0092\u2018\u2019", '\'');
+        str = replaceChars(str, "\u0093\u0094\u201c\u201d", '"');
+        return str;
+    }
+
+    String replaceChars(String str, String oldchars, char newchar) {
+        int pos = indexOfChars(str, oldchars, 0);
+        if (pos == -1) {
+            return str;
+        }
+        StringBuilder buf = new StringBuilder(str);
+        do {
+            buf.setCharAt(pos, newchar);
+            pos = indexOfChars(str, oldchars, pos + 1);
+        } while (pos != -1);
+
+        return buf.toString();
+    }
+
+    int indexOfChars(String str, String chars, int fromIndex) {
+        for (int pos = fromIndex; pos < str.length(); pos++) {
+            if (chars.indexOf(str.charAt(pos)) >= 0) {
+                return pos;
+            }
+        }
+        return -1;
+    }
+
+    public void getArtworkUrlResolution() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        quality = Integer.parseInt(pref.getString("albumArtQuality", "1"));
+    }
+
+    /**
+     * We try to avoid songs which have remix/cover/live mentioned in their title. We also make sure we get a relevant
+     * result by checking if the first word of song is present in song's name.
+     * If we don't find any song which matches our condition, we use the first song itself.
+     *
      * @param response the JSON response
      * @return the SoundCloud stream link
-     * @throws IOException
-     * @throws XmlPullParserException
      */
-    public String parseSoundcloud(String response) throws IOException, XmlPullParserException {
-        InputStream in;
-        String firstLink = "";
-        boolean firstTrack = false;
-        in = IOUtils.toInputStream(response, "UTF-8");
+    public String[] parseSoundcloud(String response, String song) throws IOException, XmlPullParserException {
+        String soundcloudKey = context.getResources().getStringArray(R.array.keys)[0];
+        String streamLink = "", firstLink = "", permaLink = "", firstPermaLink = "";
+        String[] links = new String[2];
+        String firstWord;
+        if (song.contains(" ")) {
+            firstWord = song.substring(0, song.indexOf(" "));
+        } else {
+            firstWord = song;
+        }
+        firstWord = firstWord.toLowerCase();
+        boolean ignore = false;
+        Pattern pat = Pattern.compile("\\b(remix|cover|live)\\b");
 
+        InputStream in = IOUtils.toInputStream(response, "UTF-8");
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         XmlPullParser parser = factory.newPullParser();
         parser.setInput(in, null);
@@ -274,35 +362,42 @@ public class ProcessingTask {
             if (event == XmlPullParser.START_TAG) {
                 if (name.equals("title")) {
                     if (parser.next() == XmlPullParser.TEXT) {
-                        if (parser.getText().toLowerCase().contains("remix") || parser.getText().toLowerCase().contains("cover") || parser.getText().toLowerCase().contains("download")) {
-                            Log.d(TAG, "track ignored: " + parser.getText());
+                        if (pat.matcher(parser.getText().toLowerCase()).find() || !parser.getText().toLowerCase().contains(firstWord)) {
+                            Log.d(TAG, "Track ignored: " + parser.getText() + " " + firstWord);
                             ignore = true;
                         }
                     }
-                }
-                if (name.equals("stream-url")) {
-                    if (firstLink.isEmpty() && parser.next() == XmlPullParser.TEXT) {
-                        firstLink = parser.getText() + "?client_id=d0f2d22083bc8233aab32f3f7d1d0bbc";
-                        firstTrack = true;
-                    }
-                    if (firstTrack) {
-                        firstTrack = false;
-                        if (!ignore) {
-                            streamLink = firstLink;
-                            return streamLink;
-                        }
+                } else if (name.equals("permalink-url")) {
+                    if (firstPermaLink.isEmpty() && parser.next() == XmlPullParser.TEXT) {
+                        firstPermaLink = parser.getText();
+                        permaLink = firstPermaLink;
                     } else if (parser.next() == XmlPullParser.TEXT && !ignore) {
-                        Log.d(TAG, "ignore is " + ignore);
-                        streamLink = parser.getText() + "?client_id=d0f2d22083bc8233aab32f3f7d1d0bbc";
-                        return streamLink;
+                        permaLink = parser.getText();
+                    }
+                    if (!ignore) {
+                        links[0] = permaLink;
+                    }
+                } else if (name.equals("stream-url")) {
+                    if (firstLink.isEmpty() && parser.next() == XmlPullParser.TEXT) {
+                        firstLink = parser.getText() + "?client_id=" + soundcloudKey;
+                        streamLink = firstLink;
+
+                    } else if (parser.next() == XmlPullParser.TEXT && !ignore) {
+                        streamLink = parser.getText() + "?client_id=" + soundcloudKey;
                     }
                     if (ignore) {
                         ignore = false;
+                    } else {
+                        links[1] = streamLink;
+                        return links;
                     }
                 }
             }
             event = parser.next();
         }
-        return firstLink;
+
+        links[0] = firstPermaLink;
+        links[1] = firstLink;
+        return links;
     }
 }

@@ -3,6 +3,7 @@ package com.vibin.billy;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -15,19 +16,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.TextView;
 
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.viewpagerindicator.TitlePageIndicator;
 
 public class MainActivity extends FragmentActivity {
 
-    private static final String TAG = MainActivity.class.getSimpleName();
-
-    ViewPager mPager;
-    CustomFragmentAdapter mAdapter;
     TitlePageIndicator mIndicator;
-    View customActionView;
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,31 +32,45 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
         customActionBar();
 
-        SystemBarTintManager tintManager = new SystemBarTintManager(this);
-        tintManager.setStatusBarTintEnabled(true);
-        tintManager.setTintColor(getResources().getColor(R.color.billyred));
-
-        mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this);
-        mPager = (ViewPager) findViewById(R.id.pager);
+        CustomFragmentAdapter mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this, (BillyApplication) this.getApplication());
+        ViewPager mPager = (ViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
         mIndicator = (TitlePageIndicator) findViewById(R.id.indicator);
         mIndicator.setViewPager(mPager);
     }
 
+/*    @Override
+    public void onWindowFocusChanged (boolean hasFocus) {
+        int[] location = new int[2];
+        mIndicator.getLocationOnScreen(location);
+        if((mIndicator.getSystemUiVisibility() & View.SYSTEM_UI_FLAG_IMMERSIVE)==View.SYSTEM_UI_FLAG_IMMERSIVE)
+        {
+            Toast.makeText(this, "fullscreen is true",
+                    Toast.LENGTH_LONG).show();
+        }
+        else
+        {
+            Toast.makeText(this, "fullscreen is "+mIndicator.getSystemUiVisibility(),
+                    Toast.LENGTH_LONG).show();
+        }
+    }*/
+
+/*    public boolean isFullScreen() {
+        int flg = getWindow().getAttributes().flags;
+        boolean flag = false;
+        if ((flg & 1024) == 1024) {
+            flag = true;
+        }
+        return flag;
+    }*/
+
     private void customActionBar() {
-        getActionBar().setDisplayShowTitleEnabled(false);
-        getActionBar().setDisplayShowCustomEnabled(true);
+        getActionBar().setDisplayShowTitleEnabled(true);
+        setTitle(" " + "Billy".toUpperCase());
 
-        customActionView = getLayoutInflater().inflate(R.layout.custom_actionbar, null);
-        getActionBar().setCustomView(customActionView);
-        setTitle("Billy");
-    }
-
-    // Override this activity's setTitle method
-    @Override
-    public void setTitle(CharSequence title) {
-        getActionBar().setTitle("");
-        ((TextView) customActionView.findViewById(R.id.title)).setText(title);
+        SystemBarTintManager tintManager = new SystemBarTintManager(this);
+        tintManager.setStatusBarTintEnabled(true);
+        tintManager.setTintColor(getResources().getColor(R.color.billyred));
     }
 
     @Override
@@ -107,6 +117,8 @@ public class MainActivity extends FragmentActivity {
         }
 
         private void setPlaystoreButton() {
+            //v.findViewById(R.id.playStoreButton).setBackground(getResources().getDrawable(R.drawable.custom_button));
+            v.findViewById(R.id.playStoreButton).getBackground().setColorFilter(0xffff0000, PorterDuff.Mode.SRC_ATOP);
             v.findViewById(R.id.playStoreButton).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -128,19 +140,21 @@ public class MainActivity extends FragmentActivity {
             dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
             return dialog;
         }
-
-
     }
-
 }
 
+//TODO Use RootTools to detect Root and then show preference
+//TODO don't forget to cast IjkMediaPlayer.getDuration() to int in DetailView.class and use PPlayerService.class
+//TODO Check and handle ArrayList saving to DB with 100 elements (save only 20 probably)
+
 //TODO Allow reordering
+//TODO Infinite loading for Hot 100
+//TODO Use Hotness parameter in Soundcloud url
+
 //TODO service quits automatically when playing after sometime
 //TODO handle 2G/3G devices efficiently API Level 17
 //TODO Notification click intent flags
 //TODO Intelligent SoundCloud track fetch and HLS implementation
 //TODO Change color of notification background
 
-
-//TODO replace MediaPlayer code with MediaExtractor
 //TODO Use RemoteController and put full screen lock image for KitKat+ devices

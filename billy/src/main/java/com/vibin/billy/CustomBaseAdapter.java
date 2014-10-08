@@ -1,6 +1,8 @@
 package com.vibin.billy;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,11 +21,32 @@ class CustomBaseAdapter extends BaseAdapter {
     Context c;
     ArrayList<ProcessingTask.BillyData> mData;
     ImageLoader imgload;
+    SharedPreferences sharedPref;
+    BillyApplication billyapp;
+    int resource;
 
     CustomBaseAdapter(Context c, ArrayList<ProcessingTask.BillyData> arrayList, ImageLoader imgload) {
         this.c = c;
         mData = arrayList;
         this.imgload = imgload;
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
+        billyapp = BillyApplication.getInstance();
+        checkCompactCards();
+        PreferenceManager.getDefaultSharedPreferences(c).registerOnSharedPreferenceChangeListener(myPrefListner);
+    }
+
+    SharedPreferences.OnSharedPreferenceChangeListener myPrefListner = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+            checkCompactCards();
+        }
+    };
+
+    private void checkCompactCards() {
+        if (sharedPref.getBoolean("compactCards", false)) {
+            resource = c.getResources().getIdentifier("single_row_compact", "layout", c.getPackageName());
+        } else {
+            resource = c.getResources().getIdentifier("single_row", "layout", c.getPackageName());
+        }
     }
 
     public void updateArrayList(ArrayList<ProcessingTask.BillyData> arraylist) {
@@ -68,7 +91,7 @@ class CustomBaseAdapter extends BaseAdapter {
         MyViewHolder holder;
         if (row == null) {
             LayoutInflater lif = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            row = lif.inflate(R.layout.single_row, viewGroup, false);
+            row = lif.inflate(resource, viewGroup, false);
             holder = new MyViewHolder(row);
 
             row.setTag(holder);
@@ -80,7 +103,6 @@ class CustomBaseAdapter extends BaseAdapter {
 
         //Log.d(TAG, i + " " + temp.album + " " + temp.artist + " " + temp.song + " " + temp.artwork);
 
-        // Set everything
         holder.album.setText(temp.album);
         holder.artist.setText(temp.artist);
         holder.song.setText(temp.song);

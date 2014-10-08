@@ -1,6 +1,7 @@
 package com.vibin.billy;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.ScrollView;
 
@@ -42,7 +43,7 @@ public class NotifyingScrollView extends ScrollView {
     protected void onScrollChanged(int l, int t, int oldl, int oldt) {
         super.onScrollChanged(l, t, oldl, oldt);
         header.setTranslationY((float) t / parallaxFactor);
-        if (mOnScrollChangedListener != null) {
+        if (mOnScrollChangedListener != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             mOnScrollChangedListener.onScrollChanged(this, l, t, oldl, oldt);
         }
     }

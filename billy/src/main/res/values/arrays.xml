@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="table">
+        <item name="mostpopular">MostPopular</item>
+        <item name="pop">Pop</item>
+        <item name="rock">Rock</item>
+        <item name="dance">Dance</item>
+    </string-array>
+
+    <string-array name="url">
+        <item name="hot100">http://www1.billboard.com/rss/charts/hot-100</item>
+        <item name="pop">http://www1.billboard.com/rss/charts/pop-songs</item>
+        <item name="rock">http://www1.billboard.com/rss/charts/rock-songs</item>
+        <item name="dance">http://www1.billboard.com/rss/charts/dance-electronic-songs</item>
+        <item name="metal">http://www1.billboard.com/rss/charts/hot-mainstream-rock-tracks</item>
+    </string-array>
+
+    <!-- Potential Nuclear launch codes....-->
+    <string-array name="keys">
+        <item name="soundcloud">d0f2d22083bc8233aab32f3f7d1d0bbc</item>
+        <item name="lastfm">67b01760e70bb90ff51ae8590b3c2ba8</item>
+        <item name="youtube">AIzaSyBTd_9XHpK-Jj7ZW8sNAstNKwSU18gf-6g</item>
+    </string-array>
+
+    <string-array name="screens">
+        <item>Most Popular</item>
+        <item>Pop</item>
+        <item>Rock</item>
+        <item>Dance</item>
+        <item>Metal</item>
+    </string-array>
+
+    <string-array name="albumArtQuality">
+        <item>Normal</item>
+        <item>High</item>
+    </string-array>
+
+    <string-array name="album_art_values">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+</resources>

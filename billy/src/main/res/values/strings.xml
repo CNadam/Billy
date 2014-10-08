@@ -5,45 +5,20 @@
     <string name="about">About</string>
     <string name="refresh">Refresh</string>
 
-    <string-array name="table">
-        <item name="mostpopular">MostPopular</item>
-        <item name="pop">Pop</item>
-        <item name="rock">Rock</item>
-        <item name="dance">Dance</item>
-    </string-array>
+    <!-- These strings are parameterized, which can be input into, using String.format() or getResources.getString() -->
+    <string name="itunes">http://itunes.apple.com/search?term=%1$s&amp;limit=2</string>
+    <string name="soundcloud">https://api.soundcloud.com/tracks.format?consumer_key=d0f2d22083bc8233aab32f3f7d1d0bbc&amp;q=%1$s&amp;order=hotness&amp;limit=4</string>
+    <string name="youtube">https://www.googleapis.com/youtube/v3/search?part=snippet&amp;q=%1$s&amp;maxResults=2&amp;type=video&amp;key=AIzaSyBTd_9XHpK-Jj7ZW8sNAstNKwSU18gf-6g</string>
+    <string name="lastfm">http://ws.audioscrobbler.com/2.0/?method=artist.%1$s&amp;artist=%2$s&amp;autocorrect=1&amp;limit=3&amp;api_key=67b01760e70bb90ff51ae8590b3c2ba8&amp;format=json</string>
 
-    <string-array name="url">
-        <item name="hot100">http://www1.billboard.com/rss/charts/hot-100</item>
-        <item name="pop">http://www1.billboard.com/rss/charts/pop-songs</item>
-        <item name="rock">http://www1.billboard.com/rss/charts/rock-songs</item>
-        <item name="dance">http://www1.billboard.com/rss/charts/dance-electronic-songs</item>
-        <item name="metal">http://www1.billboard.com/rss/charts/hot-mainstream-rock-tracks</item>
-    </string-array>
-
-    <string-array name="screens">
-        <item>Most Popular</item>
-        <item>Pop</item>
-        <item>Rock</item>
-        <item>Dance</item>
-        <item>Metal</item>
-    </string-array>
-
-    <string-array name="albumArtQuality">
-        <item>Normal</item>
-        <item>High</item>
-    </string-array>
-
-    <string-array name="album_art_values">
-        <item>1</item>
-        <item>2</item>
-    </string-array>
-
-    <string name="itunes">http://itunes.apple.com/search?term=</string>
-    <string name="itunes_params">&amp;limit=2</string>
-    <string name="soundcloud">https://api.soundcloud.com/tracks.format?consumer_key=d0f2d22083bc8233aab32f3f7d1d0bbc&amp;q=</string>
-    <string name="sc_params">&amp;filter=all&amp;limit=4</string>
     <string name="loadingText">Loading…</string>
     <string name="topalbums">Top Albums</string>
     <string name="album_art_title">Album Art Quality</string>
     <string name="watch">Watch Video</string>
+    <string name="nointernet">Please connect to Internet</string>
+    <string name="newsongs">New songs have loaded</string>
+    <string name="nonewsongs">No new songs available</string>
+    <string name="rate">Rate on Play Store</string>
+    <string name="aboutdesc">Hello. I\'m Billy. I bring you the most popular songs right now.\n\nGot a second? Please rate me.</string>
+    <string name="share">Share</string>
 </resources>

@@ -49,7 +49,7 @@ public class CustomDatabaseAdapter {
         private static final String ArrayList = "ArrayList";
 
         public DatabaseHelper(Context context) {
-            super(context, DATABASE_NAME, null, VERSION);
+            super(context.getApplicationContext(), DATABASE_NAME, null, VERSION);
         }
 
         String getCreateTableString(int i) {

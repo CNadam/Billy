@@ -1,0 +1,12 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.vibin.billy.DetailView">
+
+    <item
+        android:id="@+id/share"
+        android:title="@string/share"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:icon="@drawable/share_holo_light"
+        android:actionProviderClass="com.vibin.billy.CustomShareActionProvider" />
+</menu>

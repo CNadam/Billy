@@ -8,5 +8,14 @@
             android:entryValues="@array/album_art_values"
             android:title="@string/album_art_title"
             android:defaultValue="1" />
+
+        <!--        <com.vibin.billy.ReorderedListPreference
+            android:title="Screens"
+            />-->
+        <CheckBoxPreference
+            android:key="compactCards"
+            android:title="Compact cards"
+            android:summary="Make the cards in the list smaller"
+            android:defaultValue="false" />
     </PreferenceCategory>
 </PreferenceScreen>

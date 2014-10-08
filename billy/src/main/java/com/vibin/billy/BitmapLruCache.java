@@ -25,6 +25,7 @@ public class BitmapLruCache
         super(sizeInKiloBytes);
     }
 
+
     @Override
     protected int sizeOf(String key, Bitmap value) {
         return value.getRowBytes() * value.getHeight() / 1024;
@@ -32,13 +33,13 @@ public class BitmapLruCache
 
     @Override
     public Bitmap getBitmap(String url) {
-        //  Log.d(TAG, "Grab "+url);
+        Log.d(TAG, "Grab " + url);
         return get(url);
     }
 
     @Override
     public void putBitmap(String url, Bitmap bitmap) {
-        //  Log.d(TAG, "Put "+url);
+        Log.d(TAG, "Put " + url);
         put(url, bitmap);
     }
 
@@ -48,6 +49,8 @@ public class BitmapLruCache
         final int cacheSize = maxMemory / 8;
 
         Log.d(TAG, "cachesize is " + cacheSize);
+
+        Log.d(TAG, cacheSize + " is cache Size");
 
         return cacheSize;
     }

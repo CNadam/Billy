@@ -5,7 +5,7 @@
     android:layout_height="fill_parent"
     android:paddingLeft="5dp"
     android:paddingRight="5dp"
-    android:paddingTop="@dimen/listitem_paddingtop"
+    android:paddingTop="2dp"
     xmlns:tools="http://schemas.android.com/tools">
 
     <LinearLayout
@@ -17,15 +17,15 @@
         <!--Width and Height 143dp-->
         <com.android.volley.toolbox.NetworkImageView
             android:id="@+id/artwork"
-            android:layout_width="@dimen/listitem_dimen"
-            android:layout_height="@dimen/listitem_dimen" />
+            android:layout_width="@dimen/listitem_dimen_compact"
+            android:layout_height="@dimen/listitem_dimen_compact" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
             android:gravity="top"
             android:orientation="vertical"
-            android:paddingBottom="10dp"
+            android:paddingBottom="5dp"
             android:paddingLeft="10dp"
             android:paddingTop="5dp">
 
@@ -34,7 +34,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-thin"
-                android:textSize="24sp"
+                android:textSize="22sp"
                 tools:text="Get Lucky" />
 
             <LinearLayout
@@ -49,7 +49,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
                     android:fontFamily="sans-serif-condensed"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     android:textStyle="bold"
                     tools:text="Random Access Memories" />
 
@@ -58,7 +58,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-condensed"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     android:textStyle="bold"
                     tools:text="Daft Punk" />
             </LinearLayout>

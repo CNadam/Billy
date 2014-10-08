@@ -4,16 +4,15 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -43,8 +42,11 @@ import com.google.android.youtube.player.YouTubeIntents;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.FileAsyncHttpResponseHandler;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
+import com.vibin.billy.swipeable.SwipeableActivity;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
+import org.apache.http.protocol.HTTP;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,35 +56,29 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChangeListener {
-    String song, artwork, artist, album, streamLink, lastFmBio, thumbnail, videoId;
+public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarChangeListener {
+    String song, artwork, artist, album, streamLink, permaLink, lastFmBio, thumbnail, videoId, intentText;
     String[] relatedAlbumImg, relatedAlbums;
     int songIndex, songLength;
-    boolean isMusicPlaying, stopTh, isCurrentSongBG, isLoadingAnimOn;
+    float secondaryProgressFactor;
+    boolean isMusicPlaying, stopTh, isCurrentSongBG, isPreparing;
     static boolean active, mBound;
+    MenuItem shareItem;
     Drawable playIcon, pauseIcon;
-    View customActionView;
     ImageButton streamBtn;
     ImageView dashes;
     Intent serviceIntent;
     BillyApplication billyapp;
     Drawable mActionBarBackgroundDrawable;
     SystemBarTintManager tintManager;
-    TextView actionBarText;
-    Bundle itemData;
     ProcessingTask ft;
     SeekBar seekBar;
     RotateAnimation rotateAnim;
     ScaleAnimation scaleAnim;
-    NetworkImageView hero;
     ImageLoader imgload;
-    RequestQueue req;
-    PlayerService mService;
-    Handler progressHandler;
+    PPlayerService mService;
     Thread progressThread;
-    float secondaryProgressFactor;
 
-    private static final String youtubeKey = "AIzaSyBTd_9XHpK-Jj7ZW8sNAstNKwSU18gf-6g";
     private static final String TAG = DetailView.class.getSimpleName();
 
     @Override
@@ -93,9 +89,10 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
 
         active = true;
         billyapp = (BillyApplication) this.getApplication();
+        RequestQueue req = billyapp.getRequestQueue();
         imgload = billyapp.getImageLoader();
 
-        itemData = getIntent().getExtras();
+        Bundle itemData = getIntent().getExtras();
         song = itemData.getString("song");
         artist = itemData.getString("artist");
         if (artist.contains(",")) {
@@ -103,10 +100,6 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
         }
         album = itemData.getString("album");
         artwork = itemData.getString("artwork");
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        if (Integer.parseInt(pref.getString("albumArtQuality", "1")) == 2) {
-            artwork = artwork.replaceAll("400x400", "600x600");
-        }
         songIndex = itemData.getInt("index");
 
         relatedAlbumImg = new String[3];
@@ -132,7 +125,6 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
             }
         });*/
 
-        progressHandler = new Handler();
         playIcon = getResources().getDrawable(R.drawable.play);
         pauseIcon = getResources().getDrawable(R.drawable.pause);
         setButtonListener();
@@ -146,40 +138,32 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
         });
 
         if (savedInstanceState == null) {
-            performRequests();
+            performRequests(req);
         }
 
         customActionBar();
 
-        hero = (NetworkImageView) findViewById(R.id.image_header);
+        NetworkImageView hero = (NetworkImageView) findViewById(R.id.image_header);
         hero.setImageUrl(artwork, imgload);
 
-        serviceIntent = new Intent(this, PlayerService.class);
-        if (PlayerService.isRunning) {
+        serviceIntent = new Intent(this, PPlayerService.class);
+        if (PPlayerService.isRunning) {
             bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
         }
     }
 
-/*    @Override
-    public void enableSwipeToDismiss() {
-        Log.d(TAG,"Swipe to dismiss enabled. ");
+    private void performRequests(RequestQueue req) {
         super.enableSwipeToDismiss();
-    }*/
 
-    private void performRequests() {
-        super.enableSwipeToDismiss();
-        req = billyapp.getRequestQueue();
-
-        final String scUrl = getResources().getString(R.string.soundcloud) + artist.replaceAll(" ", "+").replaceAll("\u00eb", "e") + "+" + song.replaceAll(" ", "+") + getResources().getString(R.string.sc_params);
-        final String lastFmBioUrl = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=" + artist.replaceAll(" ", "+") + "&autocorrect=1&api_key=67b01760e70bb90ff51ae8590b3c2ba8&format=json";
-        final String lastFmTopAlbumsUrl = "http://ws.audioscrobbler.com/2.0/?method=artist.gettopalbums&artist=" + artist.replaceAll(" ", "+") + "&autocorrect=1&limit=3&api_key=67b01760e70bb90ff51ae8590b3c2ba8&format=json";
-        final String youtubeUrl = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=" + artist.replaceAll(" ", "+").replaceAll("\u00eb", "e") + "+" + song.replaceAll(" ", "+").replaceAll("#", "") + "&maxResults=2&type=video&key=" + youtubeKey;
+        final String scUrl = getResources().getString(R.string.soundcloud, (song + " " + StringUtils.stripAccents(artist)).replaceAll(" ", "+"));
+        final String lastFmBioUrl = getResources().getString(R.string.lastfm, "getinfo", artist.replaceAll(" ", "+"));
+        final String lastFmTopAlbumsUrl = getResources().getString(R.string.lastfm, "gettopalbums", artist.replaceAll(" ", "+"));
+        final String youtubeUrl = getResources().getString(R.string.youtube, (song + " " + artist.replaceAll("\u00eb", "e")).replaceAll(" ", "+"));
         StringRequest stringreq = new StringRequest(Request.Method.GET, scUrl, scComplete(), scError());
         JsonObjectRequest lastFmBio = new JsonObjectRequest(Request.Method.GET, lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
         JsonObjectRequest lastFmTopAlbums = new JsonObjectRequest(Request.Method.GET, lastFmTopAlbumsUrl, null, lastFmTopAlbumsComplete(), lastFmTopAlbumsError());
         JsonObjectRequest youtubeSearch = new JsonObjectRequest(Request.Method.GET, youtubeUrl, null, youtubeSearchComplete(), youtubeSearchError());
 
-        //Log.d(TAG, "scUrl is " + scUrl.substring(0, 100) + "...");
         Log.d(TAG, "scUrl is " + scUrl);
         Log.d(TAG, "topalbum " + lastFmTopAlbumsUrl);
         Log.d(TAG, "YoutubeURL is " + youtubeUrl);
@@ -189,7 +173,7 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
         req.add(lastFmBio);
         req.add(youtubeSearch);
 
-        ft = new ProcessingTask();
+        ft = new ProcessingTask(getBaseContext());
     }
 
     @Override
@@ -215,7 +199,8 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
         try {
             if (lastFmBio.isEmpty() || streamLink.isEmpty() || Arrays.asList(relatedAlbumImg).contains(null) || Arrays.asList(relatedAlbumImg).contains(null) || thumbnail.isEmpty()) {
                 Log.d(TAG, "some data is null, requests performed again");
-                performRequests();
+                billyapp = (BillyApplication) this.getApplication();
+                performRequests(billyapp.getRequestQueue());
             } else {
                 streamBtn.setVisibility(View.VISIBLE);
                 (findViewById(R.id.spinner)).setVisibility(View.GONE);
@@ -233,14 +218,18 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
             @Override
             public void onResponse(String response) {
                 try {
-                    streamLink = ft.parseSoundcloud(response);
-                    JsonObjectRequest i1 = new JsonObjectRequest(Request.Method.GET, "https://api.soundcloud.com/i1/tracks/133433134/streams?client_id=apigee", null, i1Complete(), i1Error());
+                    String[] result = ft.parseSoundcloud(response, song);
+                    permaLink = result[0];
+                    streamLink = result[1];
+                    setShareButton();
+//                    JsonObjectRequest i1 = new JsonObjectRequest(Request.Method.GET, "https://api.soundcloud.com/i1/tracks/133433134/streams?client_id=apigee", null, i1Complete(), i1Error());
 //                    req.add(i1);
                     if (scaleAnim != null) {
                         streamBtn.startAnimation(scaleAnim);
                     }
                     streamBtn.setVisibility(View.VISIBLE);
                     Log.d(TAG, "original streamLink is " + streamLink);
+                    Log.d(TAG, "original permaLink is " + permaLink);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (XmlPullParserException e) {
@@ -390,15 +379,16 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
         (findViewById(R.id.artistInfo)).setVisibility(View.VISIBLE);
     }
 
+    //TODO use regex for string manipulation
     private void setRelatedAlbums() {
         Resources res = getResources();
-        RelativeLayout rela = (RelativeLayout) findViewById(R.id.topAlbumImages);
+        RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.topAlbumImages);
         for (int i = 0; i < relatedAlbums.length; i++) {
             int id = res.getIdentifier("relatedImage" + i, "id", getPackageName());
-            NetworkImageView v = (NetworkImageView) rela.findViewById(id);
+            NetworkImageView v = (NetworkImageView) relativeLayout.findViewById(id);
             v.setImageUrl(relatedAlbumImg[i], imgload);
 
-            TextView tv = (TextView) rela.findViewById(res.getIdentifier("relatedText" + i, "id", getBaseContext().getPackageName()));
+            TextView tv = (TextView) relativeLayout.findViewById(res.getIdentifier("relatedText" + i, "id", getBaseContext().getPackageName()));
             try {
                 if (relatedAlbums[i].length() > 16) {
                     tv.setText(relatedAlbums[i].substring(0, 14) + "…");
@@ -406,7 +396,7 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
                     tv.setText(relatedAlbums[i]);
                 }
             } catch (NullPointerException e) {
-                Log.d(TAG, "NullPointer we meet again");
+                Log.d(TAG, "NullPointer, we meet again");
             }
         }
 
@@ -416,12 +406,12 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
     private void setYoutube(String thumbnail, final String videoId) {
         final NetworkImageView youTubeThumbnail = (NetworkImageView) findViewById(R.id.youTubeThumbnail);
         youTubeThumbnail.setImageUrl(thumbnail, imgload);
-        ((RelativeLayout) findViewById(R.id.youTube)).setVisibility(View.VISIBLE);
+        findViewById(R.id.youTube).setVisibility(View.VISIBLE);
         final ImageButton youTubePlay = (ImageButton) findViewById(R.id.youTubePlay);
         View.OnTouchListener opacityListener = new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                if (view == youTubePlay || view == youTubeThumbnail) {
+                if (view.equals(youTubePlay) || view.equals(youTubeThumbnail)) {
                     if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
                         youTubePlay.setAlpha(1f);
                     } else {
@@ -437,10 +427,10 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
                 if (YouTubeIntents.isYouTubeInstalled(getBaseContext())) {
                     if (YouTubeIntents.canResolvePlayVideoIntent(getBaseContext())) {
                         Intent intent = YouTubeIntents.createPlayVideoIntentWithOptions(getBaseContext(), videoId, true, true);
-                        if (isMusicPlaying && PlayerService.isRunning) {
+                        if (isMusicPlaying && PPlayerService.isRunning) {
                             mService.doPause();
                         }
-                        if (!isLoadingAnimOn) {
+                        if (!isPreparing) {
                             startActivity(intent);
                         }
                     } else {
@@ -461,7 +451,7 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
 
 
     /**
-     * Bind this and PlayerService
+     * Bind this activity and PPlayerService
      */
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -473,12 +463,12 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.d(TAG, "Service connected");
-            PlayerService.PlayerServiceBinder binder = (PlayerService.PlayerServiceBinder) service;
+            PPlayerService.PPlayerServiceBinder binder = (PPlayerService.PPlayerServiceBinder) service;
             mService = binder.getService();
 
             isMusicPlaying = mService.bp.isPlaying();
-            if (PlayerService.isRunning && !PlayerService.isIdle) {
-                Log.d(TAG, "Service is running and is not idle - onServiceConnected");
+            if (PPlayerService.isRunning && !PPlayerService.isIdle) {
+                Log.d(TAG, "Service is running and is not idle");
                 if (song.equalsIgnoreCase(mService.song)) {
                     isCurrentSongBG = true;
                     setSeekBar();
@@ -488,12 +478,12 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
                 }
             }
 
-            binder.setListener(new PlayerService.onBPChangedListener() {
+            binder.setListener(new PPlayerService.onBPChangedListener() {
                 @Override
                 public void onPrepared(int duration) {
                     isMusicPlaying = true;
                     dashes.clearAnimation();
-                    isLoadingAnimOn = false;
+                    isPreparing = false;
                     dashes.setVisibility(View.GONE);
                     songLength = duration;
                     setSeekBar();
@@ -501,7 +491,7 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
                     isCurrentSongBG = true;
                 }
 
-                // Only onCompletion and onError are called if stream-url is wrong (404, etc.)
+                // Only onCompletion and onError are called if streamLink is wrong (404, etc.)
                 @Override
                 public void onCompletion() {
                     streamBtn.setImageDrawable(playIcon);
@@ -554,22 +544,28 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
     private void setSeekBar() {
         progressThread = new Thread(progress);
         progressThread.start();
-        songLength = mService.bp.getDuration() / 1000;
+        songLength = (int) mService.bp.getTime() / 1000; //ms
         secondaryProgressFactor = (float) songLength / 100;
         Log.d(TAG, "songlength, secondary " + songLength + " " + secondaryProgressFactor);
         seekBar.setMax(songLength);
         seekBar.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Handles clicks for play button
+     * If loading animation of button is on, do nothing.
+     * If current song is in background and is not playing, then play it. If already playing, then pause it.
+     * If background song is different from current song, stream it.
+     */
     private void setButtonListener() {
         streamBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!isLoadingAnimOn) {
+                if (!isPreparing) {
                     if (isCurrentSongBG) {
                         if (!isMusicPlaying) {
                             Log.d(TAG, "Song matched");
-                            if (PlayerService.isRunning) {
+                            if (PPlayerService.isRunning) {
                                 mService.playMedia();
                                 isMusicPlaying = true;
                                 streamBtn.setImageDrawable(pauseIcon);
@@ -595,13 +591,18 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
         });
     }
 
+    /**
+     * Gets that damn song
+     */
+
 
     void streamTrack() {
         if (streamLink != null) {
             isMusicPlaying = true;
             dashes.setVisibility(View.VISIBLE);
             dashes.startAnimation(rotateAnim);
-            isLoadingAnimOn = true;
+            isPreparing = true;
+            //streamLink = "rtmp://ec-rtmp-media.soundcloud.com/mp3:7faed9oUCfzf.128?9527d18f1063a01f059bf10590159adb10dea0996b8c0cdb674f9e2a22158b9e2c124b95828db74e27f9807e908a0a15c5d9a2b9db27558bfafb06c4246b4f9e1e181b56d687209f037cda21bb2a36b9f63ca84bed96bfaa0d62";
             serviceIntent.putExtra("streamLink", streamLink);
             serviceIntent.putExtra("songName", song);
             serviceIntent.putExtra("songIndex", songIndex);
@@ -610,34 +611,38 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
             serviceIntent.putExtra("artwork", artwork);
             startService(serviceIntent);
             bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
-
         } else {
             Log.d(TAG, "streamLink is null");
-            Toast.makeText(getBaseContext(), "The song cannot be streamed.",
+            Toast.makeText(getBaseContext(), "The song cannot be streamed. Try again later.",
                     Toast.LENGTH_LONG).show();
         }
     }
 
 
     /**
-     * Run the progressbar in a separate thread
+     * Runs the progressbar in a Runnable
+     * {@code stopTh} determines whether to stop the thread or not
      */
-
+    Handler progressHandler = new Handler();
     Runnable progress = new Runnable() {
         @Override
         public void run() {
-            if (!DetailView.active || stopTh) {
-                stopTh = false;
-                return;
-            } else if (PlayerService.isRunning) {
-                if (!PlayerService.isIdle) {
-                    seekBar.setProgress(mService.bp.getCurrentPosition() / 1000);
-                    seekBar.setSecondaryProgress((int) (mService.bufferPercent * secondaryProgressFactor));
-                    if (seekBar.getProgress() == mService.bp.getDuration() / 1000) {
-                        stopTh = true;
+            try {
+                if (!DetailView.active || stopTh) {
+                    stopTh = false;
+                    return;
+                } else if (PPlayerService.isRunning) {
+                    if (!PPlayerService.isIdle) {
+                        seekBar.setProgress((int) mService.bp.getPosition() / 1000);
+                        seekBar.setSecondaryProgress((int) (mService.bufferPercent * secondaryProgressFactor));
+                        if (seekBar.getProgress() == (int) mService.bp.getTime() / 1000) {
+                            stopTh = true;
+                        }
+                        //Log.d(TAG, "Max " + seekBar.getMax() + " progress " + seekBar.getProgress() + " secondary " + seekBar.getSecondaryProgress());
                     }
-                    //Log.d(TAG, "Max " + seekBar.getMax() + " progress " + seekBar.getProgress() + " secondary " + seekBar.getSecondaryProgress());
                 }
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
             }
             progressHandler.postDelayed(progress, 1000);
         }
@@ -645,8 +650,10 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
 
 
     /**
-     * Animate the Play button and dashes
+     * Animates the play button and dashes
+     * Call this only after views are laid out. Use {@code getViewTreeObserver().addOnGlobalLayoutListener}
      */
+
     private void animate() {
         rotateAnim = new RotateAnimation(0.0f, 360.0f, dashes.getWidth() / 2, dashes.getHeight() / 2);
         rotateAnim.setDuration(6000);
@@ -659,6 +666,10 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
         scaleAnim.setInterpolator(new BounceInterpolator());
     }
 
+    /**
+     * Generate a new alpha value for every scroll event
+     */
+
     private NotifyingScrollView.OnScrollChangedListener mOnScrollChangedListener = new NotifyingScrollView.OnScrollChangedListener() {
         public void onScrollChanged(ScrollView who, int l, int t, int oldl, int oldt) {
             final int headerHeight = findViewById(R.id.image_header).getHeight() - getActionBar().getHeight() - 500;
@@ -666,53 +677,77 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
             final int newAlpha = (int) (ratio * 255);
             mActionBarBackgroundDrawable.setAlpha(newAlpha);
             tintManager.setTintAlpha(ratio);
-            actionBarText.setAlpha(ratio);
         }
     };
 
+    /**
+     * Most of the ActionBar customization is done using /values[-v19]/styles.xml
+     * Transit ActionBar and status bar colors if running JellyBean 4.2 or newer
+     */
+
     private void customActionBar() {
-        getActionBar().setDisplayShowTitleEnabled(false);
+        getActionBar().setDisplayShowTitleEnabled(true);
         getActionBar().setDisplayHomeAsUpEnabled(true);
-        getActionBar().setDisplayShowCustomEnabled(true);
 
-        customActionView = getLayoutInflater().inflate(R.layout.custom_actionbar, null);
-        getActionBar().setCustomView(customActionView);
-        setTitle(song);
+        setTitle(" " + song.toUpperCase());
 
-        /**
-         * Transit action bar color if running JellyBean 4.2 or newer
-         */
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.JELLY_BEAN) {
-            Log.d(TAG, "LOL");
             getActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.ab_solid_billy));
             getBaseContext().setTheme(R.style.Theme_Billy);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             mActionBarBackgroundDrawable = getResources().getDrawable(R.drawable.ab_solid_billy);
             mActionBarBackgroundDrawable.setAlpha(1);
             getActionBar().setBackgroundDrawable(mActionBarBackgroundDrawable);
-            actionBarText = (TextView) customActionView.findViewById(R.id.title);
-            actionBarText.setAlpha(0);
 
             tintManager = new SystemBarTintManager(this);
             tintManager.setStatusBarTintEnabled(true);
             tintManager.setTintColor(getResources().getColor(R.color.billyred));
             tintManager.setTintAlpha(0);
-
-            ((NotifyingScrollView) findViewById(R.id.scroll_view)).setOnScrollChangedListener(mOnScrollChangedListener);
         }
+
+        ((NotifyingScrollView) findViewById(R.id.scroll_view)).setOnScrollChangedListener(mOnScrollChangedListener);
     }
 
     @Override
-    public void setTitle(CharSequence title) {
-        getActionBar().setTitle("");
-        ((TextView) customActionView.findViewById(R.id.title)).setText(title);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.detail, menu);
+
+        shareItem = menu.findItem(R.id.share);
+        setShareButton();
+
+        super.onCreateOptionsMenu(menu);
+        return true;
+    }
+
+    void setShareButton() {
+        try {
+            CustomShareActionProvider myShareActionProvider = (CustomShareActionProvider) shareItem.getActionProvider();
+
+            Intent shareIntent = new Intent();
+            shareIntent.setAction(Intent.ACTION_SEND);
+            shareIntent.putExtra(Intent.EXTRA_TEXT, getIntentText());
+            shareIntent.setType(HTTP.PLAIN_TEXT_TYPE);
+
+            myShareActionProvider.setShareIntent(shareIntent);
+            myShareActionProvider.setShareHistoryFileName("deleteMe"); //TODO Delete this immediately
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    String getIntentText() {
+        if (permaLink != null) {
+            return song + " by " + artist + " #nowplaying " + permaLink;
+        } else {
+            return song + " by " + artist + " #nowplaying";
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case android.R.id.home: // Handle the Up button in Actionbar
+            case android.R.id.home:
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
@@ -727,15 +762,29 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
         overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
     }
 
+    /**
+     * Unbind service before Activity gets destroyed
+     */
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (mBound) {
-            unbindService(mConnection);
+            try {
+                unbindService(mConnection);
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            }
             mBound = false;
         }
         active = false;
     }
+
+    /**
+     * Highlights the seekBar on touch and seeks audio on release
+     *
+     * @param seekBar the SeekBar itself
+     */
 
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
@@ -745,7 +794,7 @@ public class DetailView extends SuperActivity implements SeekBar.OnSeekBarChange
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
         seekBar.setAlpha(0.85f);
-        mService.bp.seekTo(seekBar.getProgress() * 1000);
+        mService.bp.setTime(Long.parseLong(String.valueOf(seekBar.getProgress() * 1000)));
     }
 
     @Override
