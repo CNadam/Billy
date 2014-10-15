@@ -39,22 +39,22 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.NetworkImageView;
 import com.android.volley.toolbox.StringRequest;
 import com.google.android.youtube.player.YouTubeIntents;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.FileAsyncHttpResponseHandler;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.vibin.billy.swipeable.SwipeableActivity;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
 import org.apache.http.protocol.HTTP;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+
+/**
+ * The detail view of a song. Is swipeable.
+ */
 
 public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarChangeListener {
     String song, artwork, artist, album, streamLink, permaLink, lastFmBio, thumbnail, videoId, intentText;
@@ -109,21 +109,6 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         seekBar = (SeekBar) findViewById(R.id.seekBar);
         seekBar.setAlpha(0.85f);
         seekBar.setOnSeekBarChangeListener(this);
-
-        //TODO Manage uncaught exceptions
-/*        Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(Thread thread, Throwable throwable) {
-                try {
-                    Thread.getDefaultUncaughtExceptionHandler().uncaughtException(thread, throwable);
-                    mService.uncaughtException();
-                }
-                catch(Exception e)
-                {
-                    Log.d(TAG, e.toString());
-                }
-            }
-        });*/
 
         playIcon = getResources().getDrawable(R.drawable.play);
         pauseIcon = getResources().getDrawable(R.drawable.pause);
@@ -237,7 +222,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 }
             }
 
-            private Response.Listener<JSONObject> i1Complete() {
+/*            private Response.Listener<JSONObject> i1Complete() {
                 return new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject jsonObject) {
@@ -263,7 +248,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                         }
                     }
                 };
-            }
+            }*/
 
         };
     }
@@ -287,6 +272,10 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         };
     }
 
+    /**
+     * Strip HTML tags from returned bio
+     * If result contains two artists, choose the first one
+     */
     private Response.Listener<JSONObject> lastFmBioComplete() {
         return new Response.Listener<JSONObject>() {
             @Override
@@ -295,9 +284,10 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                     (findViewById(R.id.spinner)).setVisibility(View.GONE);
                     lastFmBio = Html.fromHtml(jsonObject.getJSONObject("artist").getJSONObject("bio").getString("summary")).toString();
                     if (!lastFmBio.isEmpty()) {
-                        String firstLine = lastFmBio.substring(0, lastFmBio.indexOf("."));
-                        if (firstLine.startsWith("There are") || firstLine.startsWith("There is")) {
-                            lastFmBio = lastFmBio.substring(lastFmBio.indexOf("1)") + 3);
+                        if (lastFmBio.contains(" 1. ")) {
+                            lastFmBio = lastFmBio.substring(lastFmBio.lastIndexOf(" 1. ") + 4);
+                        } else if (lastFmBio.contains(" 1) ")) {
+                            lastFmBio = lastFmBio.substring(lastFmBio.lastIndexOf(" 1) ") + 4);
                         }
                         lastFmBio = lastFmBio.substring(0, lastFmBio.indexOf(".", lastFmBio.indexOf(".") + 1) + 1);
                         if (lastFmBio.length() > 250) {
@@ -379,7 +369,6 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         (findViewById(R.id.artistInfo)).setVisibility(View.VISIBLE);
     }
 
-    //TODO use regex for string manipulation
     private void setRelatedAlbums() {
         Resources res = getResources();
         RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.topAlbumImages);
@@ -595,7 +584,6 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
      * Gets that damn song
      */
 
-
     void streamTrack() {
         if (streamLink != null) {
             isMusicPlaying = true;
@@ -668,6 +656,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
 
     /**
      * Generate a new alpha value for every scroll event
+     * Apply parallax to ScrollView and alpha to ActionBar
      */
 
     private NotifyingScrollView.OnScrollChangedListener mOnScrollChangedListener = new NotifyingScrollView.OnScrollChangedListener() {
@@ -683,6 +672,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     /**
      * Most of the ActionBar customization is done using /values[-v19]/styles.xml
      * Transit ActionBar and status bar colors if running JellyBean 4.2 or newer
+     * Apply parallax scrolling
      */
 
     private void customActionBar() {
@@ -719,9 +709,14 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         return true;
     }
 
+    /**
+     * Puts a share button in ActionBar, with share history included
+     * We ideally want to hide the share history, but it's not possible
+     */
     void setShareButton() {
+        CustomShareActionProvider myShareActionProvider = null;
         try {
-            CustomShareActionProvider myShareActionProvider = (CustomShareActionProvider) shareItem.getActionProvider();
+            myShareActionProvider = (CustomShareActionProvider) shareItem.getActionProvider();
 
             Intent shareIntent = new Intent();
             shareIntent.setAction(Intent.ACTION_SEND);
@@ -729,13 +724,14 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
             shareIntent.setType(HTTP.PLAIN_TEXT_TYPE);
 
             myShareActionProvider.setShareIntent(shareIntent);
-            myShareActionProvider.setShareHistoryFileName("deleteMe"); //TODO Delete this immediately
-        } catch (NullPointerException e) {
-            e.printStackTrace();
+            myShareActionProvider.setShareHistoryFileName("deleteMe");
+        } catch (NullPointerException ignored) {
         }
-
     }
 
+    /**
+     * Append SoundCloud permalink to intent text, if it's not null
+     */
     String getIntentText() {
         if (permaLink != null) {
             return song + " by " + artist + " #nowplaying " + permaLink;
@@ -782,8 +778,6 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
 
     /**
      * Highlights the seekBar on touch and seeks audio on release
-     *
-     * @param seekBar the SeekBar itself
      */
 
     @Override

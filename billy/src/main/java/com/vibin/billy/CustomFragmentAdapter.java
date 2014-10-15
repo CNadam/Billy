@@ -18,8 +18,9 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
 
     static Context c;
 
-    public CustomFragmentAdapter(FragmentManager fm, Context c, BillyApplication billyapp) {
+    public CustomFragmentAdapter(FragmentManager fm, Context c) {
         super(fm);
+        BillyApplication billyapp = BillyApplication.getInstance();
         CustomFragmentAdapter.c = c;
         content = billyapp.getScreensList();
         mCount = content.length;
@@ -33,7 +34,7 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
     /**
      * We get the dynamic index of Fragment by searching it in the default {@code R.array.screens} array
      *
-     * @param position the Fragment requested by user
+     * @param position refers to the Fragment requested by user
      */
     public static Fragment newInstance(int position) {
         position = Arrays.asList(c.getResources().getStringArray(R.array.screens)).indexOf((content[position]));

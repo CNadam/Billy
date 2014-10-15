@@ -45,12 +45,12 @@ android {
     }
     productFlavors {
         flavor1 {
-            packageName "com.vibin.billy"
+            applicationId "com.vibin.billy"
             versionName "1.0"
         }
 
         flavor2 {
-            packageName "com.vibin.billy.debug"
+            applicationId "com.vibin.billy.debug"
             versionName "1.0 beta"
         }
     }
@@ -58,7 +58,6 @@ android {
 dependencies {
     compile fileTree(dir: 'libraries', include: ['*.jar', '*.aar'])
     compile files('libs/systembartint-1.0.3.jar')
-    compile 'commons-io:commons-io:2.0.1'
     compile 'com.viewpagerindicator:library:2.4.1@aar'
     compile 'com.mcxiaoke.volley:library-aar:1.0.0'
     compile 'com.jakewharton:disklrucache:2.0.2'
@@ -67,8 +66,13 @@ dependencies {
     compile 'com.nhaarman.listviewanimations:library:2.6.0'
     compile files('libs/YouTubeAndroidPlayerApi.jar')
     compile 'com.crashlytics.android:crashlytics:1.+'
-    compile 'com.loopj.android:android-async-http:1.4.5'
     compile 'asia.ivity.android:drag-sort-listview:1.0'
     compile 'com.android.support:support-v4:+'
     compile 'de.mrmaffen:vlc-android-sdk:1.0.3'
+}
+
+gradle.projectsEvaluated {
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    }
 }

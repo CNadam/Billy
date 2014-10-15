@@ -3,6 +3,7 @@ package com.vibin.billy;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.annotation.LayoutRes;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +24,7 @@ class CustomBaseAdapter extends BaseAdapter {
     ImageLoader imgload;
     SharedPreferences sharedPref;
     BillyApplication billyapp;
+    @LayoutRes
     int resource;
 
     CustomBaseAdapter(Context c, ArrayList<ProcessingTask.BillyData> arrayList, ImageLoader imgload) {
@@ -40,6 +42,10 @@ class CustomBaseAdapter extends BaseAdapter {
             checkCompactCards();
         }
     };
+
+    /**
+     * Switch to smaller layout for cards in the Listview.
+     */
 
     private void checkCompactCards() {
         if (sharedPref.getBoolean("compactCards", false)) {

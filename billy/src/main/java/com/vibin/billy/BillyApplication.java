@@ -1,13 +1,14 @@
 package com.vibin.billy;
 
 import android.app.Application;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.BasicNetwork;
@@ -55,29 +56,8 @@ public class BillyApplication extends Application {
         getRequestQueue();
         createImageLoader();
         getScreensList();
-        setCustomExceptionHandler();
     }
 
-    /**
-     * Register a custom UncaughtException Handler for dismissing persistent notification on Service's crash
-     * Do call the default Android UncaughtException Handler at last, to get the dialog
-     */
-    private void setCustomExceptionHandler() {
-        final NotificationManager noteMan = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        final Thread.UncaughtExceptionHandler defaultExHandler = Thread.getDefaultUncaughtExceptionHandler();
-        Thread.UncaughtExceptionHandler customExHandler = new Thread.UncaughtExceptionHandler() {
-
-            @Override
-            public void uncaughtException(Thread thread, Throwable throwable) {
-                noteMan.cancel(1);
-                Log.d(TAG, "Uncaught Exception is");
-                throwable.printStackTrace();
-
-                defaultExHandler.uncaughtException(thread, throwable);
-            }
-        };
-        Thread.setDefaultUncaughtExceptionHandler(customExHandler);
-    }
 
     private void createImageLoader() {
         if (imageCache == null) {
@@ -93,6 +73,7 @@ public class BillyApplication extends Application {
     /**
      * If RequestQueue is null, create one with {@code cacheSize} amount of cache
      */
+
     public RequestQueue getRequestQueue() {
         if (req == null) {
             req = Volley.newRequestQueue(this);
@@ -105,7 +86,7 @@ public class BillyApplication extends Application {
     }
 
     /**
-     * Get screens list from Settings, or else provide default set of screen names
+     * Get screens list from Settings, if set, or else provide default set of screen names
      *
      * @return Array containing list of Strings of screen names
      */
@@ -143,5 +124,17 @@ public class BillyApplication extends Application {
     public int getDPAsPixels(int DP) {
         float scale = this.getResources().getDisplayMetrics().density;
         return (int) (DP * scale);
+    }
+
+    public static void printViewHierarchy(ViewGroup $vg, String $prefix) {
+        for (int i = 0; i < $vg.getChildCount(); i++) {
+            View v = $vg.getChildAt(i);
+            String desc = $prefix + " | " + "[" + i + "/" + ($vg.getChildCount() - 1) + "] " + v.getClass().getSimpleName() + " " + v.getId();
+            Log.v("x", desc);
+
+            if (v instanceof ViewGroup) {
+                printViewHierarchy((ViewGroup) v, desc);
+            }
+        }
     }
 }

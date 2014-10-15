@@ -2,7 +2,6 @@ package com.vibin.billy;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,6 +13,7 @@ import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 public class Settings extends Activity {
     SystemBarTintManager tintManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,7 +58,6 @@ public class Settings extends Activity {
     protected void onPause() {
         super.onPause();
         overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
-
     }
 
     @Override
@@ -73,8 +72,6 @@ public class Settings extends Activity {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.settings);
-
-            pref = getActivity().getSharedPreferences("albumArtQuality", Context.MODE_PRIVATE);
         }
 
     }

@@ -7,7 +7,7 @@ import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.json.JSONArray;
@@ -17,10 +17,15 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.regex.Pattern;
 
+/**
+ * Do all processing tasks here. Like parsing XML, JSON, modifying strings and more.
+ */
 public class ProcessingTask {
 
     private static final String TAG = ProcessingTask.class.getSimpleName();
@@ -115,7 +120,7 @@ public class ProcessingTask {
      */
     public String[] parseBillboard(String response) throws IOException, XmlPullParserException {
         InputStream in;
-        in = IOUtils.toInputStream(response, "UTF-8");
+        in = getStringAsInputStream(response);
 
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         XmlPullParser parser = factory.newPullParser();
@@ -147,7 +152,7 @@ public class ProcessingTask {
     }
 
     public String[] getArtists() {
-        return billySong;
+        return billyArtist;
     }
 
     /**
@@ -220,7 +225,7 @@ public class ProcessingTask {
     }
 
     /**
-     * Parse song substring from Billboard <title> tag
+     * Parse song substring from Billboard <description> tag
      */
     private String extractSong(String text) {
         char symbols[] = {'!', '(', '#', '&', '+'};
@@ -239,7 +244,7 @@ public class ProcessingTask {
     }
 
     /**
-     * Parse artist substring from Billboard <title> tags
+     * Parse artist substring from Billboard <description> tags
      */
     private String extractArtist(String text) {
 //        String extractedArtist = text.substring(text.indexOf(",") + 2);
@@ -275,7 +280,6 @@ public class ProcessingTask {
     /**
      * Encode the song name to be concatenated to URL
      *
-     * @param text the Song itself
      */
     public String paramEncode(String text) {
         String paramEncode = text;
@@ -331,7 +335,7 @@ public class ProcessingTask {
     /**
      * We try to avoid songs which have remix/cover/live mentioned in their title. We also make sure we get a relevant
      * result by checking if the first word of song is present in song's name.
-     * If we don't find any song which matches our condition, we use the first song itself.
+     * If we don't find any song which matches our conditions, we use the first song itself.
      *
      * @param response the JSON response
      * @return the SoundCloud stream link
@@ -350,7 +354,7 @@ public class ProcessingTask {
         boolean ignore = false;
         Pattern pat = Pattern.compile("\\b(remix|cover|live)\\b");
 
-        InputStream in = IOUtils.toInputStream(response, "UTF-8");
+        InputStream in = getStringAsInputStream(response);
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         XmlPullParser parser = factory.newPullParser();
         parser.setInput(in, null);
@@ -399,5 +403,9 @@ public class ProcessingTask {
         links[0] = firstPermaLink;
         links[1] = firstLink;
         return links;
+    }
+
+    InputStream getStringAsInputStream(String text) throws UnsupportedEncodingException {
+        return new ByteArrayInputStream(text.getBytes(CharEncoding.UTF_8));
     }
 }

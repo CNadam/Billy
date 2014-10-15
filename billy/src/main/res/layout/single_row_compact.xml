@@ -1,67 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:paddingLeft="5dp"
-    android:paddingRight="5dp"
-    android:paddingTop="2dp"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/cardui"
+    android:orientation="horizontal"
+    android:paddingTop="3dp">
+
+    <!--Width and Height 143dp-->
+    <com.android.volley.toolbox.NetworkImageView
+        android:id="@+id/artwork"
+        android:layout_width="@dimen/listitem_dimen_compact"
+        android:layout_height="@dimen/listitem_dimen_compact" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/cardui"
-        android:orientation="horizontal">
+        android:layout_height="fill_parent"
+        android:gravity="top"
+        android:orientation="vertical"
+        android:paddingBottom="5dp"
+        android:paddingLeft="10dp"
+        android:paddingTop="5dp">
 
-        <!--Width and Height 143dp-->
-        <com.android.volley.toolbox.NetworkImageView
-            android:id="@+id/artwork"
-            android:layout_width="@dimen/listitem_dimen_compact"
-            android:layout_height="@dimen/listitem_dimen_compact" />
+        <TextView
+            android:id="@+id/song"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-thin"
+            android:textSize="22sp"
+            tools:text="Get Lucky" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
-            android:gravity="top"
-            android:orientation="vertical"
-            android:paddingBottom="5dp"
-            android:paddingLeft="10dp"
-            android:paddingTop="5dp">
+            android:gravity="bottom"
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/song"
+                android:id="@+id/album"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-thin"
-                android:textSize="22sp"
-                tools:text="Get Lucky" />
+                android:layout_marginBottom="10dp"
+                android:fontFamily="sans-serif-condensed"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="Random Access Memories" />
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/artist"
                 android:layout_width="match_parent"
-                android:layout_height="fill_parent"
-                android:gravity="bottom"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/album"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
-                    android:fontFamily="sans-serif-condensed"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    tools:text="Random Access Memories" />
-
-                <TextView
-                    android:id="@+id/artist"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-condensed"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    tools:text="Daft Punk" />
-            </LinearLayout>
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-condensed"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="Daft Punk" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

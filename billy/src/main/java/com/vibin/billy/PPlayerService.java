@@ -89,6 +89,7 @@ public class PPlayerService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        setCustomExceptionHandler();
 
         try {
             bp = LibVLC.getInstance();
@@ -195,10 +196,13 @@ public class PPlayerService extends Service {
 
     public void playMedia() {
         if (!bp.isPlaying()) {
+            Log.d(TAG, "play media");
             bp.playIndex(0);
+
             putNotification();
         }
     }
+
 
     public void stopMedia() {
         if (bp.isPlaying()) {
@@ -293,4 +297,21 @@ public class PPlayerService extends Service {
         }
     };
 
+    /**
+     * Register a custom UncaughtException Handler for dismissing persistent notification on foreground Service's crash
+     * Do call the default Android UncaughtException Handler at last, to get the dialog
+     */
+    private void setCustomExceptionHandler() {
+        final Thread.UncaughtExceptionHandler defaultExHandler = Thread.getDefaultUncaughtExceptionHandler();
+        Thread.UncaughtExceptionHandler customExHandler = new Thread.UncaughtExceptionHandler() {
+
+            @Override
+            public void uncaughtException(Thread thread, Throwable throwable) {
+                stopForeground(true);
+
+                defaultExHandler.uncaughtException(thread, throwable);
+            }
+        };
+        Thread.setDefaultUncaughtExceptionHandler(customExHandler);
+    }
 }

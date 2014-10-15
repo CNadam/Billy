@@ -13,12 +13,17 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.viewpagerindicator.TitlePageIndicator;
+
+/**
+ * The main activity. (no pun intended)
+ */
 
 public class MainActivity extends FragmentActivity {
 
@@ -32,37 +37,12 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
         customActionBar();
 
-        CustomFragmentAdapter mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this, (BillyApplication) this.getApplication());
+        CustomFragmentAdapter mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this);
         ViewPager mPager = (ViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
         mIndicator = (TitlePageIndicator) findViewById(R.id.indicator);
         mIndicator.setViewPager(mPager);
     }
-
-/*    @Override
-    public void onWindowFocusChanged (boolean hasFocus) {
-        int[] location = new int[2];
-        mIndicator.getLocationOnScreen(location);
-        if((mIndicator.getSystemUiVisibility() & View.SYSTEM_UI_FLAG_IMMERSIVE)==View.SYSTEM_UI_FLAG_IMMERSIVE)
-        {
-            Toast.makeText(this, "fullscreen is true",
-                    Toast.LENGTH_LONG).show();
-        }
-        else
-        {
-            Toast.makeText(this, "fullscreen is "+mIndicator.getSystemUiVisibility(),
-                    Toast.LENGTH_LONG).show();
-        }
-    }*/
-
-/*    public boolean isFullScreen() {
-        int flg = getWindow().getAttributes().flags;
-        boolean flag = false;
-        if ((flg & 1024) == 1024) {
-            flag = true;
-        }
-        return flag;
-    }*/
 
     private void customActionBar() {
         getActionBar().setDisplayShowTitleEnabled(true);
@@ -116,22 +96,31 @@ public class MainActivity extends FragmentActivity {
             return v;
         }
 
+        /**
+         * Open app page in Play Store, if unsuccessful, open URL in browser
+         */
         private void setPlaystoreButton() {
-            //v.findViewById(R.id.playStoreButton).setBackground(getResources().getDrawable(R.drawable.custom_button));
             v.findViewById(R.id.playStoreButton).getBackground().setColorFilter(0xffff0000, PorterDuff.Mode.SRC_ATOP);
-            v.findViewById(R.id.playStoreButton).setOnClickListener(new View.OnClickListener() {
+            v.findViewById(R.id.playStoreButton).setOnTouchListener(new View.OnTouchListener() {
                 @Override
-                public void onClick(View view) {
-                    Uri uri = Uri.parse("market://details?id=" + getActivity().getPackageName());
-                    Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
-                    goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-                    try {
-                        startActivity(goToMarket);
-                    } catch (ActivityNotFoundException e) {
-                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + getActivity().getPackageName())));
+                public boolean onTouch(View view, MotionEvent motionEvent) {
+                    if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                        v.findViewById(R.id.playStoreButton).getBackground().setColorFilter(0xffc40000, PorterDuff.Mode.SRC_ATOP);
+                    } else if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                        v.findViewById(R.id.playStoreButton).getBackground().setColorFilter(0xffff0000, PorterDuff.Mode.SRC_ATOP);
+                        Uri uri = Uri.parse("market://details?id=" + getActivity().getPackageName());
+                        Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
+                        goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                        try {
+                            startActivity(goToMarket);
+                        } catch (ActivityNotFoundException e) {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + getActivity().getPackageName())));
+                        }
                     }
+                    return true;
                 }
             });
+
         }
 
         @Override
@@ -143,18 +132,17 @@ public class MainActivity extends FragmentActivity {
     }
 }
 
-//TODO Use RootTools to detect Root and then show preference
-//TODO don't forget to cast IjkMediaPlayer.getDuration() to int in DetailView.class and use PPlayerService.class
-//TODO Check and handle ArrayList saving to DB with 100 elements (save only 20 probably)
+//TODO add handlers to VLC EventHandler
 
 //TODO Allow reordering
 //TODO Infinite loading for Hot 100
-//TODO Use Hotness parameter in Soundcloud url
 
 //TODO service quits automatically when playing after sometime
 //TODO handle 2G/3G devices efficiently API Level 17
 //TODO Notification click intent flags
-//TODO Intelligent SoundCloud track fetch and HLS implementation
+//TODO Implement playlists
 //TODO Change color of notification background
+//TODO remove share history in ActionBar
+//TODO Use RootTools to detect Root and then show preference
 
 //TODO Use RemoteController and put full screen lock image for KitKat+ devices

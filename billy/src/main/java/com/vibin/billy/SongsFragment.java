@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -45,7 +46,9 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.util.ArrayList;
 
-
+/**
+ * Fetches songs' data and puts that in a Listview. This goes inside the Viewpager.
+ */
 public class SongsFragment extends ListFragment implements AdapterView.OnItemClickListener, SwipeRefreshLayout.OnRefreshListener {
     ArrayList<ProcessingTask.BillyData> mData, mDataLite;
     String[] billySong, billyArtist, result;
@@ -144,7 +147,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         mIndex = 0;
         swipelayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_container);
         swipelayout.setOnRefreshListener(this);
-        swipelayout.setColorScheme(android.R.color.holo_blue_bright,
+        swipelayout.setColorSchemeResources(android.R.color.holo_blue_bright,
                 R.color.billyred,
                 android.R.color.holo_orange_light,
                 R.color.billygreen);
@@ -236,26 +239,36 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             loadMore.getBackground().setColorFilter(0xffff0000, PorterDuff.Mode.SRC_ATOP);
             layout.addView(loadMore);
             getListView().addFooterView(layout);
-            loadMore.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (billyapp.isConnected()) {
-                        Log.d(tag, "Size is " + mData.size());
-                        if (mData.size() == 80) {
-                            getListView().removeFooterView(loadMore);
-                        }
-                        initializeArraylistitems();
-                        customBaseAdapter.updateArrayList(mData);
-                        customBaseAdapter.notifyDataSetChanged();
+            try {
+                loadMore.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent) {
+                        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                            loadMore.getBackground().setColorFilter(0xffc40000, PorterDuff.Mode.SRC_ATOP);
+                        } else if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                            loadMore.getBackground().setColorFilter(0xffff0000, PorterDuff.Mode.SRC_ATOP);
+                            if (billyapp.isConnected()) {
+                                Log.d(tag, "Size is " + mData.size());
+                                if (mData.size() == 80) {
+                                    getListView().removeFooterView(loadMore);
+                                }
+                                initializeArraylistitems();
+                                customBaseAdapter.updateArrayList(mData);
+                                customBaseAdapter.notifyDataSetChanged();
 
-                        for (int i = 0; i < billyapp.getBillySize(); i++) {
-                            callitunes(mData.size() - billyapp.getBillySize() + i, false);
+                                for (int i = 0; i < billyapp.getBillySize(); i++) {
+                                    callitunes(mData.size() - billyapp.getBillySize() + i, false);
+                                }
+                            } else {
+                                Toast.makeText(getActivity(), billyapp.getString(R.string.nointernet), Toast.LENGTH_LONG).show();
+                            }
                         }
-                    } else {
-                        Toast.makeText(getActivity(), billyapp.getString(R.string.nointernet), Toast.LENGTH_LONG).show();
+                        return true;
                     }
-                }
-            });
+                });
+            } catch (ArrayIndexOutOfBoundsException e) {
+                getListView().removeFooterView(loadMore);
+            }
         }
     }
 

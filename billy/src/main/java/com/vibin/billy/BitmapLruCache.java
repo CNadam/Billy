@@ -33,13 +33,13 @@ public class BitmapLruCache
 
     @Override
     public Bitmap getBitmap(String url) {
-        Log.d(TAG, "Grab " + url);
+        //Log.d(TAG, "Grab " + url);
         return get(url);
     }
 
     @Override
     public void putBitmap(String url, Bitmap bitmap) {
-        Log.d(TAG, "Put " + url);
+        //Log.d(TAG, "Put " + url);
         put(url, bitmap);
     }
 

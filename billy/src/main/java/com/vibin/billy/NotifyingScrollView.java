@@ -9,6 +9,8 @@ import com.android.volley.toolbox.NetworkImageView;
 
 /**
  * @author Cyril Mottier
+ *         <p/>
+ *         A custom ScrollView which notifies when user scrolls.
  */
 public class NotifyingScrollView extends ScrollView {
 
