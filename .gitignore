@@ -1,8 +1,6 @@
 .gradle
 
-/.idea/workspace.xml
-/.idea/*.iws
-/.idea/tasks.xml
+/.idea
 .navigation
 
 .DS_Store
