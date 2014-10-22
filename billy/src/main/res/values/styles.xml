@@ -1,11 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!--
+    Base theme
+    windowTranslucentStatus should be set to false on Expanded Mode, otherwise ActionBar will be clipped off
+    -->
     <style name="Theme.Billy" parent="@android:style/Theme.Holo.Light">
         <item name="android:actionBarStyle">@style/ActionBar.Solid.Billy</item>
         <item name="android:actionOverflowButtonStyle">@style/OverFlow</item>
         <item name="android:homeAsUpIndicator">@drawable/up</item>
         <item name="android:actionBarItemBackground">@drawable/actionitem_background</item>
+        <item name="android:buttonStyle">@style/Button.Billy</item>
+        <item name="android:dialogTheme">@style/Button.Dialog.Billy</item>
+        <item name="android:popupMenuStyle">@style/PopupMenu.Billy</item>
+    </style>
+
+    <!-- For Activities which are swipeable and have transparent ActionBar-->
+
+    <style name="Theme.Billy.Swipeable" parent="Theme.Billy.TransparentActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
     </style>
 
     <style name="Theme.Billy.TransparentActionBar" parent="Theme.Billy">
@@ -14,15 +29,50 @@
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
-    <style name="ActionBar.Solid.Billy" parent="@android:style/Widget.Holo.Light.ActionBar.Solid">
-        <item name="android:background">@drawable/ab_solid_billy</item>
+    <style name="ActionBar.Solid.Billy" parent="@android:style/Widget.Holo.Light.ActionBar">
+        <item name="android:background">@drawable/ab_solid</item>
+        <item name="android:titleTextStyle">@style/ActionBar.Billy.TextAppearance</item>
     </style>
+
+    <style name="ActionBar.Transparent.Billy" parent="@android:style/Widget.Holo.Light.ActionBar">
+        <item name="android:background">@drawable/ab_transparent</item>
+        <item name="android:titleTextStyle">@style/ActionBar.Billy.TextAppearance</item>
+    </style>
+
+    <style name="Button.Dialog.Billy" parent="@android:style/Theme.Holo.Light.Dialog">
+        <item name="android:buttonStyle">@style/Button.Billy</item>
+    </style>
+
+    <!-- Button -->
+
+    <style name="Button.Billy" parent="@android:style/Widget.Button">
+        <item name="android:background">@drawable/billybutton</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
+    </style>
+
+    <!-- Popup Menu -->
+
+    <style name="PopupMenu.Billy" parent="@android:style/Widget.Holo.Light.ListPopupWindow">
+        <item name="android:popupBackground">@drawable/menu_dropdown_panel</item>
+    </style>
+
+    <!-- Overflow Action Button-->
 
     <style name="OverFlow" parent="@android:style/Widget.Holo.Light.ActionButton.Overflow">
         <item name="android:src">@drawable/ic_action_overflow</item>
     </style>
 
-    <style name="ActionBar.Transparent.Billy" parent="@android:style/Widget.Holo.Light.ActionBar">
-        <item name="android:background">@drawable/ab_transparent_billy</item>
+    <!-- ActionBar Title -->
+    <style name="ActionBar.Billy.TextAppearance" parent="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
+        <item name="android:textColor">#fff</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:alpha">1</item>
+        <item name="android:textAllCaps">true</item>
     </style>
+
 </resources>

@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="billyred">#FFEA5157</color>
-    <color name="seekbar">#CE474C</color>
-    <!--slightly darker billyred-->
-    <color name="secondaryprogress">#96ea5157</color>
-    <color name="billygreen">#FF4DC25C</color>
+    <!--Primary color of app is billy-->
+    <color name="billy">#FFEA5157</color>
 
+    <color name="seekbar">#CE474C</color>
+    <color name="secondaryprogress">#96ea5157</color>
+    <color name="green">#FF4DC25C</color>
+    <color name="btn_stroke">#ffffa3a0</color>
+    <color name="btn_background">#ffff5e6c</color>
 </resources>
