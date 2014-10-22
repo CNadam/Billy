@@ -4,11 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/cardui"
+    android:background="@android:color/white"
     android:orientation="horizontal"
     android:paddingTop="3dp">
 
-    <!--Width and Height 143dp-->
+    <!--Width and Height 120dp-->
     <com.android.volley.toolbox.NetworkImageView
         android:id="@+id/artwork"
         android:layout_width="@dimen/listitem_dimen_compact"
