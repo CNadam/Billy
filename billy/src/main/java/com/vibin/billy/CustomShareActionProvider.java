@@ -20,7 +20,7 @@ public class CustomShareActionProvider extends ShareActionProvider {
     public View onCreateActionView() {
         View view = super.onCreateActionView();
         try {
-            Drawable icon = c.getResources().getDrawable(R.drawable.share_holo_light); // the drawable you want (you can use mContext to get it from resources)
+            Drawable icon = c.getResources().getDrawable(R.drawable.share_holo_light);
             Method method = view.getClass().getMethod("setExpandActivityOverflowButtonDrawable", Drawable.class);
             method.invoke(view, icon);
         } catch (Exception e) {

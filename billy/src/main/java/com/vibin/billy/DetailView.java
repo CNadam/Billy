@@ -57,10 +57,10 @@ import java.util.Arrays;
  */
 
 public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarChangeListener {
-    String song, artwork, artist, album, streamLink, permaLink, lastFmBio, thumbnail, videoId, intentText;
+    String song, artwork, artist, album, streamLink, permaLink, lastFmBio, thumbnail, videoId;
     String[] relatedAlbumImg, relatedAlbums;
     int songIndex, songLength;
-    float secondaryProgressFactor;
+    float secondaryProgressFactor, scrollOpacity = 0;
     boolean isMusicPlaying, stopTh, isCurrentSongBG, isPreparing;
     static boolean active, mBound;
     MenuItem shareItem;
@@ -102,8 +102,8 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         artwork = itemData.getString("artwork");
         songIndex = itemData.getInt("index");
 
-        relatedAlbumImg = new String[3];
-        relatedAlbums = new String[3];
+//        relatedAlbumImg = new String[3];
+//        relatedAlbums = new String[3];
         streamBtn = (ImageButton) findViewById(R.id.streamButton);
         dashes = (ImageView) findViewById(R.id.dashes);
         seekBar = (SeekBar) findViewById(R.id.seekBar);
@@ -126,7 +126,10 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
             performRequests(req);
         }
 
+        tintManager = new SystemBarTintManager(this);
         customActionBar();
+
+        billyapp.getActionBarView(getWindow()).addOnLayoutChangeListener(expandedDesktopListener);
 
         NetworkImageView hero = (NetworkImageView) findViewById(R.id.image_header);
         hero.setImageUrl(artwork, imgload);
@@ -317,7 +320,10 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
             public void onResponse(JSONObject jsonObject) {
                 try {
                     JSONArray jsonArray = jsonObject.getJSONObject("topalbums").getJSONArray("album");
-                    for (int i = 0; i < jsonArray.length(); i++) {
+                    int length = jsonArray.length();
+                    relatedAlbums = new String[length];
+                    relatedAlbumImg = new String[length];
+                    for (int i = 0; i < length; i++) {
                         JSONObject obj = jsonArray.getJSONObject(i);
                         relatedAlbums[i] = obj.getString("name");
                         relatedAlbumImg[i] = obj.getJSONArray("image").getJSONObject(3).getString("#text");
@@ -378,15 +384,15 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
             v.setImageUrl(relatedAlbumImg[i], imgload);
 
             TextView tv = (TextView) relativeLayout.findViewById(res.getIdentifier("relatedText" + i, "id", getBaseContext().getPackageName()));
-            try {
+//            try {
                 if (relatedAlbums[i].length() > 16) {
                     tv.setText(relatedAlbums[i].substring(0, 14) + "…");
                 } else {
                     tv.setText(relatedAlbums[i]);
                 }
-            } catch (NullPointerException e) {
-                Log.d(TAG, "NullPointer, we meet again");
-            }
+//            } catch (NullPointerException e) {
+//                Log.i(TAG, "NullPointer, we meet again");
+//            }
         }
 
         (findViewById(R.id.topAlbums)).setVisibility(View.VISIBLE);
@@ -490,15 +496,17 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 }
 
                 @Override
-                public void onError(int i, int i2) {
-                    Toast.makeText(getBaseContext(), "An error has occurred. " + i + " " + i2,
-                            Toast.LENGTH_LONG).show();
+                public void onError() {
+                    //Toast.makeText(getBaseContext(), "An error has occurred. " + i + " " + i2,
+                    //        Toast.LENGTH_LONG).show();
+                    Log.e(TAG,"Cannot play this song. ");
                     dashes.clearAnimation();
                     dashes.setVisibility(View.GONE);
                 }
 
                 @Override
                 public void onStop() {
+                    Log.d(TAG,"Onstop");
                     onCompletion();
                 }
 
@@ -533,10 +541,10 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     private void setSeekBar() {
         progressThread = new Thread(progress);
         progressThread.start();
-        songLength = (int) mService.bp.getTime() / 1000; //ms
+        songLength = (int) mService.bp.getLength() / 1000; //ms
         secondaryProgressFactor = (float) songLength / 100;
         Log.d(TAG, "songlength, secondary " + songLength + " " + secondaryProgressFactor);
-        seekBar.setMax(songLength);
+        seekBar.setMax(1000);
         seekBar.setVisibility(View.VISIBLE);
     }
 
@@ -555,7 +563,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                         if (!isMusicPlaying) {
                             Log.d(TAG, "Song matched");
                             if (PPlayerService.isRunning) {
-                                mService.playMedia();
+                                mService.doPlay();
                                 isMusicPlaying = true;
                                 streamBtn.setImageDrawable(pauseIcon);
                                 if (!progressThread.isAlive()) {
@@ -621,12 +629,14 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                     return;
                 } else if (PPlayerService.isRunning) {
                     if (!PPlayerService.isIdle) {
-                        seekBar.setProgress((int) mService.bp.getPosition() / 1000);
-                        seekBar.setSecondaryProgress((int) (mService.bufferPercent * secondaryProgressFactor));
-                        if (seekBar.getProgress() == (int) mService.bp.getTime() / 1000) {
+                        seekBar.setProgress((int) (mService.bp.getPosition() * 1000));
+                        seekBar.setSecondaryProgress(mService.bufferPercent * 10);
+                        if (seekBar.getProgress() == 1000) {
+                            Log.d(TAG,"killing thread");
                             stopTh = true;
                         }
-                        //Log.d(TAG, "Max " + seekBar.getMax() + " progress " + seekBar.getProgress() + " secondary " + seekBar.getSecondaryProgress());
+                        Log.d(TAG, "Max " + seekBar.getMax() + " progress " + seekBar.getProgress() +" and secondary "  + seekBar.getSecondaryProgress());
+                        //Log.d(TAG,"Length "+mService.bp.getLength()+"          Time "+mService.bp.getTime()+"           Position "+mService.bp.getPosition());
                     }
                 }
             } catch (IllegalStateException e) {
@@ -646,8 +656,8 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         rotateAnim = new RotateAnimation(0.0f, 360.0f, dashes.getWidth() / 2, dashes.getHeight() / 2);
         rotateAnim.setDuration(6000);
         rotateAnim.setInterpolator(new LinearInterpolator());
-        rotateAnim.setRepeatMode(Animation.INFINITE);
-        rotateAnim.setRepeatCount(10);
+        rotateAnim.setRepeatMode(Animation.RESTART);
+        rotateAnim.setRepeatCount(Animation.INFINITE);
 
         scaleAnim = new ScaleAnimation(0.0f, 1.0f, 0.0f, 1.0f, streamBtn.getWidth() / 2, streamBtn.getHeight() / 2);
         scaleAnim.setDuration(800);
@@ -656,21 +666,40 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
 
     /**
      * Generate a new alpha value for every scroll event
-     * Apply parallax to ScrollView and alpha to ActionBar
+     * Apply parallax to ScrollView and alpha to ActionBar, Status Bar
      */
 
     private NotifyingScrollView.OnScrollChangedListener mOnScrollChangedListener = new NotifyingScrollView.OnScrollChangedListener() {
         public void onScrollChanged(ScrollView who, int l, int t, int oldl, int oldt) {
             final int headerHeight = findViewById(R.id.image_header).getHeight() - getActionBar().getHeight() - 500;
-            final float ratio = (float) Math.min(Math.max(t, 0), headerHeight) / headerHeight;
-            final int newAlpha = (int) (ratio * 255);
+            scrollOpacity = (float) Math.min(Math.max(t, 0), headerHeight) / headerHeight;
+            final int newAlpha = (int) (scrollOpacity * 255);
             mActionBarBackgroundDrawable.setAlpha(newAlpha);
-            tintManager.setTintAlpha(ratio);
+            tintManager.setTintAlpha(scrollOpacity);
         }
     };
 
     /**
-     * Most of the ActionBar customization is done using /values[-v19]/styles.xml
+     * Detects if the user is using phone in Expanded Desktop/Fullscreen mode, and toggles Status Bar tint
+     */
+
+    View.OnLayoutChangeListener expandedDesktopListener = new View.OnLayoutChangeListener() {
+        @Override
+        public void onLayoutChange(View view, int i, int i2, int i3, int i4, int i5, int i6, int i7, int i8) {
+            int position[] = new int[2];
+            view.getLocationOnScreen(position);
+            if (position[1] == 0) {
+                tintManager.setStatusBarTintEnabled(false);
+            } else {
+                tintManager.setStatusBarTintEnabled(true);
+                tintManager.setStatusBarAlpha(scrollOpacity);
+                tintManager.setTintColor(getResources().getColor(R.color.billy));
+            }
+        }
+    };
+
+    /**
+     * Most of the ActionBar customization is done using /values[-v19]/styles.xml, remaining stuff is here
      * Transit ActionBar and status bar colors if running JellyBean 4.2 or newer
      * Apply parallax scrolling
      */
@@ -682,17 +711,12 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         setTitle(" " + song.toUpperCase());
 
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.JELLY_BEAN) {
-            getActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.ab_solid_billy));
+            getActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.ab_solid));
             getBaseContext().setTheme(R.style.Theme_Billy);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            mActionBarBackgroundDrawable = getResources().getDrawable(R.drawable.ab_solid_billy);
-            mActionBarBackgroundDrawable.setAlpha(1);
+            mActionBarBackgroundDrawable = getResources().getDrawable(R.drawable.ab_solid);
+            mActionBarBackgroundDrawable.setAlpha(0);
             getActionBar().setBackgroundDrawable(mActionBarBackgroundDrawable);
-
-            tintManager = new SystemBarTintManager(this);
-            tintManager.setStatusBarTintEnabled(true);
-            tintManager.setTintColor(getResources().getColor(R.color.billyred));
-            tintManager.setTintAlpha(0);
         }
 
         ((NotifyingScrollView) findViewById(R.id.scroll_view)).setOnScrollChangedListener(mOnScrollChangedListener);
@@ -788,7 +812,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
         seekBar.setAlpha(0.85f);
-        mService.bp.setTime(Long.parseLong(String.valueOf(seekBar.getProgress() * 1000)));
+        mService.bp.setPosition((float) seekBar.getProgress()/1000);
     }
 
     @Override

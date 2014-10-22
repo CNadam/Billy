@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -17,7 +16,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -44,6 +42,7 @@ import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 /**
@@ -52,7 +51,7 @@ import java.util.ArrayList;
 public class SongsFragment extends ListFragment implements AdapterView.OnItemClickListener, SwipeRefreshLayout.OnRefreshListener {
     ArrayList<ProcessingTask.BillyData> mData, mDataLite;
     String[] billySong, billyArtist, result;
-    String jsonMdata, billboardResponse;
+    String jsonMdata, billboardResponse, cacheData = "";
     LinearLayout spinner;
     View v;
     boolean spinnerVisible, pulltorefresh, isHot100;
@@ -112,7 +111,11 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
         //Spawn requests only on new Instance
         if (savedInstanceState == null && billyapp.isConnected()) {
-            performRequests();
+            try {
+                performRequests();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -146,11 +149,12 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         }
         mIndex = 0;
         swipelayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_container);
+        //swipelayout.setRefreshing(true);
         swipelayout.setOnRefreshListener(this);
         swipelayout.setColorSchemeResources(android.R.color.holo_blue_bright,
-                R.color.billyred,
+                R.color.billy,
                 android.R.color.holo_orange_light,
-                R.color.billygreen);
+                R.color.green);
 
         // Restore instance, on Orientation change
         if (savedInstanceState != null) {
@@ -165,7 +169,11 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             if (mData == null) {
                 Log.d(tag, "mData is null");
                 initializeArraylistitems();
-                performRequests();
+                try {
+                    performRequests();
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
             } else {
                 Log.d(tag, "Oncreateview, mData size is " + mData.size());
                 customBaseAdapter.updateArrayList(mData);
@@ -201,10 +209,23 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         Log.d(tag, "new size of mData is " + mData.size() + " and new size of mDataLite is " + mDataLite.size());
     }
 
-    private void performRequests() {
-        spinnerVisible = true;
+    /**
+     * Spawn Billboard request
+     * Make sure to get cached version of Billboard response before making a new request, for comparing later
+     */
+    private void performRequests() throws UnsupportedEncodingException {
         StringRequest stringreq = new StringRequest(Request.Method.GET, rssurl, billyComplete(), billyError());
         stringreq.setTag("billyreq");
+        spinnerVisible = true;
+        Cache.Entry entry = req.getCache().get(stringreq.getCacheKey());
+        if (entry != null) {
+            if (entry.data != null) {
+                cacheData = new String(entry.data, "UTF-8");
+                Log.d(tag, "cache length is " + entry.data.length);
+            }
+            Log.d(tag, " " + entry.toString() + " " + entry.isExpired() + " " + entry.refreshNeeded());
+        }
+
         req.add(stringreq);
     }
 
@@ -227,48 +248,37 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         getListView().setOnItemClickListener(this);
 
         if (isHot100) {
-            LinearLayout layout = new LinearLayout(getActivity());
+            final LinearLayout layout = new LinearLayout(getActivity());
             layout.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, AbsListView.LayoutParams.WRAP_CONTENT));
             layout.setGravity(Gravity.CENTER_HORIZONTAL);
             final Button loadMore = new Button(getActivity());
             loadMore.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             loadMore.setText("Load more...");
-            final float scale = getResources().getDisplayMetrics().density;
-            int padding_in_px = (int) (15 * scale + 0.5f);
-            loadMore.setPadding(padding_in_px, 0, padding_in_px, 0);
-            loadMore.getBackground().setColorFilter(0xffff0000, PorterDuff.Mode.SRC_ATOP);
             layout.addView(loadMore);
             getListView().addFooterView(layout);
-            try {
-                loadMore.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View view, MotionEvent motionEvent) {
-                        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                            loadMore.getBackground().setColorFilter(0xffc40000, PorterDuff.Mode.SRC_ATOP);
-                        } else if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
-                            loadMore.getBackground().setColorFilter(0xffff0000, PorterDuff.Mode.SRC_ATOP);
-                            if (billyapp.isConnected()) {
-                                Log.d(tag, "Size is " + mData.size());
-                                if (mData.size() == 80) {
-                                    getListView().removeFooterView(loadMore);
-                                }
-                                initializeArraylistitems();
-                                customBaseAdapter.updateArrayList(mData);
-                                customBaseAdapter.notifyDataSetChanged();
 
-                                for (int i = 0; i < billyapp.getBillySize(); i++) {
-                                    callitunes(mData.size() - billyapp.getBillySize() + i, false);
-                                }
-                            } else {
-                                Toast.makeText(getActivity(), billyapp.getString(R.string.nointernet), Toast.LENGTH_LONG).show();
-                            }
+            loadMore.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (billyapp.isConnected()) {
+                        Log.d(tag, "Size is " + mData.size());
+                        if (mData.size() == 80) {
+                            getListView().removeFooterView(loadMore);
+                            loadMore.setVisibility(View.GONE); // just a bit precautionary
                         }
-                        return true;
+                        initializeArraylistitems();
+                        customBaseAdapter.updateArrayList(mData);
+                        customBaseAdapter.notifyDataSetChanged();
+
+                        for (int i = 0; i < billyapp.getBillySize(); i++) {
+                            callitunes(mData.size() - billyapp.getBillySize() + i, false);
+                        }
+                    } else {
+                        Toast.makeText(getActivity(), billyapp.getString(R.string.nointernet), Toast.LENGTH_LONG).show();
                     }
-                });
-            } catch (ArrayIndexOutOfBoundsException e) {
-                getListView().removeFooterView(loadMore);
-            }
+
+                }
+            });
         }
     }
 
@@ -332,31 +342,22 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         return new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
+                Log.d(tag, "response length is " + response.length());
                 spinnerVisible = false;
                 billboardResponse = response;
                 spinner.setVisibility(View.GONE);
                 v.findViewById(android.R.id.list).setVisibility(View.VISIBLE);
                 try {
-                    Cache.Entry entry = req.getCache().get(rssurl);
-                    String data = new String(entry.data, "UTF-8");
                     String jsonMdata = customDatabaseAdapter.getArrayList(table_name);
                     if (pulltorefresh) {
                         Log.d(tag, "Pull to refresh");
                         handleXML(response, true);
                         pulltorefresh = false;
-                        if (entry.data != null) {
-                            if (!response.equalsIgnoreCase(data)) {
-                                Toast.makeText(getActivity(), getResources().getString(R.string.newsongs), Toast.LENGTH_LONG).show();
-                            } else {
-                                Toast.makeText(getActivity(), getResources().getString(R.string.nonewsongs),
-                                        Toast.LENGTH_LONG).show();
-                            }
-                        }
-                    } else if (entry.data == null || jsonMdata == null) {
-                        Log.d(tag, "No cache/DB. Requests made.");
+                    } else if (jsonMdata == null) {
+                        Log.d(tag, "DB empty. Requests made.");
                         handleXML(response, true);
-                    } else if (!response.equalsIgnoreCase(data) || jsonMdata.length() < 100) {
-                        Log.d(tag, "New data available or DB is empty. Requests made.");
+                    } else if (response.length() != cacheData.length() && !cacheData.isEmpty()) {
+                        Log.d(tag, "New data available. Requests made.");
                         handleXML(response, true);
                     } else {
                         handleXML(response, false);
@@ -493,7 +494,11 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         } catch (NullPointerException e) {
             e.printStackTrace();
             pulltorefresh = true;
-            performRequests(); // mData is null, so perform all requests again and construct it
+            try {
+                performRequests(); // mData is null, so perform all requests again and construct it
+            } catch (UnsupportedEncodingException e1) {
+                e1.printStackTrace();
+            }
         }
     }
 

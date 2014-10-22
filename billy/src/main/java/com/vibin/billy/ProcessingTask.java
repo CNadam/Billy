@@ -279,7 +279,6 @@ public class ProcessingTask {
 
     /**
      * Encode the song name to be concatenated to URL
-     *
      */
     public String paramEncode(String text) {
         String paramEncode = text;

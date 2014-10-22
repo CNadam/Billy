@@ -9,6 +9,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.BasicNetwork;
@@ -136,5 +137,11 @@ public class BillyApplication extends Application {
                 printViewHierarchy((ViewGroup) v, desc);
             }
         }
+    }
+
+    public View getActionBarView(Window window) {
+        View decorView = window.getDecorView();
+        int resId = getResources().getIdentifier("action_bar_container", "id", "android");
+        return decorView.findViewById(resId);
     }
 }

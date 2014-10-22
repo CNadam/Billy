@@ -3,7 +3,6 @@ package com.vibin.billy;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -13,7 +12,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -27,7 +25,7 @@ import com.viewpagerindicator.TitlePageIndicator;
 
 public class MainActivity extends FragmentActivity {
 
-    TitlePageIndicator mIndicator;
+    SystemBarTintManager tintManager;
     private static final String TAG = MainActivity.class.getSimpleName();
 
     @Override
@@ -35,23 +33,34 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-        customActionBar();
+
+        tintManager = new SystemBarTintManager(this);
+        getActionBar().setDisplayShowTitleEnabled(true);
+        setTitle(" " + "Billy".toUpperCase());
 
         CustomFragmentAdapter mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this);
         ViewPager mPager = (ViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
-        mIndicator = (TitlePageIndicator) findViewById(R.id.indicator);
+        TitlePageIndicator mIndicator = (TitlePageIndicator) findViewById(R.id.indicator);
         mIndicator.setViewPager(mPager);
+
+        ((BillyApplication) getApplication()).getActionBarView(getWindow()).addOnLayoutChangeListener(expandedDesktopListener);
     }
 
-    private void customActionBar() {
-        getActionBar().setDisplayShowTitleEnabled(true);
-        setTitle(" " + "Billy".toUpperCase());
-
-        SystemBarTintManager tintManager = new SystemBarTintManager(this);
-        tintManager.setStatusBarTintEnabled(true);
-        tintManager.setTintColor(getResources().getColor(R.color.billyred));
-    }
+    View.OnLayoutChangeListener expandedDesktopListener = new View.OnLayoutChangeListener() {
+        @Override
+        public void onLayoutChange(View view, int i, int i2, int i3, int i4, int i5, int i6, int i7, int i8) {
+            int position[] = new int[2];
+            view.getLocationOnScreen(position);
+            if (position[1] == 0) {
+                tintManager.setStatusBarTintEnabled(false);
+            } else {
+                tintManager.setStatusBarTintEnabled(true);
+                tintManager.setTintColor(getResources().getColor(R.color.billy));
+                tintManager.setStatusBarAlpha(1.0f);
+            }
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -99,28 +108,21 @@ public class MainActivity extends FragmentActivity {
         /**
          * Open app page in Play Store, if unsuccessful, open URL in browser
          */
+
         private void setPlaystoreButton() {
-            v.findViewById(R.id.playStoreButton).getBackground().setColorFilter(0xffff0000, PorterDuff.Mode.SRC_ATOP);
-            v.findViewById(R.id.playStoreButton).setOnTouchListener(new View.OnTouchListener() {
+            v.findViewById(R.id.playStoreButton).setOnClickListener(new View.OnClickListener() {
                 @Override
-                public boolean onTouch(View view, MotionEvent motionEvent) {
-                    if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                        v.findViewById(R.id.playStoreButton).getBackground().setColorFilter(0xffc40000, PorterDuff.Mode.SRC_ATOP);
-                    } else if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
-                        v.findViewById(R.id.playStoreButton).getBackground().setColorFilter(0xffff0000, PorterDuff.Mode.SRC_ATOP);
-                        Uri uri = Uri.parse("market://details?id=" + getActivity().getPackageName());
-                        Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
-                        goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-                        try {
-                            startActivity(goToMarket);
-                        } catch (ActivityNotFoundException e) {
-                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + getActivity().getPackageName())));
-                        }
+                public void onClick(View view) {
+                    Uri uri = Uri.parse("market://details?id=" + getActivity().getPackageName());
+                    Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
+                    goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                    try {
+                        startActivity(goToMarket);
+                    } catch (ActivityNotFoundException e) {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + getActivity().getPackageName())));
                     }
-                    return true;
                 }
             });
-
         }
 
         @Override
@@ -132,13 +134,16 @@ public class MainActivity extends FragmentActivity {
     }
 }
 
+//TODO laggy Libvlc, try low cache
+//TODO replace default spinner in SongsFragment with Google's swiperefreshlayout
 //TODO add handlers to VLC EventHandler
-
+//TODO detect if RTMP url is needed
 //TODO Allow reordering
 //TODO Infinite loading for Hot 100
 
 //TODO service quits automatically when playing after sometime
 //TODO handle 2G/3G devices efficiently API Level 17
+//TODO SwipRefreshLayout updated
 //TODO Notification click intent flags
 //TODO Implement playlists
 //TODO Change color of notification background

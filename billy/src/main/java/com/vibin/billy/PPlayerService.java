@@ -10,7 +10,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.os.Binder;
+import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.v4.app.NotificationCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -21,12 +24,13 @@ import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 
+import org.videolan.libvlc.EventHandler;
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.LibVlcException;
 import org.videolan.libvlc.MediaList;
 
 
-public class PPlayerService extends Service {
+public class PPlayerService extends Service implements Handler.Callback {
     private static final String TAG = PPlayerService.class.getSimpleName();
     String streamLink, song, album, artist, artwork;
     LibVLC bp;
@@ -46,10 +50,45 @@ public class PPlayerService extends Service {
     public static boolean isRunning;
     public static boolean isInCall, isInCallMusicPaused;
     public static boolean isIdle = true;
+    boolean onlyOnce = true;
 
-    public void doPause() {
-        bp.pause();
-        putNotification();
+    @Override
+    public boolean handleMessage(Message msg) {
+        int event = msg.getData().getInt("event");
+        switch (event) {
+            case EventHandler.MediaPlayerPlaying:
+                //Log.d(TAG, "started playing" +bundle2string(msg.getData()));
+                break;
+            case EventHandler.MediaPlayerEndReached:
+                Log.d(TAG, "end reached" +bundle2string(msg.getData()));
+                onCompletion();
+                break;
+            case EventHandler.MediaPlayerEncounteredError:
+                Log.d(TAG,"Mediaplayer error occured");
+                onError();
+                break;
+            case EventHandler.MediaPlayerPositionChanged:
+                //Log.d(TAG, "position" +bundle2string(msg.getData()));
+                onPrepared();
+                break;
+            case EventHandler.MediaPlayerBuffering:
+                onBufferChange(msg.getData().getFloat("data"));
+                break;
+        }
+        return true;
+    }
+
+    private void onBufferChange(float percent) {
+            bufferPercent = (int) percent;
+    }
+
+    public static String bundle2string(Bundle bundle) {
+        String string = "Bundle{";
+        for (String key : bundle.keySet()) {
+            string += " " + key + " => " + bundle.get(key) + ";";
+        }
+        string += " }Bundle";
+        return string;
     }
 
     public interface onBPChangedListener {
@@ -57,7 +96,7 @@ public class PPlayerService extends Service {
 
         void onCompletion();
 
-        void onError(int i, int i2);
+        void onError();
 
         void onStop();
 
@@ -98,7 +137,6 @@ public class PPlayerService extends Service {
             e.printStackTrace();
         }
 
-
         Log.d(TAG, "Service's onCreate");
         billyapp = (BillyApplication) this.getApplication();
 
@@ -126,7 +164,7 @@ public class PPlayerService extends Service {
 
             //bp.reset();
 
-            if (!bp.isPlaying()) {
+//            if (!bp.isPlaying()) {
                 //bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
 
 /*
@@ -137,14 +175,22 @@ public class PPlayerService extends Service {
                     is.close();
 */
 //                  streamLink="http://ec-media.soundcloud.com/p7Uw60gtODDZ.128.mp3?f10880d39085a94a0418a7ef69b03d522cd6dfee9399eeb9a522009e6bf9b93b1c57cf78a3e4865f4b47b62a40b86e0209984a23f40484b51853d2c1e8a7dc8285658d0e8e&AWSAccessKeyId=AKIAJNIGGLK7XA7YZSNQ&Expires=1412417762&Signature=Oz5cUbgp06dzFOy3aTBm0txXSIY%3D";
-                list = bp.getPrimaryMediaList();
-                list.clear();
+                //list = bp.getPrimaryMediaList();
+                //list.clear();
 
-                list.add(LibVLC.PathToURI(streamLink));
+                //list.add(LibVLC.PathToURI(streamLink));
                 Log.d(TAG, "service " + streamLink);
 
-                playMedia();
-            }
+                EventHandler eh = EventHandler.getInstance();
+                Handler handler = new Handler(this);
+                eh.addHandler(handler);
+
+                bp.setNetworkCaching(1);
+                //bp.playIndex(0);
+                onlyOnce = true;
+                bp.playMRL(LibVLC.PathToURI(streamLink));
+                //putNotification();
+//            }
         }
         return START_STICKY;
     }
@@ -194,21 +240,78 @@ public class PPlayerService extends Service {
     }
 
 
-    public void playMedia() {
+    public void onPrepared() {
+        if(onlyOnce) {
+            putNotification();
+            Log.d(TAG,"Mediaplayer has prepared");
+            isIdle = false;
+            onlyOnce = false;
+            BPlistener.onPrepared((int) bp.getLength() / 1000); //ms
+        }
+    }
+
+    public void doPlay() {
         if (!bp.isPlaying()) {
             Log.d(TAG, "play media");
-            bp.playIndex(0);
-
+            //onlyOnce = true;
+            //bp.playIndex(0);
+            bp.play();
             putNotification();
         }
     }
 
+    public void doPause() {
+        if(bp.isPlaying()) {
+            bp.pause();
+            putNotification();
+        }
+    }
+
+    public void onError() {
+        stopForeground(true);
+        BPlistener.onError();
+    }
+
+    public void onCompletion() {
+        Log.d(TAG, "Service onCompletion");
+        BPlistener.onCompletion();
+        stopForeground(true);
+        try {
+            unregisterReceiver(NotificationMediaControl);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+        stopMedia();
+    }
 
     public void stopMedia() {
-        if (bp.isPlaying()) {
+  //      if (bp.isPlaying()) {
             bp.stop();
             BPlistener.onStop();
+  //      }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "Service onDestroy");
+        if (bp != null) {
+            if (bp.isPlaying()) {
+                bp.stop();
+            }
+            isIdle = true;
+            bp.destroy();
         }
+        stopForeground(true);
+        try {
+            unregisterReceiver(NotificationMediaControl);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+        if (PSlistener != null) {
+            telephony.listen(PSlistener, PhoneStateListener.LISTEN_NONE);
+        }
+        isRunning = false;
     }
 
     /**
@@ -266,9 +369,9 @@ public class PPlayerService extends Service {
         startForeground(1, note);
 
         IntentFilter filter = new IntentFilter();
-        filter.addAction("com.vibin.billy.ACTION_PAUSE");
-        filter.addAction("com.vibin.billy.ACTION_PLAY");
-        filter.addAction("com.vibin.billy.ACTION_QUIT");
+        filter.addAction(playIntent.getAction());
+        filter.addAction(pauseIntent.getAction());
+        filter.addAction(quitIntent.getAction());
         registerReceiver(NotificationMediaControl, filter);
     }
 
@@ -278,20 +381,16 @@ public class PPlayerService extends Service {
             String action = intent.getAction();
 
             if (action.equalsIgnoreCase("com.vibin.billy.ACTION_PAUSE")) {
-                bp.pause();
                 BPlistener.onNotificationPausePressed();
-                putNotification();
+                doPause();
             }
-
             if (action.equalsIgnoreCase("com.vibin.billy.ACTION_PLAY")) {
-                bp.play();
                 BPlistener.onNotificationPlayPressed();
-                putNotification();
+                doPlay();
             }
             if (action.equalsIgnoreCase("com.vibin.billy.ACTION_QUIT")) {
-                stopForeground(true);
-                stopMedia();
                 BPlistener.onNotificationStopPressed();
+                stopMedia();
                 stopSelf();
             }
         }
