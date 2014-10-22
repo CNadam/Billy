@@ -67,8 +67,8 @@ dependencies {
     compile files('libs/YouTubeAndroidPlayerApi.jar')
     compile 'com.crashlytics.android:crashlytics:1.+'
     compile 'asia.ivity.android:drag-sort-listview:1.0'
-    compile 'com.android.support:support-v4:+'
-    compile 'de.mrmaffen:vlc-android-sdk:1.0.3'
+    compile 'com.android.support:support-v4:21.+'
+    //compile 'de.mrmaffen:vlc-android-sdk:1.0.3'
 }
 
 gradle.projectsEvaluated {
