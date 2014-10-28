@@ -18,32 +18,37 @@ repositories {
 
 android {
     signingConfigs {
-        config {
-            keyAlias 'billykey'
-            keyPassword 'forrapid'
-            storeFile file('/Users/vibinreddy/Documents/workspace/billy.jks')
-            storePassword 'forrapid'
+        release {
+            keyAlias keyAliasName
+            keyPassword keyAliasPassword
+            storeFile file(keyStoreFile)
+            storePassword keyStorePassword
         }
     }
-    compileSdkVersion 19
-    buildToolsVersion '19.1.0'
+    compileSdkVersion 21
+    buildToolsVersion ADT
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 19
+        minSdkVersion MIN_SDK
+        targetSdkVersion TARGET_SDK
         versionCode 1
         versionName "1.0"
     }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+        debug{
+            applicationIdSuffix ".debug"
+            versionNameSuffix " beta"
         }
     }
     packagingOptions {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/LICENSE.txt'
     }
-    productFlavors {
+/*    productFlavors {
         flavor1 {
             applicationId "com.vibin.billy"
             versionName "1.0"
@@ -53,8 +58,16 @@ android {
             applicationId "com.vibin.billy.debug"
             versionName "1.0 beta"
         }
-    }
+    }*/
 }
+/*def props = new Properties()
+
+props.load(new FileInputStream(rootProject.file("release.properties")))
+android.signingConfigs.release.storeFile rootProject.file(props.keyStore)
+android.signingConfigs.release.storePassword props.keyStorePassword
+android.signingConfigs.release.keyAlias props.keyAlias
+android.signingConfigs.release.keyPassword props.keyAliasPassword*/
+
 dependencies {
     compile fileTree(dir: 'libraries', include: ['*.jar', '*.aar'])
     compile files('libs/systembartint-1.0.3.jar')
@@ -69,10 +82,19 @@ dependencies {
     compile 'asia.ivity.android:drag-sort-listview:1.0'
     compile 'com.android.support:support-v4:21.+'
     //compile 'de.mrmaffen:vlc-android-sdk:1.0.3'
+    compile 'com.android.support:appcompat-v7:21.0.+'
 }
 
 gradle.projectsEvaluated {
     tasks.withType(JavaCompile) {
         options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    }
+}
+
+def String getProjectProperty(String property) {
+    if (hasProperty(property)) {
+        return this.properties[property];
+    } else {
+        return "";
     }
 }

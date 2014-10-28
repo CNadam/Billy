@@ -3,7 +3,6 @@
 
     <!--
     Base theme
-    windowTranslucentStatus should be set to false on Expanded Mode, otherwise ActionBar will be clipped off
     -->
     <style name="Theme.Billy" parent="@android:style/Theme.Holo.Light">
         <item name="android:actionBarStyle">@style/ActionBar.Solid.Billy</item>
@@ -64,6 +63,7 @@
     </style>
 
     <!-- ActionBar Title -->
+
     <style name="ActionBar.Billy.TextAppearance" parent="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
         <item name="android:textColor">#fff</item>
         <item name="android:textSize">20sp</item>

@@ -7,7 +7,8 @@
             android:entries="@array/albumArtQuality"
             android:entryValues="@array/album_art_values"
             android:title="@string/album_art_title"
-            android:defaultValue="1" />
+            android:defaultValue="1"
+            />
 
         <!--        <com.vibin.billy.ReorderedListPreference
             android:title="Screens"

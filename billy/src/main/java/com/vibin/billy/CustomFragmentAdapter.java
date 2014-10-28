@@ -5,25 +5,30 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.util.Log;
 
 import com.viewpagerindicator.IconPagerAdapter;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconPagerAdapter {
 
     private static final String TAG = CustomFragmentAdapter.class.getSimpleName();
     protected static String[] content;
     private int mCount;
+    static List<String> defaultScreens;
 
-    static Context c;
+    Context c;
 
-    public CustomFragmentAdapter(FragmentManager fm, Context c) {
+    public CustomFragmentAdapter(FragmentManager fm, Context context) {
         super(fm);
+        this.c = context;
+        Log.d(TAG,"CustomFragmentAdapter constructor");
         BillyApplication billyapp = BillyApplication.getInstance();
-        CustomFragmentAdapter.c = c;
         content = billyapp.getScreensList();
         mCount = content.length;
+        defaultScreens = Arrays.asList(c.getResources().getStringArray(R.array.screens));
     }
 
     @Override
@@ -32,12 +37,12 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
     }
 
     /**
-     * We get the dynamic index of Fragment by searching it in the default {@code R.array.screens} array
+     * We get the dynamic index of Fragment by searching its name in the default {@code R.array.screens} array
      *
      * @param position refers to the Fragment requested by user
      */
     public static Fragment newInstance(int position) {
-        position = Arrays.asList(c.getResources().getStringArray(R.array.screens)).indexOf((content[position]));
+        position = defaultScreens.indexOf(content[position]);
         SongsFragment f = new SongsFragment();
         Bundle args = new Bundle();
         args.putInt("position", position);

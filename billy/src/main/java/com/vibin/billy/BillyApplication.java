@@ -26,6 +26,7 @@ public class BillyApplication extends Application {
     RequestQueue req;
     ImageLoader.ImageCache imageCache;
     ImageLoader imageLoader;
+    String[] userScreensList;
     private static BillyApplication mInstance;
     final int DEFAULT_CACHE_SIZE = 16 * 1024 * 1024; // for DiskBasedCache
     private static final String DEFAULT_CACHE_DIR = "volley";
@@ -93,13 +94,15 @@ public class BillyApplication extends Application {
      */
 
     public String[] getScreensList() {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-        String line = pref.getString("screens", "Most Popular.Pop.Rock.Dance.");
-        String[] list = line.split("\\.");
-        for (String i : list) {
-            Log.d(TAG, "billyapp " + i);
+        if(userScreensList == null) {
+            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+            String line = pref.getString("screens", "Most Popular.Pop.Rock.Dance.");
+            userScreensList = line.split("\\.");
+            for (String i : userScreensList) {
+                Log.d(TAG, "billyapp " + i);
+            }
         }
-        return list;
+        return userScreensList;
     }
 
     public int getBillySize() {
@@ -141,7 +144,7 @@ public class BillyApplication extends Application {
 
     public View getActionBarView(Window window) {
         View decorView = window.getDecorView();
-        int resId = getResources().getIdentifier("action_bar_container", "id", "android");
+        int resId = getResources().getIdentifier("action_bar_container", "id", this.getPackageName());
         return decorView.findViewById(resId);
     }
 }

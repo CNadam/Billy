@@ -256,15 +256,15 @@ public class PPlayerService extends Service implements Handler.Callback {
             //onlyOnce = true;
             //bp.playIndex(0);
             bp.play();
-            putNotification();
         }
+        putNotification();
     }
 
     public void doPause() {
         if(bp.isPlaying()) {
             bp.pause();
-            putNotification();
         }
+        putNotification();
     }
 
     public void onError() {

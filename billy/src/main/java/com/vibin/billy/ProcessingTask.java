@@ -2,6 +2,7 @@ package com.vibin.billy;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
@@ -52,12 +53,12 @@ public class ProcessingTask {
         getArtworkUrlResolution();
     }
 
-    public ProcessingTask(String[] billySong, String[] billyArtist, Context c) {
+/*    public ProcessingTask(String[] billySong, String[] billyArtist, Context c) {
         this.billySong = billySong;
         this.billyArtist = billyArtist;
         this.context = c;
         getArtworkUrlResolution();
-    }
+    }*/
 
     public static class BillyData implements Parcelable {
         String song, album, artist, artwork;
@@ -110,6 +111,58 @@ public class ProcessingTask {
 
     }
 
+/*    *//**
+     * Parses XML from Billboard
+     *
+     * @param response A String containing XML
+     * @return A String Array containing song titles
+     * @throws IOException
+     * @throws XmlPullParserException
+     *//*
+    public class parseBillboard extends AsyncTask<String, Integer, String[]> {
+
+        @Override
+        protected String[] doInBackground(String... params) {
+            InputStream in;
+            try {
+                in = getStringAsInputStream(params[0]);
+
+                XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+                XmlPullParser parser = factory.newPullParser();
+                parser.setInput(in, null);
+
+                int event = parser.getEventType();
+                int i = 0;
+                while (event != XmlPullParser.END_DOCUMENT) {
+                    String name = parser.getName();
+
+                    if (i <= billySize && event == XmlPullParser.START_TAG) {
+                        if (name.equals("description")) {
+                            if (parser.next() == XmlPullParser.TEXT) {
+                                billySong[i] = extractSong(parser.getText());
+                                billyArtist[i] = extractArtist(parser.getText());
+                                if (params[0].length() > 10000) {
+                                    //Log.d(TAG, billySong[i] + " " + billyArtist[i]);
+                                }
+                                i++;
+                            }
+                        }
+
+                    } else if (i >= billySize) {
+                        break;
+                    }
+                    event = parser.next();
+                }
+            }
+            catch(XmlPullParserException e)
+            {}
+            catch (UnsupportedEncodingException e1)
+            {}
+            catch(IOException e3){}
+            return billySong;
+        }
+    }*/
+
     /**
      * Parses XML from Billboard
      *
@@ -118,7 +171,7 @@ public class ProcessingTask {
      * @throws IOException
      * @throws XmlPullParserException
      */
-    public String[] parseBillboard(String response) throws IOException, XmlPullParserException {
+    public void parseBillboard(String response) throws IOException, XmlPullParserException {
         InputStream in;
         in = getStringAsInputStream(response);
 
@@ -148,11 +201,23 @@ public class ProcessingTask {
             }
             event = parser.next();
         }
+//        return billySong;
+    }
+
+    public String[] getBillySong() {
         return billySong;
     }
 
-    public String[] getArtists() {
+    public void setBillySong(String[] billySong) {
+        this.billySong = billySong;
+    }
+
+    public String[] getBillyArtist() {
         return billyArtist;
+    }
+
+    public void setBillyArtist(String[] billyArtist) {
+        this.billyArtist = billyArtist;
     }
 
     /**
@@ -184,7 +249,7 @@ public class ProcessingTask {
                 artworkUrl = artworkUrl.replaceAll("100x100", "400x400");
             }
 
-            Log.d(TAG, "artwork url is " + artworkUrl);
+            //Log.d(TAG, "artwork url is " + artworkUrl);
 
             // Capitalize first letter of every word
             if (!StringUtils.isAllUpperCase(trackName)) {
@@ -334,7 +399,7 @@ public class ProcessingTask {
     /**
      * We try to avoid songs which have remix/cover/live mentioned in their title. We also make sure we get a relevant
      * result by checking if the first word of song is present in song's name.
-     * If we don't find any song which matches our conditions, we use the first song itself.
+     * If we don't find any song which matches our conditions, we fallback to the first song.
      *
      * @param response the JSON response
      * @return the SoundCloud stream link

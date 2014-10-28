@@ -8,4 +8,5 @@
     <color name="green">#FF4DC25C</color>
     <color name="btn_stroke">#ffffa3a0</color>
     <color name="btn_background">#ffff5e6c</color>
+    <color name="text_black">#ff333333</color>
 </resources>

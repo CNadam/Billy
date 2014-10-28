@@ -4,10 +4,12 @@ import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -15,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.viewpagerindicator.TitlePageIndicator;
@@ -23,7 +26,7 @@ import com.viewpagerindicator.TitlePageIndicator;
  * The main activity. (no pun intended)
  */
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends ActionBarActivity {
 
     SystemBarTintManager tintManager;
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -33,9 +36,11 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.KITKAT) {
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        }
         tintManager = new SystemBarTintManager(this);
-        getActionBar().setDisplayShowTitleEnabled(true);
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
         setTitle(" " + "Billy".toUpperCase());
 
         CustomFragmentAdapter mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this);
@@ -134,7 +139,9 @@ public class MainActivity extends FragmentActivity {
     }
 }
 
+//TODO Use support library
 //TODO laggy Libvlc, try low cache
+//TODO put xml parsing in async task
 //TODO replace default spinner in SongsFragment with Google's swiperefreshlayout
 //TODO add handlers to VLC EventHandler
 //TODO detect if RTMP url is needed
@@ -143,11 +150,11 @@ public class MainActivity extends FragmentActivity {
 
 //TODO service quits automatically when playing after sometime
 //TODO handle 2G/3G devices efficiently API Level 17
-//TODO SwipRefreshLayout updated
 //TODO Notification click intent flags
 //TODO Implement playlists
 //TODO Change color of notification background
 //TODO remove share history in ActionBar
 //TODO Use RootTools to detect Root and then show preference
 
+//TODO refactor
 //TODO Use RemoteController and put full screen lock image for KitKat+ devices

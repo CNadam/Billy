@@ -12,11 +12,11 @@ public class CustomDatabaseAdapter {
 
     private static final String TAG = CustomDatabaseAdapter.class.getSimpleName();
     DatabaseHelper hlp;
-    Context c;
+    //Context c;
 
     public CustomDatabaseAdapter(Context context) {
-        this.c = context;
-        hlp = new DatabaseHelper(c);
+        //this.c = context;
+        hlp = DatabaseHelper.getInstance(context);
     }
 
     public long insertArrayList(String data, String table) {
@@ -25,7 +25,9 @@ public class CustomDatabaseAdapter {
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHelper.UID, 0);
         cv.put(DatabaseHelper.ArrayList, data);
-        return db.replace(table, null, cv);
+        long yo = db.replace(table, null, cv);
+        db.close();
+        return yo;
     }
 
     public String getArrayList(String table) {
@@ -38,6 +40,7 @@ public class CustomDatabaseAdapter {
             int columnIndex = cursor.getColumnIndex(DatabaseHelper.ArrayList);
             data = cursor.getString(columnIndex);
         }
+        db.close();
         return data;
     }
 
@@ -48,8 +51,28 @@ public class CustomDatabaseAdapter {
         private static final String UID = "_id";
         private static final String ArrayList = "ArrayList";
 
-        public DatabaseHelper(Context context) {
-            super(context.getApplicationContext(), DATABASE_NAME, null, VERSION);
+        private static DatabaseHelper databaseHelper = null;
+
+        /**
+         * Constructor is made private intentionally. Use getInstance() instead for initiation.
+         *
+         * @param context Application context
+         */
+        private DatabaseHelper(Context context) {
+            super(context, DATABASE_NAME, null, VERSION);
+        }
+
+        /**
+         * Use the application context, which will ensure that you
+         * don't accidentally leak an Activity's context.
+         * See this article for more information: http://bit.ly/6LRzfx
+         */
+
+        public static DatabaseHelper getInstance(Context ctx) {
+            if (databaseHelper == null) {
+                databaseHelper = new DatabaseHelper(ctx.getApplicationContext());
+            }
+            return databaseHelper;
         }
 
         String getCreateTableString(int i) {

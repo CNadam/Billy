@@ -1,16 +1,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.vibin.billy.MainActivity">
 
     <item
         android:id="@+id/about"
         android:title="@string/about"
         android:orderInCategory="200"
-        android:showAsAction="never" />
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_settings"
         android:title="@string/action_settings"
         android:orderInCategory="300"
-        android:showAsAction="never" />
+        app:showAsAction="never" />
 </menu>

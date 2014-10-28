@@ -1,6 +1,7 @@
 package com.vibin.billy.swipeable;
 
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.ViewGroup;
 
@@ -10,7 +11,7 @@ import android.view.ViewGroup;
  * The sueprhero version of an Activity. It can be closed by performing a swipe gesture (customizable to LEFT or RIGHT)
  * {@link #enableSwipeToDismiss()}
  */
-public class SwipeableActivity extends FragmentActivity { // Extends Activity by default
+public class SwipeableActivity extends ActionBarActivity { // Extends Activity by default
 
     // debug
     private static final String TAG = SwipeableActivity.class.getSimpleName();
