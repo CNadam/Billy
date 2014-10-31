@@ -77,7 +77,6 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         position = getArguments().getInt("position");
         tag = tag.substring(0, tag.length() - 1) + Integer.toString(position);
         billyapp = (BillyApplication) getActivity().getApplication();
-        billySize = billyapp.getBillySize();
         imgload = billyapp.getImageLoader();
         req = billyapp.getRequestQueue();
 
@@ -86,10 +85,14 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
         /**
          * Number of elements in Hot100 chart is 100
+         * For others, it's 20
          */
+
         if (table_name.equals("MostPopular")) {
             isHot100 = true;
             billySize = 100;
+        } else {
+            billySize = billyapp.getBillySize();
         }
 
         billySong = new String[billySize];
@@ -117,8 +120,8 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         }
 
         /**
-         * This has to only be in OnCreate and not OnCreateView. Because OnCreateView gets called when switching
-         * between Fragments inside a ViewPager.
+         * This has to only be in OnCreate and not OnCreateView. Because OnCreateView gets called everytime
+         * you switch between Fragments inside a ViewPager.
          */
         if (savedInstanceState == null && billyapp.isConnected()) {
             try {
@@ -132,12 +135,12 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d(tag,"oncreateview");
+        Log.d(tag, "oncreateview");
         v = inflater.inflate(R.layout.fragment_songs, container, false);
         if (jsonMdata == null && !billyapp.isConnected()) {
             v.findViewById(android.R.id.list).setVisibility(View.GONE);
             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-            alertDialogBuilder.setTitle("Connection error");
+            alertDialogBuilder.setTitle("No connection");
             alertDialogBuilder
                     .setMessage("Please connect to Internet.")
                     .setCancelable(false)
@@ -291,7 +294,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                             getListView().removeFooterView(loadMore);
                             loadMore.setVisibility(View.GONE); // just a bit precautionary
                         }
-                        if(mData.size() < billySize) {
+                        if (mData.size() < billySize) {
                             initializeArraylistitems();
                             customBaseAdapter.updateArrayList(mData);
                             customBaseAdapter.notifyDataSetChanged();

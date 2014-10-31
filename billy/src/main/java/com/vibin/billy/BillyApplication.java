@@ -19,14 +19,21 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.crashlytics.android.Crashlytics;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
+
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 
 public class BillyApplication extends Application {
     RequestQueue req;
     ImageLoader.ImageCache imageCache;
     ImageLoader imageLoader;
-    String[] userScreensList;
+    String[] screens;
     private static BillyApplication mInstance;
     final int DEFAULT_CACHE_SIZE = 16 * 1024 * 1024; // for DiskBasedCache
     private static final String DEFAULT_CACHE_DIR = "volley";
@@ -94,15 +101,23 @@ public class BillyApplication extends Application {
      */
 
     public String[] getScreensList() {
-        if(userScreensList == null) {
+        if(screens == null) {
+            String defaultScreens = "1Most Popular.1Pop.1Rock.1Dance.";
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-            String line = pref.getString("screens", "Most Popular.Pop.Rock.Dance.");
-            userScreensList = line.split("\\.");
-            for (String i : userScreensList) {
-                Log.d(TAG, "billyapp " + i);
+
+            String screensPref = pref.getString("screens", defaultScreens);
+            String[] screensWithCheck = screensPref.split("\\.");
+            screens = new String[StringUtils.countMatches(screensPref, "1")];
+            int index = 0;
+            for (String i : screensWithCheck) {
+                Log.d(TAG, i);
+                if (i.charAt(0) == '1') {
+                    screens[index] = i.substring(1);
+                    index++;
+                }
             }
         }
-        return userScreensList;
+        return screens;
     }
 
     public int getBillySize() {
@@ -134,7 +149,7 @@ public class BillyApplication extends Application {
         for (int i = 0; i < $vg.getChildCount(); i++) {
             View v = $vg.getChildAt(i);
             String desc = $prefix + " | " + "[" + i + "/" + ($vg.getChildCount() - 1) + "] " + v.getClass().getSimpleName() + " " + v.getId();
-            Log.v("x", desc);
+            Log.d("x", desc);
 
             if (v instanceof ViewGroup) {
                 printViewHierarchy((ViewGroup) v, desc);

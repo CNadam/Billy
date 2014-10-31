@@ -1,12 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@android:color/white"
     android:orientation="horizontal"
-    android:paddingTop="3dp">
+    card_view:cardElevation="@dimen/card_shadow"
+    card_view:cardMaxElevation="@dimen/card_shadow"
+    card_view:cardCornerRadius="@dimen/card_radius"
+    card_view:contentPadding="0.75dp">
+
+    <RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
     <!--Width and Height 120dp-->
     <com.android.volley.toolbox.NetworkImageView
@@ -16,11 +27,12 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="@dimen/listitem_dimen_compact"
         android:gravity="top"
         android:orientation="vertical"
         android:paddingBottom="5dp"
         android:paddingLeft="10dp"
+        android:layout_toRightOf="@+id/artwork"
         android:paddingTop="5dp">
 
         <TextView
@@ -34,8 +46,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
-            android:gravity="bottom"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:gravity="bottom">
 
             <TextView
                 android:id="@+id/album"
@@ -57,4 +69,5 @@
                 tools:text="Daft Punk" />
         </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+    </RelativeLayout>
+</android.support.v7.widget.CardView>

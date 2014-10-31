@@ -1,0 +1,12 @@
+<CheckedTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#fff2f2f2"
+    android:textSize="16sp"
+    android:gravity="center_vertical"
+    android:paddingLeft="15dp"
+    android:paddingRight="15dp"
+    android:minHeight="55dp"
+    android:checked="true"
+    android:checkMark="?android:attr/listChoiceIndicatorMultiple"
+    />

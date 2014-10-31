@@ -139,6 +139,7 @@ public class MainActivity extends ActionBarActivity {
     }
 }
 
+//TODO serialize arraylist data or try even simpler method
 //TODO Use support library
 //TODO laggy Libvlc, try low cache
 //TODO put xml parsing in async task

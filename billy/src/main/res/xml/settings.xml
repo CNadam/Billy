@@ -10,9 +10,9 @@
             android:defaultValue="1"
             />
 
-        <!--        <com.vibin.billy.ReorderedListPreference
+          <com.vibin.billy.ReorderedListPreference
             android:title="Screens"
-            />-->
+            />
         <CheckBoxPreference
             android:key="compactCards"
             android:title="Compact cards"

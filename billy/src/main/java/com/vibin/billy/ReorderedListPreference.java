@@ -2,30 +2,39 @@ package com.vibin.billy;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Bundle;
 import android.preference.DialogPreference;
+import android.preference.PreferenceManager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
+import android.view.ViewGroup;
+import android.widget.CheckedTextView;
+import android.widget.ListView;
 
-import com.mobeta.android.dslv.DragSortItemViewCheckable;
-import com.mobeta.android.dslv.DragSortListView;
-import com.mobeta.android.dslv.SimpleFloatViewManager;
+import com.vibin.billy.draglistview.DynamicListView;
+import com.vibin.billy.draglistview.StableArrayAdapter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class ReorderedListPreference extends DialogPreference {
     Context c;
-    DragSortListView listView;
-    ArrayAdapter<String> arrayAdapter;
+    DynamicListView lv;
+    SharedPreferences pref;
+    String[] screensWithCheck;
+    private static final String TAG = ReorderedListPreference.class.getSimpleName();
 
     public ReorderedListPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.c = context;
+        setDialogMessage("Try dragging items in the list!");
         setDialogLayoutResource(R.layout.reorderedlist_preference);
         setPositiveButtonText(android.R.string.ok);
         setNegativeButtonText(android.R.string.cancel);
+        pref = PreferenceManager.getDefaultSharedPreferences(c.getApplicationContext());
 
         setDialogIcon(null);
     }
@@ -33,67 +42,62 @@ public class ReorderedListPreference extends DialogPreference {
     @Override
     protected void onBindDialogView(View view) {
         super.onBindDialogView(view);
-        String[] array = {"Most Popular", "Pop", "Rock", "Dance"};
-        ArrayList<String> arrayList = new ArrayList<String>();
-        arrayList.addAll(Arrays.asList(array));
-        arrayAdapter = new ArrayAdapter<String>(c, R.layout.reorderedlist_row, R.id.text, arrayList);
-        listView = (DragSortListView) view.findViewById(android.R.id.list);
-        listView.setAdapter(arrayAdapter);
-        listView.setDropListener(onDrop);
+        //getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+        getScreensWithCheck();
+        String[] screens = new String[screensWithCheck.length];
+        int i=0;
+        for(String s:screensWithCheck)
+        {
+                screens[i] = s.substring(1);
+                i++;
+        }
 
-        // Make the floating row view transparent
-        SimpleFloatViewManager simpleFloatViewManager = new SimpleFloatViewManager(listView);
-        simpleFloatViewManager.setBackgroundColor(Color.TRANSPARENT);
-        listView.setFloatViewManager(simpleFloatViewManager);
+        ArrayList<String> arrayList = new ArrayList<String>(Arrays.asList(screens));
+        StableArrayAdapter adapter = new StableArrayAdapter(c, R.layout.text_view, arrayList);
+        lv = (DynamicListView) view.findViewById(R.id.listview);
+        lv.setCheeseList(arrayList);
+        lv.setAdapter(adapter);
+        lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        for(i=0;i<screensWithCheck.length;i++)
+        {
+            if(screensWithCheck[i].charAt(0)=='1')
+            {
+                lv.setItemChecked(i,true);
+            }
+        }
 
-/*        LayoutInflater lif = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View v  = lif.inflate(R.layout.reorderedlist_row, null, false);
-        final CheckedTextView ctv =  (CheckedTextView) v.findViewById(R.id.text);
-        ctv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (ctv.isChecked()) {
-                    ctv.setChecked(false);
-                } else {
-                    ctv.setChecked(true);
-                }
-            }
-        });*/
-/*        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Toast.makeText(getContext(), i+" is touched",
-                   Toast.LENGTH_LONG).show();
-            }
-        });*/
-
-        final DragSortItemViewCheckable dstvc = (DragSortItemViewCheckable) listView.getChildAt(1);
-        dstvc.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (dstvc.isChecked()) {
-                    dstvc.setChecked(false);
-                } else {
-                    dstvc.setChecked(true);
-                }
-            }
-        });
     }
 
+    public void getScreensWithCheck() {
+        String defaultScreens="1Most Popular.1Pop.1Rock.1Dance.";
+        String screensPref = pref.getString("screens",defaultScreens);
+        Log.d(TAG,screensPref);
+        screensWithCheck = screensPref.split("\\.");
+    }
 
-    private DragSortListView.DropListener onDrop =
-            new DragSortListView.DropListener() {
-                @Override
-                public void drop(int from, int to) {
-                    if (from != to) {
-                        String item = arrayAdapter.getItem(from);
-                        arrayAdapter.remove(item);
-                        arrayAdapter.insert(item, to);
-                        listView.moveCheckState(from, to);
-                        arrayAdapter.notifyDataSetChanged();
-                    }
+    @Override
+    protected void onDialogClosed(boolean positiveResult) {
+        super.onDialogClosed(positiveResult);
+        if (positiveResult) {
+            String prefLine="";
+            int i = 0;
+            while (i < lv.getAdapter().getCount()) {
+                CheckedTextView item = ((CheckedTextView) lv.getChildAt(i));
+                Log.d(TAG, item.getText().toString());
+                if (item.isChecked()) {
+                    prefLine += "1";
+                } else {
+                    prefLine += "0";
                 }
-            };
+                prefLine += item.getText().toString()+".";
+                Log.d(TAG,"onDialogClosed "+prefLine);
+                i++;
+            }
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putString("screens", prefLine);
+            Log.d(TAG, "commited " + editor.commit());
+        }
+    }
 
     @Override
     public void onDismiss(DialogInterface dialog) {

@@ -81,4 +81,8 @@
         <item name="textAllCaps">true</item>
     </style>
 
+    <style name="Dialog.Billy" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:dividerHorizontal">@color/billy</item>
+    </style>
+
 </resources>

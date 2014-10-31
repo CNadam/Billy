@@ -182,6 +182,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        super.enableSwipeToDismiss();
         lastFmBio = savedInstanceState.getString("lastFmBio");
         streamLink = savedInstanceState.getString("streamLink");
         relatedAlbums = savedInstanceState.getStringArray("relatedAlbums");
