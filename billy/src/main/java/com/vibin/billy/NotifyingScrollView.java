@@ -9,13 +9,11 @@ import com.android.volley.toolbox.NetworkImageView;
 
 /**
  * @author Cyril Mottier
- *         <p/>
- *         A custom ScrollView which notifies when user scrolls.
+ * A custom ScrollView which notifies when user scrolls.
  */
 public class NotifyingScrollView extends ScrollView {
 
     private static final float DEFAULT_PARALLAX_FACTOR = 2.5F;
-    private float parallaxFactor = DEFAULT_PARALLAX_FACTOR;
     NetworkImageView header;
     private OnScrollChangedListener mOnScrollChangedListener;
 
@@ -44,6 +42,7 @@ public class NotifyingScrollView extends ScrollView {
     @Override
     protected void onScrollChanged(int l, int t, int oldl, int oldt) {
         super.onScrollChanged(l, t, oldl, oldt);
+        float parallaxFactor = DEFAULT_PARALLAX_FACTOR;
         header.setTranslationY((float) t / parallaxFactor);
         if (mOnScrollChangedListener != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             mOnScrollChangedListener.onScrollChanged(this, l, t, oldl, oldt);
