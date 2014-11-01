@@ -1,8 +1,10 @@
 .gradle
 
+# IntelliJ junk
 .idea
 .navigation
 
+# All hail Apple
 .DS_Store
 
 # built application files
@@ -17,8 +19,8 @@
 
 # generated files
 bin/
-gen/
 build/
+billy/build
 
 # Local configuration file (sdk path, etc)
 local.properties
