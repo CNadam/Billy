@@ -24,6 +24,7 @@ build/
 local.properties
 gradle.properties
 
+billy/src/main/res/values/com_crashlytics_export_strings.xml
 billy/src/main/assets/crashlytics-build.properties
 
 *.iml
