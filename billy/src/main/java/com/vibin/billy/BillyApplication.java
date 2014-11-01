@@ -104,7 +104,6 @@ public class BillyApplication extends Application {
      */
 
     public String[] getScreensList() {
-        if(screens == null) {
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
             String screensPref = pref.getString("screens", defaultScreens);
             String[] screensWithCheck = screensPref.split("\\.");
@@ -117,7 +116,6 @@ public class BillyApplication extends Application {
                     index++;
                 }
             }
-        }
         return screens;
     }
 

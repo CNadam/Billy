@@ -30,14 +30,17 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.ListAdapter;
+import android.widget.CheckBox;
 import android.widget.ListView;
+
+import com.vibin.billy.R;
 
 import java.util.ArrayList;
 
@@ -66,7 +69,7 @@ public class DynamicListView extends ListView {
 
     private final int SMOOTH_SCROLL_AMOUNT_AT_EDGE = 15;
     private final int MOVE_DURATION = 150;
-    private final int LINE_THICKNESS = 7;
+    private final int LINE_THICKNESS = 4;
 
     public ArrayList<String> mCheeseList;
 
@@ -95,6 +98,8 @@ public class DynamicListView extends ListView {
 
     private boolean mIsWaitingForScrollFinish = false;
     private int mScrollState = OnScrollListener.SCROLL_STATE_IDLE;
+    private int horizontal_dimen;
+    private int vertical_dimen;
 
     private static final String TAG = DynamicListView.class.getSimpleName();
 
@@ -114,74 +119,35 @@ public class DynamicListView extends ListView {
     }
 
     public void init(Context context) {
-        //setOnItemLongClickListener(mOnItemLongClickListener);
-        //setOnItemClickListener(mOnItemClickListener);
+        vertical_dimen = context.getResources().getDimensionPixelSize(R.dimen.textview_row)*4;
+        horizontal_dimen = context.getResources().getDimensionPixelSize(R.dimen.drag_handler);
+        Log.d(TAG," "+horizontal_dimen+" "+vertical_dimen);
         setOnScrollListener(mScrollListener);
-        //setOnTouchListener(mOnTouchListener);
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         mSmoothScrollAmountAtEdge = (int) (SMOOTH_SCROLL_AMOUNT_AT_EDGE / metrics.density);
     }
 
     /**
-     * Listens for long clicks on any items in the listview. When a cell has
-     * been selected, the hover cell is created and set up.
+     * When a cell has been selected, the hover cell is created and set up.
      */
-    private AdapterView.OnItemLongClickListener mOnItemLongClickListener =
-            new AdapterView.OnItemLongClickListener() {
-                public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int pos, long id) {
-                    mTotalOffset = 0;
+    public void handleTouchdown() {
+        mTotalOffset = 0;
 
-                    int position = pointToPosition(mDownX, mDownY);
-                    int itemNum = position - getFirstVisiblePosition();
+        int position = pointToPosition(mDownX, mDownY);
+        Log.d(TAG, mDownX + " " + mDownY + " ");
+        int itemNum = position - getFirstVisiblePosition();
+        Log.d(TAG, position + " " + getFirstVisiblePosition() + " " + itemNum);
 
-                    View selectedView = getChildAt(itemNum);
-                    mMobileItemId = getAdapter().getItemId(position);
-                    mHoverCell = getAndAddHoverView(selectedView);
-                    selectedView.setVisibility(INVISIBLE);
-
-                    mCellIsMobile = true;
-
-                    updateNeighborViewsForID(mMobileItemId);
-
-                    return true;
-                }
-            };
-
-    private AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
-
-        @Override
-        public void onItemClick(AdapterView<?> arg0, View arg1, int pos, long id) {
-            mTotalOffset = 0;
-
-            int position = pointToPosition(mDownX, mDownY);
-            int itemNum = position - getFirstVisiblePosition();
-
-            View selectedView = getChildAt(itemNum);
-            mMobileItemId = getAdapter().getItemId(position);
+        View selectedView = getChildAt(itemNum);
+        mMobileItemId = getAdapter().getItemId(position);
+        if (selectedView != null) {
             mHoverCell = getAndAddHoverView(selectedView);
             selectedView.setVisibility(INVISIBLE);
 
             mCellIsMobile = true;
 
             updateNeighborViewsForID(mMobileItemId);
-
         }
-    };
-
-    void dostuff() {
-        mTotalOffset = 0;
-
-        int position = pointToPosition(mDownX, mDownY);
-        int itemNum = position - getFirstVisiblePosition();
-
-        View selectedView = getChildAt(itemNum);
-        mMobileItemId = getAdapter().getItemId(position);
-        mHoverCell = getAndAddHoverView(selectedView);
-        selectedView.setVisibility(INVISIBLE);
-
-        mCellIsMobile = true;
-
-        updateNeighborViewsForID(mMobileItemId);
     }
 
     /**
@@ -221,8 +187,6 @@ public class DynamicListView extends ListView {
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(LINE_THICKNESS);
         paint.setColor(Color.GRAY);
-
-        //paint.setShadowLayer(10.0f, 0.0f, 2.0f, 0xFF000000);
 
         can.drawBitmap(bitmap, 0, 0, null);
         can.drawRect(rect, paint);
@@ -303,10 +267,17 @@ public class DynamicListView extends ListView {
                 mDownX = (int) event.getX();
                 mDownY = (int) event.getY();
                 mActivePointerId = event.getPointerId(0);
-                //dostuff();
+
+/*                if(mDownX>0 && mDownX< horizontal_dimen && mDownY>0 && mDownY< vertical_dimen)
+                {
+                    handleTouchdown();
+                }*/
+                if(mDownX>0 && mDownY>0)
+                {
+                    handleTouchdown();
+                }
                 break;
             case MotionEvent.ACTION_MOVE:
-                dostuff();
                 if (mActivePointerId == INVALID_POINTER_ID) {
                     break;
                 }
@@ -424,10 +395,20 @@ public class DynamicListView extends ListView {
         }
     }
 
+    /**
+     * Swap elements and even check states (to nullify the swapped states behavior)
+     */
+
     private void swapElements(ArrayList arrayList, int indexOne, int indexTwo) {
+        CheckBox indexOneCheckBox = ((CheckBox) getChildAt(indexOne).findViewById(R.id.checkBox));
+        CheckBox indexTwoCheckBox = ((CheckBox) getChildAt(indexTwo).findViewById(R.id.checkBox));
+        boolean indexOneCheckState = indexOneCheckBox.isChecked();
+        boolean indexTwoCheckState = indexTwoCheckBox.isChecked();
         Object temp = arrayList.get(indexOne);
         arrayList.set(indexOne, arrayList.get(indexTwo));
         arrayList.set(indexTwo, temp);
+        indexOneCheckBox.setChecked(indexTwoCheckState);
+        indexTwoCheckBox.setChecked(indexOneCheckState);
     }
 
 
@@ -644,8 +625,8 @@ public class DynamicListView extends ListView {
         }
     };
 
-    @Override
-    public void setAdapter(ListAdapter adapter) {
-        super.setAdapter(adapter);
+    public int getDPAsPixels(int DP) {
+        float scale = this.getResources().getDisplayMetrics().density;
+        return (int) (DP * scale);
     }
 }

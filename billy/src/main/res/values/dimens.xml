@@ -9,5 +9,7 @@
     <dimen name="listitem_dimen_compact">120dp</dimen>
     <dimen name="card_shadow">1.25dp</dimen>
     <dimen name="card_radius">2dp</dimen>
+    <dimen name="drag_handler">30dp</dimen>
+    <dimen name="textview_row">55dp</dimen>
     <!--Same for both width and height -->
 </resources>

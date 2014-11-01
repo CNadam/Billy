@@ -1,12 +1,40 @@
-<CheckedTextView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="#fff2f2f2"
-    android:textSize="16sp"
-    android:gravity="center_vertical"
-    android:paddingLeft="15dp"
-    android:paddingRight="15dp"
-    android:minHeight="55dp"
-    android:checked="true"
-    android:checkMark="?android:attr/listChoiceIndicatorMultiple"
-    />
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:layout_width="@dimen/drag_handler"
+        android:layout_height="@dimen/drag_handler"
+        android:id="@+id/drag_handler"
+        android:src="@drawable/drag_handler"
+        android:background="@null"
+        android:gravity="center"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"/>
+
+    <TextView
+        android:id="@+id/checkedTV"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#fff2f2f2"
+        android:text="Some text here"
+        android:layout_toRightOf="@+id/drag_handler"
+        android:layout_centerVertical="true"
+        android:gravity="center_vertical"
+        android:minHeight="@dimen/textview_row"
+        android:paddingLeft="15dp"
+        android:textSize="16sp"/>
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/checkBox"
+        android:layout_toRightOf="@id/checkedTV"
+        android:layout_marginLeft="-50dp"
+        android:gravity="center"
+        android:layout_centerVertical="true"
+        />
+
+</RelativeLayout>

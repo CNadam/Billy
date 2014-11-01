@@ -11,7 +11,7 @@
             />
 
           <com.vibin.billy.ReorderedListPreference
-            android:title="Screens"
+            android:title="Genres"
             />
         <CheckBoxPreference
             android:key="compactCards"
