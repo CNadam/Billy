@@ -3,13 +3,15 @@ package com.vibin.billy;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,6 +31,7 @@ import com.viewpagerindicator.TitlePageIndicator;
 public class MainActivity extends ActionBarActivity {
 
     SystemBarTintManager tintManager;
+    CustomFragmentAdapter mAdapter;
     private static final String TAG = MainActivity.class.getSimpleName();
 
     @Override
@@ -36,21 +39,26 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
         tintManager = new SystemBarTintManager(this);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
         setTitle(" " + "Billy".toUpperCase());
 
-        CustomFragmentAdapter mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this);
+        setViewpager();
+
+        ((BillyApplication) getApplication()).getActionBarView(getWindow()).addOnLayoutChangeListener(expandedDesktopListener);
+    }
+
+    void setViewpager() {
+        mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this);
         ViewPager mPager = (ViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
         TitlePageIndicator mIndicator = (TitlePageIndicator) findViewById(R.id.indicator);
         mIndicator.setViewPager(mPager);
-
-        ((BillyApplication) getApplication()).getActionBarView(getWindow()).addOnLayoutChangeListener(expandedDesktopListener);
     }
+
 
     View.OnLayoutChangeListener expandedDesktopListener = new View.OnLayoutChangeListener() {
         @Override
@@ -90,11 +98,28 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext()).registerOnSharedPreferenceChangeListener(refreshViewpager);
+    }
+
+    /**
+     * Refresh ViewPager and CustomFragmentAdapter on change of screens preference
+     */
+    SharedPreferences.OnSharedPreferenceChangeListener refreshViewpager = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+            if (key.equals("screens")) {
+                setViewpager();
+                mAdapter.notifyDataSetChanged();
+            }
+        }
+    };
+
     public static class AboutDialog extends DialogFragment {
         View v;
 
-        public AboutDialog() {
-        }
+        public AboutDialog() {}
 
         public static AboutDialog newInstance() {
             AboutDialog frag = new AboutDialog();

@@ -279,7 +279,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             layout.setGravity(Gravity.CENTER_HORIZONTAL);
             final Button loadMore = new Button(getActivity());
             loadMore.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            loadMore.setText("Load more...");
+            loadMore.setText("Load more songs...");
             layout.addView(loadMore);
             getListView().addFooterView(layout);
 

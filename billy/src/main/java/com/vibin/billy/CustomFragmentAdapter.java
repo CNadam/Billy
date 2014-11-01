@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.util.Log;
 
 import com.viewpagerindicator.IconPagerAdapter;
@@ -12,7 +13,7 @@ import com.viewpagerindicator.IconPagerAdapter;
 import java.util.Arrays;
 import java.util.List;
 
-public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconPagerAdapter {
+public class CustomFragmentAdapter extends FragmentStatePagerAdapter implements IconPagerAdapter {
 
     private static final String TAG = CustomFragmentAdapter.class.getSimpleName();
     protected static String[] content;
