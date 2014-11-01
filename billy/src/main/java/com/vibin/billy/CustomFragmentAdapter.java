@@ -17,7 +17,7 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
     private static final String TAG = CustomFragmentAdapter.class.getSimpleName();
     protected static String[] content;
     private int mCount;
-    static List<String> defaultScreens;
+    static List<String> resScreens; // Screens list from Resources
 
     Context c;
 
@@ -28,7 +28,7 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
         BillyApplication billyapp = BillyApplication.getInstance();
         content = billyapp.getScreensList();
         mCount = content.length;
-        defaultScreens = Arrays.asList(c.getResources().getStringArray(R.array.screens));
+        resScreens = Arrays.asList(c.getResources().getStringArray(R.array.screens));
     }
 
     @Override
@@ -37,12 +37,12 @@ public class CustomFragmentAdapter extends FragmentPagerAdapter implements IconP
     }
 
     /**
-     * We get the dynamic index of Fragment by searching its name in the default {@code R.array.screens} array
+     * We get the dynamic index of Fragment by searching its name in {@code R.array.screens}
      *
      * @param position refers to the Fragment requested by user
      */
     public static Fragment newInstance(int position) {
-        position = defaultScreens.indexOf(content[position]);
+        position = resScreens.indexOf(content[position]);
         SongsFragment f = new SongsFragment();
         Bundle args = new Bundle();
         args.putInt("position", position);

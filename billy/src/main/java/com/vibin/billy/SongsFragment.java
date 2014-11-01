@@ -46,7 +46,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 /**
- * Fetches songs' data and puts that in a Listview. This goes inside the Viewpager.
+ * Heart of the app
+ * Fetches songs' data and puts that in a Listview. This goes inside a Viewpager.
  */
 public class SongsFragment extends ListFragment implements AdapterView.OnItemClickListener, SwipeRefreshLayout.OnRefreshListener {
     ArrayList<ProcessingTask.BillyData> mData, mDataLite;
@@ -177,8 +178,8 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         swipelayout.setSize(SwipeRefreshLayout.LARGE);
 
         /**
-         * Restore instance, on Orientation change, and spawn requests again
-         * if instance values are null
+         * Restore instance, on Orientation change
+         * if instance values are null, spawn requests again
          */
 
         if (savedInstanceState != null) {
@@ -211,8 +212,9 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     }
 
     /**
-     * Dynamically initialize {@code billyapp.getBillySize()} number of objects in ArrayList
+     * Dynamically initialize {@value com.vibin.billy.BillyApplication} number of objects in ArrayList
      * Call this before loading additional data into ListView
+     * 
      * Create a lighter version of {@link #mData}, by shallow-copying it to mDataLite
      */
 

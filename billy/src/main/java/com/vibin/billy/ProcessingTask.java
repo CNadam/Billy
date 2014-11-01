@@ -36,12 +36,16 @@ public class ProcessingTask {
     Context context;
     int quality;
 
+    /**
+     * For SoundCloud parsing
+     */
+
     public ProcessingTask(Context c) {
         this.context = c;
     }
 
     /**
-     * Used for populating arrays of song and artist names
+     * For Billboard/iTunes fetching and parsing
      *
      * @param billySize Number of songs
      */
@@ -52,13 +56,6 @@ public class ProcessingTask {
         this.context = c;
         getArtworkUrlResolution();
     }
-
-/*    public ProcessingTask(String[] billySong, String[] billyArtist, Context c) {
-        this.billySong = billySong;
-        this.billyArtist = billyArtist;
-        this.context = c;
-        getArtworkUrlResolution();
-    }*/
 
     public static class BillyData implements Parcelable {
         String song, album, artist, artwork;
@@ -111,65 +108,10 @@ public class ProcessingTask {
 
     }
 
-/*    *//**
-     * Parses XML from Billboard
-     *
-     * @param response A String containing XML
-     * @return A String Array containing song titles
-     * @throws IOException
-     * @throws XmlPullParserException
-     *//*
-    public class parseBillboard extends AsyncTask<String, Integer, String[]> {
-
-        @Override
-        protected String[] doInBackground(String... params) {
-            InputStream in;
-            try {
-                in = getStringAsInputStream(params[0]);
-
-                XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-                XmlPullParser parser = factory.newPullParser();
-                parser.setInput(in, null);
-
-                int event = parser.getEventType();
-                int i = 0;
-                while (event != XmlPullParser.END_DOCUMENT) {
-                    String name = parser.getName();
-
-                    if (i <= billySize && event == XmlPullParser.START_TAG) {
-                        if (name.equals("description")) {
-                            if (parser.next() == XmlPullParser.TEXT) {
-                                billySong[i] = extractSong(parser.getText());
-                                billyArtist[i] = extractArtist(parser.getText());
-                                if (params[0].length() > 10000) {
-                                    //Log.d(TAG, billySong[i] + " " + billyArtist[i]);
-                                }
-                                i++;
-                            }
-                        }
-
-                    } else if (i >= billySize) {
-                        break;
-                    }
-                    event = parser.next();
-                }
-            }
-            catch(XmlPullParserException e)
-            {}
-            catch (UnsupportedEncodingException e1)
-            {}
-            catch(IOException e3){}
-            return billySong;
-        }
-    }*/
-
     /**
-     * Parses XML from Billboard
+     * Parses XML from Billboard and populates {@link #billySong} and {@link #billyArtist}
      *
      * @param response A String containing XML
-     * @return A String Array containing song titles
-     * @throws IOException
-     * @throws XmlPullParserException
      */
     public void parseBillboard(String response) throws IOException, XmlPullParserException {
         InputStream in;
@@ -201,7 +143,6 @@ public class ProcessingTask {
             }
             event = parser.next();
         }
-//        return billySong;
     }
 
     public String[] getBillySong() {
@@ -294,7 +235,6 @@ public class ProcessingTask {
      */
     private String extractSong(String text) {
         char symbols[] = {'!', '(', '#', '&', '+'};
-//        String extractedSong = text.substring(text.indexOf(":") + 2, text.indexOf(","));
         String extractedSong = text.substring(0, text.indexOf("by"));
         if (StringUtils.containsAny(extractedSong, symbols)) {
             if (extractedSong.contains("!")) {
@@ -312,7 +252,6 @@ public class ProcessingTask {
      * Parse artist substring from Billboard <description> tags
      */
     private String extractArtist(String text) {
-//        String extractedArtist = text.substring(text.indexOf(",") + 2);
         String extractedArtist = text.substring(text.indexOf("by") + 3, text.indexOf("ranks"));
         if (extractedArtist.contains("Featuring")) {
             extractedArtist = extractedArtist.substring(0, extractedArtist.indexOf("Featuring"));
@@ -345,6 +284,7 @@ public class ProcessingTask {
     /**
      * Encode the song name to be concatenated to URL
      */
+
     public String paramEncode(String text) {
         String paramEncode = text;
         if (text.contains("&")) {
@@ -397,8 +337,10 @@ public class ProcessingTask {
     }
 
     /**
-     * We try to avoid songs which have remix/cover/live mentioned in their title. We also make sure we get a relevant
-     * result by checking if the first word of song is present in song's name.
+     * We try to avoid songs which have remix/cover/live mentioned in their title.
+     * We also make sure we get a relevant result by checking if the first word of song
+     * is present in song's name.
+     *
      * If we don't find any song which matches our conditions, we fallback to the first song.
      *
      * @param response the JSON response

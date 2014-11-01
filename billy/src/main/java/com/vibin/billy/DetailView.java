@@ -183,12 +183,14 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         super.enableSwipeToDismiss();
+
         lastFmBio = savedInstanceState.getString("lastFmBio");
         streamLink = savedInstanceState.getString("streamLink");
         relatedAlbums = savedInstanceState.getStringArray("relatedAlbums");
         relatedAlbumImg = savedInstanceState.getStringArray("relatedAlbumImg");
         thumbnail = savedInstanceState.getString("thumbnail");
         videoId = savedInstanceState.getString("videoId");
+
         try {
             if (lastFmBio.isEmpty() || streamLink.isEmpty() || Arrays.asList(relatedAlbumImg).contains(null) || Arrays.asList(relatedAlbumImg).contains(null) || thumbnail.isEmpty()) {
                 Log.d(TAG, "some data is null, requests performed again");

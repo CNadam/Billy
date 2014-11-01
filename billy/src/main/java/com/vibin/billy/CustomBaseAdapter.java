@@ -24,8 +24,7 @@ class CustomBaseAdapter extends BaseAdapter {
     ImageLoader imgload;
     SharedPreferences sharedPref;
     BillyApplication billyapp;
-    @LayoutRes
-    int resource;
+    @LayoutRes int resource;
 
     CustomBaseAdapter(Context c, ArrayList<ProcessingTask.BillyData> arrayList, ImageLoader imgload) {
         this.c = c;
@@ -44,7 +43,7 @@ class CustomBaseAdapter extends BaseAdapter {
     };
 
     /**
-     * Switch to smaller layout for cards in the Listview.
+     * Switch to smaller layout for cards in the Listview
      */
 
     private void checkCompactCards() {

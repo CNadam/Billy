@@ -3,14 +3,11 @@ package com.vibin.billy;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.os.Bundle;
 import android.preference.DialogPreference;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.CheckedTextView;
 import android.widget.ListView;
 
@@ -19,6 +16,13 @@ import com.vibin.billy.draglistview.StableArrayAdapter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+
+/**
+ * We save the preference by concatenating each item's check state (1 or 0) and its text, followed by a fullstop.
+ * While showing the dialog, we split the String by fullstop, and apply the given checked state.
+ *
+ * Default Preference string is {@value com.vibin.billy.BillyApplication#defaultScreens}
+ */
 
 public class ReorderedListPreference extends DialogPreference {
     Context c;
@@ -69,8 +73,7 @@ public class ReorderedListPreference extends DialogPreference {
     }
 
     public void getScreensWithCheck() {
-        String defaultScreens="1Most Popular.1Pop.1Rock.1Dance.";
-        String screensPref = pref.getString("screens",defaultScreens);
+        String screensPref = pref.getString("screens", BillyApplication.defaultScreens);
         Log.d(TAG,screensPref);
         screensWithCheck = screensPref.split("\\.");
     }

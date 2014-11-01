@@ -35,6 +35,7 @@ public class BillyApplication extends Application {
     ImageLoader imageLoader;
     String[] screens;
     private static BillyApplication mInstance;
+    public static final String defaultScreens = "1Most Popular.1Pop.1Rock.1Dance.";
     final int DEFAULT_CACHE_SIZE = 16 * 1024 * 1024; // for DiskBasedCache
     private static final String DEFAULT_CACHE_DIR = "volley";
 
@@ -61,7 +62,9 @@ public class BillyApplication extends Application {
      */
 
     private void init() {
-        Crashlytics.start(this);
+        if(!BuildConfig.DEBUG) {
+            Crashlytics.start(this);
+        }
         getRequestQueue();
         createImageLoader();
         getScreensList();
@@ -102,9 +105,7 @@ public class BillyApplication extends Application {
 
     public String[] getScreensList() {
         if(screens == null) {
-            String defaultScreens = "1Most Popular.1Pop.1Rock.1Dance.";
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-
             String screensPref = pref.getString("screens", defaultScreens);
             String[] screensWithCheck = screensPref.split("\\.");
             screens = new String[StringUtils.countMatches(screensPref, "1")];
@@ -137,6 +138,15 @@ public class BillyApplication extends Application {
     }
 
     /**
+     * @return View associated with Action Bar
+     */
+    public View getActionBarView(Window window) {
+        View decorView = window.getDecorView();
+        int resId = getResources().getIdentifier("action_bar_container", "id", this.getPackageName());
+        return decorView.findViewById(resId);
+    }
+
+    /**
      * Convert display-independent pixels to pixels
      */
 
@@ -155,11 +165,5 @@ public class BillyApplication extends Application {
                 printViewHierarchy((ViewGroup) v, desc);
             }
         }
-    }
-
-    public View getActionBarView(Window window) {
-        View decorView = window.getDecorView();
-        int resId = getResources().getIdentifier("action_bar_container", "id", this.getPackageName());
-        return decorView.findViewById(resId);
     }
 }
