@@ -164,15 +164,9 @@ public class MainActivity extends ActionBarActivity {
     }
 }
 
-//TODO serialize arraylist data or try even simpler method
-//TODO Use support library
 //TODO laggy Libvlc, try low cache
-//TODO put xml parsing in async task
-//TODO replace default spinner in SongsFragment with Google's swiperefreshlayout
-//TODO add handlers to VLC EventHandler
 //TODO detect if RTMP url is needed
-//TODO Allow reordering
-//TODO Infinite loading for Hot 100
+//TODO More genres
 
 //TODO service quits automatically when playing after sometime
 //TODO handle 2G/3G devices efficiently API Level 17
@@ -180,7 +174,7 @@ public class MainActivity extends ActionBarActivity {
 //TODO Implement playlists
 //TODO Change color of notification background
 //TODO remove share history in ActionBar
-//TODO Use RootTools to detect Root and then show preference
+//TODO replace default spinner in SongsFragment with Google's swiperefreshlayout
 
 //TODO refactor
 //TODO Use RemoteController and put full screen lock image for KitKat+ devices

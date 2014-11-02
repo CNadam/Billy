@@ -5,6 +5,9 @@
         <item name="pop">Pop</item>
         <item name="rock">Rock</item>
         <item name="dance">Dance</item>
+        <item name="metal">Metal</item>
+        <item name="rnb">RnB</item>
+        <item name="country">Country</item>
     </string-array>
 
     <string-array name="url">
@@ -13,6 +16,8 @@
         <item name="rock">http://www1.billboard.com/rss/charts/rock-songs</item>
         <item name="dance">http://www1.billboard.com/rss/charts/dance-electronic-songs</item>
         <item name="metal">http://www1.billboard.com/rss/charts/hot-mainstream-rock-tracks</item>
+        <item name="rnb">http://www1.billboard.com/rss/charts/r-and-b-songs</item>
+        <item name="country">http://www1.billboard.com/rss/charts/country-songs</item>
     </string-array>
 
     <!-- Potential Nuclear launch codes....-->
@@ -28,6 +33,8 @@
         <item>Rock</item>
         <item>Dance</item>
         <item>Metal</item>
+        <item>R&amp;B</item>
+        <item>Country</item>
     </string-array>
 
     <string-array name="albumArtQuality">

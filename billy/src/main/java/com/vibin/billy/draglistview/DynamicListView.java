@@ -118,8 +118,9 @@ public class DynamicListView extends ListView {
         init(context);
     }
 
+    //TODO make this dynamic
     public void init(Context context) {
-        vertical_dimen = context.getResources().getDimensionPixelSize(R.dimen.textview_row)*4;
+        vertical_dimen = context.getResources().getDimensionPixelSize(R.dimen.textview_row)*7;
         horizontal_dimen = context.getResources().getDimensionPixelSize(R.dimen.drag_handler);
         Log.d(TAG," "+horizontal_dimen+" "+vertical_dimen);
         setOnScrollListener(mScrollListener);

@@ -35,7 +35,7 @@ public class BillyApplication extends Application {
     ImageLoader imageLoader;
     String[] screens;
     private static BillyApplication mInstance;
-    public static final String defaultScreens = "1Most Popular.1Pop.1Rock.1Dance.";
+    public static final String defaultScreens = "1Most Popular.1Pop.1Rock.1Dance.1Metal.1R&B.1Country.";
     final int DEFAULT_CACHE_SIZE = 16 * 1024 * 1024; // for DiskBasedCache
     private static final String DEFAULT_CACHE_DIR = "volley";
 

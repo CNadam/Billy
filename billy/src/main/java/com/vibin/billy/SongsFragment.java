@@ -92,6 +92,8 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         if (table_name.equals("MostPopular")) {
             isHot100 = true;
             billySize = 100;
+        } else if (table_name.equals("RnB")) {
+            billySize = 15;
         } else {
             billySize = billyapp.getBillySize();
         }
@@ -214,7 +216,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     /**
      * Dynamically initialize {@value com.vibin.billy.BillyApplication} number of objects in ArrayList
      * Call this before loading additional data into ListView
-     *
+     * <p/>
      * Create a lighter version of {@link #mData}, by shallow-copying it to mDataLite
      */
 
