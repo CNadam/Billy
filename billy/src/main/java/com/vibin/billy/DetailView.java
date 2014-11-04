@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.v4.view.MenuItemCompat;
 import android.text.Html;
 import android.util.Log;
@@ -59,27 +60,26 @@ import java.util.Arrays;
  */
 
 public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarChangeListener {
-    String song, artwork, artist, album, streamLink, permaLink, lastFmBio, thumbnail, videoId;
-    String[] relatedAlbumImg, relatedAlbums;
-    int songIndex, songLength;
-    float secondaryProgressFactor, scrollOpacity = 0;
-    boolean isMusicPlaying, stopTh, isCurrentSongBG, isPreparing;
-    static boolean active, mBound;
-    MenuItem shareItem;
-    Drawable playIcon, pauseIcon;
-    ImageButton streamBtn;
-    ImageView dashes;
-    Intent serviceIntent;
-    BillyApplication billyapp;
-    Drawable mActionBarBackgroundDrawable;
-    SystemBarTintManager tintManager;
-    ProcessingTask ft;
-    SeekBar seekBar;
-    RotateAnimation rotateAnim;
-    ScaleAnimation scaleAnim;
-    ImageLoader imgload;
-    PPlayerService mService;
-    Thread progressThread;
+    private String song, artwork, artist, album, streamLink, permaLink, lastFmBio, thumbnail, videoId;
+    private String[] relatedAlbumImg, relatedAlbums;
+    private int songIndex, songLength;
+    private float secondaryProgressFactor;
+    private boolean isMusicPlaying, stopTh, isCurrentSongBG, isPreparing;
+    private static boolean active, mBound;
+    private Drawable playIcon, pauseIcon;
+    private ImageButton streamBtn;
+    private ImageView dashes;
+    private Intent serviceIntent;
+    private BillyApplication billyapp;
+    private Drawable mActionBarBackgroundDrawable;
+    private SystemBarTintManager tintManager;
+    private ProcessingTask ft;
+    private SeekBar seekBar;
+    private RotateAnimation rotateAnim;
+    private ScaleAnimation scaleAnim;
+    private ImageLoader imgload;
+    private PPlayerService mService;
+    private Thread progressThread;
 
     private static final String TAG = DetailView.class.getSimpleName();
 
@@ -104,7 +104,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         artwork = itemData.getString("artwork");
         songIndex = itemData.getInt("index");
 
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
         tintManager = new SystemBarTintManager(this);
@@ -148,7 +148,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         super.enableSwipeToDismiss();
 
         final String scUrl = getResources().getString(R.string.soundcloud, (song + " " + StringUtils.stripAccents(artist)).replaceAll(" ", "+"));
-        final String lastFmBioUrl = getResources().getString(R.string.lastfm, "getinfo", artist.replaceAll(" ", "+").replaceAll("&","and"));
+        final String lastFmBioUrl = getResources().getString(R.string.lastfm, "getinfo", artist.replaceAll(" ", "+").replaceAll("&", "and"));
         final String lastFmTopAlbumsUrl = getResources().getString(R.string.lastfm, "gettopalbums", artist.replaceAll(" ", "+"));
         final String youtubeUrl = getResources().getString(R.string.youtube, (song + " " + StringUtils.stripAccents(artist)).replaceAll(" ", "+"));
         StringRequest stringreq = new StringRequest(Request.Method.GET, scUrl, scComplete(), scError());
@@ -180,7 +180,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         super.enableSwipeToDismiss();
 
@@ -193,7 +193,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
 
         try {
             if (lastFmBio.isEmpty() || streamLink.isEmpty() || Arrays.asList(relatedAlbumImg).contains(null) || Arrays.asList(relatedAlbumImg).contains(null) || thumbnail.isEmpty()) {
-                Log.d(TAG, "some data is null, requests performed again");
+                Log.i(TAG, "some data is null, requests performed again");
                 billyapp = (BillyApplication) this.getApplication();
                 performRequests(billyapp.getRequestQueue());
             } else {
@@ -204,7 +204,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 setYoutube(thumbnail, videoId);
             }
         } catch (NullPointerException e) {
-            Log.d(TAG, e.toString());
+            Log.e(TAG, e.toString());
         }
     }
 
@@ -216,7 +216,8 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                     String[] result = ft.parseSoundcloud(response, song);
                     permaLink = result[0];
                     streamLink = result[1];
-                    setShareButton();
+                    supportInvalidateOptionsMenu();
+//                    setShareButton(null);
 //                    JsonObjectRequest i1 = new JsonObjectRequest(Request.Method.GET, "https://api.soundcloud.com/i1/tracks/133433134/streams?client_id=apigee", null, i1Complete(), i1Error());
 //                    req.add(i1);
                     if (scaleAnim != null) {
@@ -226,9 +227,9 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                     Log.d(TAG, "original streamLink is " + streamLink);
                     Log.d(TAG, "original permaLink is " + permaLink);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.e(TAG,e.toString());
                 } catch (XmlPullParserException e) {
-                    e.printStackTrace();
+                    Log.e(TAG,e.toString());
                 }
             }
 
@@ -267,7 +268,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         return new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError volleyError) {
-                Log.d(TAG, "" + volleyError);
+                Log.e(TAG, volleyError.toString());
             }
         };
     }
@@ -277,7 +278,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         return new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError volleyError) {
-                Log.d(TAG, volleyError.toString());
+                Log.e(TAG, volleyError.toString());
             }
         };
     }
@@ -306,7 +307,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                         setLastFmBio();
                     }
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, e.toString());
                 }
             }
         };
@@ -316,7 +317,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         return new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError volleyError) {
-                Log.d(TAG, volleyError.toString());
+                Log.e(TAG, volleyError.toString());
             }
         };
     }
@@ -337,6 +338,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                     }
                     setRelatedAlbums();
                 } catch (JSONException e) {
+                    Log.e(TAG, e.toString());
                 }
             }
         };
@@ -370,7 +372,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         return new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError volleyError) {
-                Log.d(TAG, volleyError.toString());
+                Log.e(TAG, volleyError.toString());
             }
         };
     }
@@ -435,7 +437,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                                 Toast.LENGTH_LONG).show();
                     }
                 } else {
-                    Toast.makeText(getBaseContext(), "Install YouTube app to watch videos.",
+                    Toast.makeText(getBaseContext(), "Please install YouTube app to watch videos.",
                             Toast.LENGTH_LONG).show();
                 }
             }
@@ -459,13 +461,13 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d(TAG, "Service connected");
+            Log.i(TAG, "Service connected");
             PPlayerService.PPlayerServiceBinder binder = (PPlayerService.PPlayerServiceBinder) service;
             mService = binder.getService();
 
             isMusicPlaying = mService.bp.isPlaying();
             if (PPlayerService.isRunning && !PPlayerService.isIdle) {
-                Log.d(TAG, "Service is running and is not idle");
+                Log.i(TAG, "Service is running and is not idle");
                 if (song.equalsIgnoreCase(mService.song)) {
                     isCurrentSongBG = true;
                     setSeekBar();
@@ -501,14 +503,14 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 public void onError() {
                     //Toast.makeText(getBaseContext(), "An error has occurred. " + i + " " + i2,
                     //        Toast.LENGTH_LONG).show();
-                    Log.e(TAG, "Cannot play this song. ");
+                    Log.i(TAG, "OnError");
                     dashes.clearAnimation();
                     dashes.setVisibility(View.GONE);
                 }
 
                 @Override
                 public void onStop() {
-                    Log.d(TAG, "Onstop");
+                    Log.i(TAG, "OnStop");
                     onCompletion();
                 }
 
@@ -563,7 +565,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 if (!isPreparing) {
                     if (isCurrentSongBG) {
                         if (!isMusicPlaying) {
-                            Log.d(TAG, "Song matched");
+                            Log.i(TAG, "Song matched");
                             if (PPlayerService.isRunning) {
                                 mService.doPlay();
                                 isMusicPlaying = true;
@@ -634,7 +636,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                         seekBar.setProgress((int) (mService.bp.getPosition() * 1000));
                         seekBar.setSecondaryProgress(mService.bufferPercent * 10);
                         if (seekBar.getProgress() == 1000) {
-                            Log.d(TAG, "killing thread");
+                            Log.i(TAG, "killing thread");
                             stopTh = true;
                         }
                         Log.d(TAG, "Max " + seekBar.getMax() + " progress " + seekBar.getProgress() + " and secondary " + seekBar.getSecondaryProgress());
@@ -674,7 +676,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     private NotifyingScrollView.OnScrollChangedListener mOnScrollChangedListener = new NotifyingScrollView.OnScrollChangedListener() {
         public void onScrollChanged(ScrollView who, int l, int t, int oldl, int oldt) {
             final int headerHeight = findViewById(R.id.image_header).getHeight() - getSupportActionBar().getHeight() - 500;
-            scrollOpacity = (float) Math.min(Math.max(t, 0), headerHeight) / headerHeight;
+            float scrollOpacity = (float) Math.min(Math.max(t, 0), headerHeight) / headerHeight;
             final int newAlpha = (int) (scrollOpacity * 255);
             mActionBarBackgroundDrawable.setAlpha(newAlpha);
             tintManager.setTintAlpha(scrollOpacity);
@@ -694,7 +696,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 tintManager.setStatusBarTintEnabled(false);
             } else {
                 tintManager.setStatusBarTintEnabled(true);
-                tintManager.setStatusBarAlpha(scrollOpacity);
+                tintManager.setStatusBarAlpha(0.0f);
                 tintManager.setTintColor(getResources().getColor(R.color.billy));
             }
         }
@@ -726,39 +728,36 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.detail, menu);
-
-        shareItem = menu.findItem(R.id.share);
-        setShareButton();
-
         super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.detail, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MenuItem shareItem = menu.findItem(R.id.share);
+
+        CustomShareActionProvider actionProv = (CustomShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
+        actionProv.setShareIntent(getShareIntent());
         return true;
     }
 
     /**
-     * Puts a share button in ActionBar, with share history included
-     * We ideally want to hide the share history, but it's not possible
+     * Make intent for share button
      */
-    void setShareButton() {
-        CustomShareActionProvider myShareActionProvider = null;
-        try {
-            myShareActionProvider = (CustomShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
-
-            Intent shareIntent = new Intent();
-            shareIntent.setAction(Intent.ACTION_SEND);
-            shareIntent.putExtra(Intent.EXTRA_TEXT, getIntentText());
-            shareIntent.setType(HTTP.PLAIN_TEXT_TYPE);
-
-            myShareActionProvider.setShareIntent(shareIntent);
-            myShareActionProvider.setShareHistoryFileName("deleteMe");
-        } catch (NullPointerException ignored) {
-        }
+    private Intent getShareIntent(){
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND);
+        shareIntent.putExtra(Intent.EXTRA_TEXT, getIntentText());
+        shareIntent.setType(HTTP.PLAIN_TEXT_TYPE);
+        return shareIntent;
     }
 
     /**
      * Append SoundCloud permalink to intent text, if it's not null
      */
-    String getIntentText() {
+    private String getIntentText() {
         if (permaLink != null) {
             return song + " by " + artist + " #nowplaying " + permaLink;
         } else {
