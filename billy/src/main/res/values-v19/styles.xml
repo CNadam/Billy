@@ -17,6 +17,7 @@
         <item name="actionBarStyle">@style/ActionBar.Solid.Billy</item>
         <item name="colorControlActivated">@color/billy</item>
         <item name="android:textColor">@color/text_black</item>
+        <item name="android:windowBackground">@color/lt_gray</item>
     </style>
 
     <!-- For Activities which are swipeable and have transparent ActionBar-->
