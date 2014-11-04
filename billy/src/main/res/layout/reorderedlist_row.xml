@@ -1,13 +1,14 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@color/gray">
 
     <ImageView
+        android:id="@+id/drag_handler"
         android:layout_width="@dimen/drag_handler"
         android:layout_height="@dimen/drag_handler"
-        android:id="@+id/drag_handler"
         android:src="@drawable/drag_handler"
-        android:background="@null"
         android:gravity="center"
         android:layout_centerVertical="true"
         android:layout_alignParentLeft="true"
@@ -19,18 +20,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#fff2f2f2"
-        android:text="Some text here"
         android:layout_toRightOf="@+id/drag_handler"
         android:layout_centerVertical="true"
         android:gravity="center_vertical"
         android:minHeight="@dimen/textview_row"
         android:paddingLeft="15dp"
-        android:textSize="16sp"/>
+        android:textSize="16sp"
+        tools:text="Some text here"/>
 
     <CheckBox
+        android:id="@+id/checkBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/checkBox"
         android:layout_toRightOf="@id/checkedTV"
         android:layout_marginLeft="-50dp"
         android:gravity="center"
