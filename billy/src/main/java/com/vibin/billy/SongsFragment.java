@@ -203,6 +203,8 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     /**
      * When DB is empty and User isn't connected to Internet
      * Show an Alert Dialog and exit app
+     *
+     * Make sure to dismiss() Dialog, before calling finish() on Activity
      */
 
     private void nothingToShow() {
@@ -214,6 +216,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 .setCancelable(false)
                 .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
                         getActivity().finish();
                     }
                 });
@@ -632,13 +635,16 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     SharedPreferences.OnSharedPreferenceChangeListener myPrefListner = new SharedPreferences.OnSharedPreferenceChangeListener() {
         public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
             if (key.equals("compactCards")) {
+                Log.d(tag,"compact cards preference changed");
                 ((ListView) v.findViewById(android.R.id.list)).setAdapter(customBaseAdapter);
             } else if (key.equals("albumArtQuality")) {
-                ft.getArtworkUrlResolution();
-                mIndex = 0;
-                while (mIndex < billyapp.getMinBillySize(billySize)) {
-                    callitunes(mIndex, false);
-                    mIndex++;
+                if(ft.refreshArtworkUrlResolution()) {
+                    Log.i(tag,"album art quality preference changed");
+                    mIndex = 0;
+                    while (mIndex < billyapp.getMinBillySize(billySize)) {
+                        callitunes(mIndex, false);
+                        mIndex++;
+                    }
                 }
             }
         }

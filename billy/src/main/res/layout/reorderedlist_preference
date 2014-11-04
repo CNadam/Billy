@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.vibin.billy.draglistview.DynamicListView
-xmlns:android="http://schemas.android.com/apk/res/android"
-android:id="@+id/listview"
-android:background="@color/gray"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"
-android:choiceMode="multipleChoice"
-    />
+<com.vibin.billy.draglistview.DynamicListView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/listview"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/gray"
+    android:choiceMode="multipleChoice" />

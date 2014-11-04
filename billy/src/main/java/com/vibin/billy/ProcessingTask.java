@@ -2,7 +2,6 @@ package com.vibin.billy;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
@@ -54,7 +53,7 @@ public class ProcessingTask {
         billySong = new String[billySize];
         billyArtist = new String[billySize];
         this.context = c;
-        getArtworkUrlResolution();
+        refreshArtworkUrlResolution();
     }
 
     public static class BillyData implements Parcelable {
@@ -213,14 +212,13 @@ public class ProcessingTask {
 
             // Track name from Billboard and iTunes don't match, also LOL
             if (match == -1) {
-                Log.e(TAG, "The unmatched billysong is " + trackName);
+                Log.e(TAG, "The unmatched itunes song is " + trackName);
                 int matchArtist = matchMagic(billyArtist, artistName);
                 counter++;
                 if (matchArtist == -1) {
                     Log.e(TAG, "Artists haven't matched " + artistName + " and counter is " + counter);
                 } else {
-                    Log.e(TAG, "Something wrong with text manipulation " + trackName + artistName);
-                    //       return null;
+                    Log.e(TAG, "Something wrong with text manipulation " + trackName + " " + artistName);
                 }
             } else {
                 // Most ideal situation
@@ -251,6 +249,7 @@ public class ProcessingTask {
     /**
      * Parse artist substring from Billboard <description> tags
      */
+
     private String extractArtist(String text) {
         String extractedArtist = text.substring(text.indexOf("by") + 3, text.indexOf("ranks"));
         if (extractedArtist.contains("Featuring")) {
@@ -265,24 +264,49 @@ public class ProcessingTask {
 
     /**
      * Searches for given String in the String array and returns index. Case-insensitive.
+     * If no match is found, we try Levenshtein's Algo
      */
 
     private int matchMagic(String[] billySong, String trackName) {
         int index = 0;
         for (String name : billySong) {
-            if (name == null) {
+            if (name != null) {
+                if (name.equalsIgnoreCase(trackName)) {
+                    return index;
+                }
+                index++;
+            } else {
                 Log.d(TAG, "Index is " + index + " trackName is " + trackName);
             }
-            if (name.equalsIgnoreCase(trackName)) {
-                return index;
+        }
+        return getLevenshteinMatch(billySong, trackName);
+    }
+
+    /**
+     * Uses the Levenshtein's Algorithm to find the closest match for iTunes song in {@code billySong}
+     */
+
+    private int getLevenshteinMatch(String[] billySong, String trackName) {
+        int index = 0;
+        for (String name : billySong) {
+            if (name != null) {
+                int match = StringUtils.getLevenshteinDistance(billySong[index].toLowerCase(), trackName.toLowerCase());
+                if (match >= 0 && match <= 3) {
+                    Log.i(TAG, "Levenshtein Algo passed: " + billySong[index] + " " + trackName);
+                    billySong[index] = trackName;
+                    return index;
+                }
+            } else {
+                Log.d(TAG, "Index is " + index + " trackName is " + trackName);
             }
             index++;
         }
         return -1;
     }
 
+
     /**
-     * Encode the song name to be concatenated to URL
+     * Encode the song name
      */
 
     public String paramEncode(String text) {
@@ -331,16 +355,30 @@ public class ProcessingTask {
         return -1;
     }
 
-    public void getArtworkUrlResolution() {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-        quality = Integer.parseInt(pref.getString("albumArtQuality", "1"));
+    /**
+     * @return if Album art quality preference is changed
+     */
+    public boolean refreshArtworkUrlResolution() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        int newQuality = Integer.parseInt(pref.getString("albumArtQuality", "1"));
+        if (quality != 0) {
+            if (quality != newQuality) {
+                quality = newQuality;
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            quality = newQuality;
+            return false;
+        }
     }
 
     /**
      * We try to avoid songs which have remix/cover/live mentioned in their title.
      * We also make sure we get a relevant result by checking if the first word of song
      * is present in song's name.
-     *
+     * <p/>
      * If we don't find any song which matches our conditions, we fallback to the first song.
      *
      * @param response the JSON response
