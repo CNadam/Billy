@@ -9,5 +9,6 @@
     <color name="btn_stroke">#ffffa3a0</color>
     <color name="btn_background">#ffff5e6c</color>
     <color name="text_black">#ff3c3c3c</color>
-    <color name="lt_gray">#ffcccccc</color>
+    <color name="gray">#cccccc</color>
+    <color name="lt_gray">#eeeeee</color>
 </resources>

@@ -10,7 +10,7 @@
         android:id="@+id/indicator"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="#EE4F5A"
+        android:background="@color/billy"
         android:fontFamily="sans-serif-condensed"
         android:padding="10dp"
         android:textColor="#fff"

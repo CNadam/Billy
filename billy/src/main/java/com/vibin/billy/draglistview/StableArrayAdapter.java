@@ -17,7 +17,6 @@
 package com.vibin.billy.draglistview;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -75,7 +74,7 @@ public class StableArrayAdapter extends ArrayAdapter<String> {
         MyViewHolder holder;
         if (row == null) {
             LayoutInflater lif = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            row = lif.inflate(R.layout.text_view, parent, false);
+            row = lif.inflate(R.layout.reorderedlist_row, parent, false);
             holder = new MyViewHolder(row);
 
             row.setTag(holder);

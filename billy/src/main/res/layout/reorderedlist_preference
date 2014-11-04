@@ -2,7 +2,7 @@
 <com.vibin.billy.draglistview.DynamicListView
 xmlns:android="http://schemas.android.com/apk/res/android"
 android:id="@+id/listview"
-android:background="@color/lt_gray"
+android:background="@color/gray"
 android:layout_width="match_parent"
 android:layout_height="wrap_content"
 android:choiceMode="multipleChoice"
