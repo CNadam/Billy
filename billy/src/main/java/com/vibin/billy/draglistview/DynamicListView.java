@@ -35,7 +35,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.ListView;
@@ -68,7 +67,7 @@ import java.util.ArrayList;
 public class DynamicListView extends ListView {
 
     private final int SMOOTH_SCROLL_AMOUNT_AT_EDGE = 15;
-    private final int MOVE_DURATION = 150;
+    private final int MOVE_DURATION = 200;
     private final int LINE_THICKNESS = 4;
 
     public ArrayList<String> mCheeseList;
@@ -269,7 +268,7 @@ public class DynamicListView extends ListView {
                 mDownY = (int) event.getY();
                 mActivePointerId = event.getPointerId(0);
 
-/*                if(mDownX>0 && mDownX< horizontal_dimen && mDownY>0 && mDownY< vertical_dimen)
+/*             if(mDownX>0 && mDownX< horizontal_dimen && mDownY>0 && mDownY< vertical_dimen)
                 {
                     handleTouchdown();
                 }*/
@@ -291,7 +290,11 @@ public class DynamicListView extends ListView {
                 if (mCellIsMobile) {
                     mHoverCellCurrentBounds.offsetTo(mHoverCellOriginalBounds.left,
                             mHoverCellOriginalBounds.top + deltaY + mTotalOffset);
-                    mHoverCell.setBounds(mHoverCellCurrentBounds);
+                    try {
+                        mHoverCell.setBounds(mHoverCellCurrentBounds);
+                    } catch (NullPointerException e) {
+                        Log.e(TAG, "Hover cell is null");
+                    }
                     invalidate();
 
                     handleCellSwitch();
@@ -433,7 +436,11 @@ public class DynamicListView extends ListView {
                 return;
             }
 
-            mHoverCellCurrentBounds.offsetTo(mHoverCellOriginalBounds.left, mobileView.getTop());
+            try {
+                mHoverCellCurrentBounds.offsetTo(mHoverCellOriginalBounds.left, mobileView.getTop());
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
 
             ObjectAnimator hoverViewAnimator = ObjectAnimator.ofObject(mHoverCell, "bounds",
                     sBoundEvaluator, mHoverCellCurrentBounds);
