@@ -47,7 +47,7 @@ class CustomBaseAdapter extends BaseAdapter {
      */
 
     private void checkCompactCards() {
-        if (sharedPref.getBoolean("compactCards", false)) {
+        if (sharedPref.getBoolean("compactCards", true)) {
             resource = c.getResources().getIdentifier("single_row_compact", "layout", c.getPackageName());
         } else {
             resource = c.getResources().getIdentifier("single_row", "layout", c.getPackageName());
