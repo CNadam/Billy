@@ -86,7 +86,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
         /**
          * Number of elements in Hot100 chart is 100
-         * For others, it's 20
+         * RnB 15, rest all 20
          */
 
         if (table_name.equals("MostPopular")) {
@@ -95,14 +95,14 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         } else if (table_name.equals("RnB")) {
             billySize = 15;
         } else {
-            billySize = billyapp.getBillySize();
+            billySize = 20;
         }
 
         billySong = new String[billySize];
         billyArtist = new String[billySize];
         ft = new ProcessingTask(billySize, getActivity());
         mData = new ArrayList<ProcessingTask.BillyData>(billySize);
-        mDataLite = new ArrayList<ProcessingTask.BillyData>(billyapp.getBillySize());
+        mDataLite = new ArrayList<ProcessingTask.BillyData>(billyapp.getMinBillySize(billySize));
         initializeArraylistitems();
 
         customDatabaseAdapter = new CustomDatabaseAdapter(getActivity());
@@ -140,24 +140,11 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d(tag, "oncreateview");
         v = inflater.inflate(R.layout.fragment_songs, container, false);
-        if (jsonMdata == null && !billyapp.isConnected()) {
-            v.findViewById(android.R.id.list).setVisibility(View.GONE);
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-            alertDialogBuilder.setTitle("No connection");
-            alertDialogBuilder
-                    .setMessage("Please connect to Internet.")
-                    .setCancelable(false)
-                    .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            android.os.Process.killProcess(android.os.Process.myPid());
-                        }
-                    });
 
-            AlertDialog alertDialog = alertDialogBuilder.create();
-            if (!((Activity) getActivity()).isFinishing()) {
-                alertDialog.show();
-            }
+        if (jsonMdata == null && !billyapp.isConnected()) {
+            nothingToShow();
         }
+
         customBaseAdapter = new CustomBaseAdapter(getActivity(), mData, imgload);
         spinner = (LinearLayout) v.findViewById(R.id.spinner);
 
@@ -214,6 +201,30 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     }
 
     /**
+     * When DB is empty and User isn't connected to Internet
+     * Show an Alert Dialog and exit app
+     */
+
+    private void nothingToShow() {
+        v.findViewById(android.R.id.list).setVisibility(View.GONE);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+        alertDialogBuilder.setTitle("No connection");
+        alertDialogBuilder
+                .setMessage("Please connect to Internet.")
+                .setCancelable(false)
+                .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        getActivity().finish();
+                    }
+                });
+
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        if (!(getActivity()).isFinishing()) {
+            alertDialog.show();
+        }
+    }
+
+    /**
      * Dynamically initialize {@value com.vibin.billy.BillyApplication} number of objects in ArrayList
      * Call this before loading additional data into ListView
      * <p/>
@@ -221,13 +232,13 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
      */
 
     private void initializeArraylistitems() {
-        if (mData.size() == billyapp.getBillySize()) {
+        if (mData.size() == billyapp.getMinBillySize(billySize)) {
             Log.d(tag, "mDataLite is same as mData");
             mDataLite = new ArrayList<ProcessingTask.BillyData>(mData);
             Log.d(tag, "intitialize, size of mDataLite is " + mDataLite.size() + " size of mData is " + mData.size());
         }
         int i = 0;
-        while (i < billyapp.getBillySize()) {
+        while (i < billyapp.getMinBillySize(billySize)) {
             mData.add(new ProcessingTask.BillyData());
             i++;
         }
@@ -287,14 +298,14 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
             /**
              * mData keeps increasing till {@value billySize} elements (100, in case of Hot100)
-             * Footer view removed when mData hits billySize - getBillySize() elements
+             * Footer view removed when mData hits billySize - getMinBillySize(billySize) elements
              */
             loadMore.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     if (billyapp.isConnected()) {
                         Log.d(tag, "Size is " + mData.size());
-                        if (mData.size() >= billySize - billyapp.getBillySize()) {
+                        if (mData.size() >= billySize - billyapp.getMinBillySize(billySize)) {
                             getListView().removeFooterView(loadMore);
                             loadMore.setVisibility(View.GONE); // just a bit precautionary
                         }
@@ -303,8 +314,8 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                             customBaseAdapter.updateArrayList(mData);
                             customBaseAdapter.notifyDataSetChanged();
 
-                            for (int i = 0; i < billyapp.getBillySize(); i++) {
-                                callitunes(mData.size() - billyapp.getBillySize() + i, false);
+                            for (int i = 0; i < billyapp.getMinBillySize(billySize); i++) {
+                                callitunes(mData.size() - billyapp.getMinBillySize(billySize) + i, false);
                             }
                         }
                     } else {
@@ -321,7 +332,6 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         super.onPause();
         getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         swingBottomInAnimationAdapter.setShouldAnimate(false);
-        //PreferenceManager.getDefaultSharedPreferences(getActivity()).unregisterOnSharedPreferenceChangeListener(myPrefListner);
     }
 
     @Override
@@ -343,7 +353,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             outState.putParcelableArrayList("MDATALITE", mDataLite);
         }
 
-        if (mData.size() > billyapp.getBillySize()) {
+        if (mData.size() > billyapp.getMinBillySize(billySize)) {
             boolean b = saveToDB(mDataLite);
             Log.d(tag, "mDataLite is saved to DB? " + b + " size is " + mDataLite.size() + " and mData size is " + mData.size());
         } else {
@@ -432,7 +442,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         billySong = ft.getBillySong();
         billyArtist = ft.getBillyArtist();
         if (doItunesRequests) {
-            while (mIndex < billyapp.getBillySize()) {
+            while (mIndex < billyapp.getMinBillySize(billySize)) {
                 callitunes(mIndex, false);
                 mIndex++;
             }
@@ -626,7 +636,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             } else if (key.equals("albumArtQuality")) {
                 ft.getArtworkUrlResolution();
                 mIndex = 0;
-                while (mIndex < billyapp.getBillySize()) {
+                while (mIndex < billyapp.getMinBillySize(billySize)) {
                     callitunes(mIndex, false);
                     mIndex++;
                 }

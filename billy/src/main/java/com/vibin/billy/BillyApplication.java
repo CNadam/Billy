@@ -20,22 +20,17 @@ import com.android.volley.toolbox.Volley;
 import com.crashlytics.android.Crashlytics;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.WordUtils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 
 public class BillyApplication extends Application {
     RequestQueue req;
     ImageLoader.ImageCache imageCache;
     ImageLoader imageLoader;
-    String[] screens;
+    String[] genres;
     private static BillyApplication mInstance;
-    public static final String defaultScreens = "1Most Popular.1Pop.1Rock.1Dance.1Metal.1R&B.1Country.";
+    public static final String defaultGenres = "1Most Popular.1Pop.1Rock.1Dance.1Metal.1R&B.1Country.";
     final int DEFAULT_CACHE_SIZE = 16 * 1024 * 1024; // for DiskBasedCache
     private static final String DEFAULT_CACHE_DIR = "volley";
 
@@ -62,12 +57,12 @@ public class BillyApplication extends Application {
      */
 
     private void init() {
-        if(!BuildConfig.DEBUG) {
+        if (!BuildConfig.DEBUG) {
             Crashlytics.start(this);
         }
         getRequestQueue();
         createImageLoader();
-        getScreensList();
+        getGenresList();
     }
 
 
@@ -98,29 +93,38 @@ public class BillyApplication extends Application {
     }
 
     /**
-     * Get screens list from Settings, if set, or else provide default set of screen names
+     * Get genres list from Settings, if set, or else provide default set of screen names
      *
      * @return Array containing list of Strings of screen names
      */
 
-    public String[] getScreensList() {
-            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-            String screensPref = pref.getString("screens", defaultScreens);
-            String[] screensWithCheck = screensPref.split("\\.");
-            screens = new String[StringUtils.countMatches(screensPref, "1")];
-            int index = 0;
-            for (String i : screensWithCheck) {
-                Log.d(TAG, i);
-                if (i.charAt(0) == '1') {
-                    screens[index] = i.substring(1);
-                    index++;
-                }
+    public String[] getGenresList() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        String genresPref = pref.getString("genres", defaultGenres);
+        String[] genresWithCheck = genresPref.split("\\.");
+        genres = new String[StringUtils.countMatches(genresPref, "1")];
+        int index = 0;
+        for (String i : genresWithCheck) {
+            Log.d(TAG, i);
+            if (i.charAt(0) == '1') {
+                genres[index] = i.substring(1);
+                index++;
             }
-        return screens;
+        }
+        return genres;
     }
 
-    public int getBillySize() {
-        return 20;
+    /**
+     * @param billySize Actual number of songs contained in XML. Can be 100/20/15
+     * @return the minimum number of songs to be fetched and saved to DB
+     */
+
+    public int getMinBillySize(int billySize) {
+        if (billySize >= 20) {
+            return 20;
+        } else {
+            return billySize;
+        }
     }
 
     /**
