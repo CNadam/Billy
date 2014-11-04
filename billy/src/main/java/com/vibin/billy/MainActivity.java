@@ -59,7 +59,6 @@ public class MainActivity extends ActionBarActivity {
         mIndicator.setViewPager(mPager);
     }
 
-
     View.OnLayoutChangeListener expandedDesktopListener = new View.OnLayoutChangeListener() {
         @Override
         public void onLayoutChange(View view, int i, int i2, int i3, int i4, int i5, int i6, int i7, int i8) {
@@ -105,11 +104,12 @@ public class MainActivity extends ActionBarActivity {
     }
 
     /**
-     * Refresh ViewPager and CustomFragmentAdapter on change of screens preference
+     * Refresh ViewPager and CustomFragmentAdapter on change of genres preference
      */
+
     SharedPreferences.OnSharedPreferenceChangeListener refreshViewpager = new SharedPreferences.OnSharedPreferenceChangeListener() {
         public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-            if (key.equals("screens")) {
+            if (key.equals("genres")) {
                 setViewpager();
                 mAdapter.notifyDataSetChanged();
             }
@@ -166,7 +166,7 @@ public class MainActivity extends ActionBarActivity {
 
 //TODO laggy Libvlc, try low cache
 //TODO detect if RTMP url is needed
-//TODO More genres
+//TODO low-res devices play button notification
 
 //TODO service quits automatically when playing after sometime
 //TODO handle 2G/3G devices efficiently API Level 17

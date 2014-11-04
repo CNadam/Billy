@@ -3,6 +3,7 @@ package com.vibin.billy;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.preference.DialogPreference;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
@@ -23,21 +24,20 @@ import java.util.Arrays;
  * We save the preference by concatenating each item's check state (1 or 0) and its text, followed by a fullstop.
  * While showing the dialog, we split the String by fullstop, and apply the given checked state.
  * <p/>
- * Default Preference string is {@value com.vibin.billy.BillyApplication#defaultScreens}
+ * Default Preference string is {@value com.vibin.billy.BillyApplication#defaultGenres}
  */
 
 public class ReorderedListPreference extends DialogPreference {
     Context c;
     DynamicListView lv;
     SharedPreferences pref;
-    String[] screensWithCheck;
+    String[] genresWithCheck;
     private static final String TAG = ReorderedListPreference.class.getSimpleName();
 
     public ReorderedListPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.c = context;
-        setDialogMessage("Try dragging items in the list!");
-        setPositiveButtonText(android.R.string.ok);
+        setPositiveButtonText(c.getString(R.string.reorder_pref_ok));
         setNegativeButtonText(android.R.string.cancel);
         pref = PreferenceManager.getDefaultSharedPreferences(c.getApplicationContext());
 
@@ -54,17 +54,16 @@ public class ReorderedListPreference extends DialogPreference {
     @Override
     protected void onBindDialogView(View view) {
         super.onBindDialogView(view);
-        //getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-        getScreensWithCheck();
-        String[] screens = new String[screensWithCheck.length];
+        getGenresWithCheck();
+        String[] genres = new String[genresWithCheck.length];
         int i = 0;
-        for (String s : screensWithCheck) {
-            screens[i] = s.substring(1);
+        for (String s : genresWithCheck) {
+            genres[i] = s.substring(1);
             i++;
         }
 
-        ArrayList<String> arrayList = new ArrayList<String>(Arrays.asList(screens));
-        StableArrayAdapter adapter = new StableArrayAdapter(c, R.layout.text_view, arrayList);
+        ArrayList<String> arrayList = new ArrayList<String>(Arrays.asList(genres));
+        StableArrayAdapter adapter = new StableArrayAdapter(c, R.layout.reorderedlist_row, arrayList);
         lv = (DynamicListView) view.findViewById(R.id.listview);
         lv.setCheeseList(arrayList);
         lv.setAdapter(adapter);
@@ -72,10 +71,10 @@ public class ReorderedListPreference extends DialogPreference {
         lv.post(new Runnable() {
             @Override
             public void run() {
-                for (int i = 0; i < screensWithCheck.length; i++) {
-                    if (screensWithCheck[i].charAt(0) == '1') {
+                for (int i = 0; i < genresWithCheck.length; i++) {
+                    if (genresWithCheck[i].charAt(0) == '1') {
                         final CheckBox box = (CheckBox) lv.getChildAt(i).findViewById(R.id.checkBox);
-                        Log.d(TAG, i + " is " + box.isChecked());
+                        //Log.d(TAG, i + " is " + box.isChecked());
                         box.setChecked(true);
 /*                        box.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                             @Override
@@ -101,11 +100,19 @@ public class ReorderedListPreference extends DialogPreference {
         });
     }
 
+    @Override
+    protected void showDialog(Bundle state) {
+        super.showDialog(state);
+        int divierId = getDialog().getContext().getResources()
+                .getIdentifier("android:id/titleDivider", null, null);
+        View divider = getDialog().findViewById(divierId);
+        divider.setBackgroundColor(getContext().getResources().getColor(R.color.billy));
+    }
 
-    public void getScreensWithCheck() {
-        String screensPref = pref.getString("screens", BillyApplication.defaultScreens);
-        Log.d(TAG, screensPref);
-        screensWithCheck = screensPref.split("\\.");
+    private void getGenresWithCheck() {
+        String genresPref = pref.getString("genres", BillyApplication.defaultGenres);
+        Log.d(TAG, genresPref);
+        genresWithCheck = genresPref.split("\\.");
     }
 
     @Override
@@ -128,7 +135,7 @@ public class ReorderedListPreference extends DialogPreference {
                 i++;
             }
             SharedPreferences.Editor editor = pref.edit();
-            editor.putString("screens", prefLine);
+            editor.putString("genres", prefLine);
             Log.d(TAG, "commited " + editor.commit());
         }
     }

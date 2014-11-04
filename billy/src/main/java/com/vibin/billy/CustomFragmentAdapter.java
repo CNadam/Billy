@@ -18,7 +18,7 @@ public class CustomFragmentAdapter extends FragmentStatePagerAdapter implements 
     private static final String TAG = CustomFragmentAdapter.class.getSimpleName();
     protected static String[] content;
     private int mCount;
-    static List<String> resScreens; // Screens list from Resources
+    static List<String> resGenres; // Genres list from Resources
 
     Context c;
 
@@ -27,9 +27,9 @@ public class CustomFragmentAdapter extends FragmentStatePagerAdapter implements 
         this.c = context;
         Log.d(TAG,"CustomFragmentAdapter constructor");
         BillyApplication billyapp = BillyApplication.getInstance();
-        content = billyapp.getScreensList();
+        content = billyapp.getGenresList();
         mCount = content.length;
-        resScreens = Arrays.asList(c.getResources().getStringArray(R.array.screens));
+        resGenres = Arrays.asList(c.getResources().getStringArray(R.array.genres));
     }
 
     @Override
@@ -38,12 +38,12 @@ public class CustomFragmentAdapter extends FragmentStatePagerAdapter implements 
     }
 
     /**
-     * We get the dynamic index of Fragment by searching its name in {@code R.array.screens}
+     * We get the dynamic index of Fragment by searching its name in {@code R.array.genres}
      *
      * @param position refers to the Fragment requested by user
      */
     public static Fragment newInstance(int position) {
-        position = resScreens.indexOf(content[position]);
+        position = resGenres.indexOf(content[position]);
         SongsFragment f = new SongsFragment();
         Bundle args = new Bundle();
         args.putInt("position", position);
