@@ -31,3 +31,5 @@ billy/src/main/assets/crashlytics-build.properties
 billy/crashlytics.properties
 
 *.iml
+
+billy/demo.mp4
