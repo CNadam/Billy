@@ -29,6 +29,7 @@ public class BillyApplication extends Application {
     ImageLoader.ImageCache imageCache;
     ImageLoader imageLoader;
     String[] genres;
+    SharedPreferences pref;
     private static BillyApplication mInstance;
     public static final String defaultGenres = "1Most Popular.1Pop.1Rock.1Dance.1Metal.1R&B.1Country.";
     final int DEFAULT_CACHE_SIZE = 16 * 1024 * 1024; // for DiskBasedCache
@@ -57,12 +58,29 @@ public class BillyApplication extends Application {
      */
 
     private void init() {
+        pref = PreferenceManager.getDefaultSharedPreferences(this);
         if (!BuildConfig.DEBUG) {
             Crashlytics.start(this);
         }
+        checkFirstRun();
         getRequestQueue();
         createImageLoader();
         getGenresList();
+    }
+
+    /**
+     * Do some stuff when app is run for first time
+     */
+
+    private void checkFirstRun() {
+     boolean isFirstRun = pref.getBoolean("firstrun",true);
+        if(isFirstRun)
+        {
+            // do some
+            SharedPreferences.Editor ed = pref.edit();
+            ed.putBoolean("firstrun",false);
+            ed.apply();
+        }
     }
 
 
@@ -99,7 +117,6 @@ public class BillyApplication extends Application {
      */
 
     public String[] getGenresList() {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         String genresPref = pref.getString("genres", defaultGenres);
         String[] genresWithCheck = genresPref.split("\\.");
         genres = new String[StringUtils.countMatches(genresPref, "1")];
