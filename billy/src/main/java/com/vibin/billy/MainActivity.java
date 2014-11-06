@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.viewpagerindicator.TitlePageIndicator;
@@ -48,7 +49,13 @@ public class MainActivity extends ActionBarActivity {
 
         setViewpager();
 
-        ((BillyApplication) getApplication()).getActionBarView(getWindow()).addOnLayoutChangeListener(expandedDesktopListener);
+        BillyApplication billyapp = (BillyApplication) this.getApplication();
+        if (billyapp.isFirstRun()) {
+            ChangelogDialog dialog = ChangelogDialog.newInstance();
+            dialog.show(getFragmentManager(), "change");
+            Log.d(TAG, "showing changelog");
+        }
+        billyapp.getActionBarView(getWindow()).addOnLayoutChangeListener(expandedDesktopListener);
     }
 
     void setViewpager() {
@@ -119,7 +126,8 @@ public class MainActivity extends ActionBarActivity {
     public static class AboutDialog extends DialogFragment {
         View v;
 
-        public AboutDialog() {}
+        public AboutDialog() {
+        }
 
         public static AboutDialog newInstance() {
             AboutDialog frag = new AboutDialog();
@@ -151,6 +159,8 @@ public class MainActivity extends ActionBarActivity {
                     } catch (ActivityNotFoundException e) {
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + getActivity().getPackageName())));
                     }
+                    Toast.makeText(getActivity(), "You rock! :)",
+                            Toast.LENGTH_LONG).show();
                 }
             });
         }
@@ -163,7 +173,6 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 }
-
 //TODO laggy Libvlc, try low cache
 //TODO switch back to MediaPlayer and use i1 endpoint api if needed
 //TODO low-res devices play button notification

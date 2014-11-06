@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<changelog bulletedList="true">
+
+    <changelogversion versionName="1.5" changeDate="Nov 6, 2014">
+        <changelogtext>[b]New![/b] Browse and listen to the full Billboard Hot 100 list</changelogtext>
+        <changelogtext>[b]New![/b] More genres: Metal, Country and R&amp;B</changelogtext>
+        <changelogtext>Updated to Material Design</changelogtext>
+        <changelogtext>Fixed song streaming bugs</changelogtext>
+        <changelogtext>Bug and crash fixes</changelogtext>
+    </changelogversion>
+
+</changelog>
