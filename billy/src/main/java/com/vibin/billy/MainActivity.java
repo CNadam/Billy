@@ -165,7 +165,7 @@ public class MainActivity extends ActionBarActivity {
 }
 
 //TODO laggy Libvlc, try low cache
-//TODO detect if RTMP url is needed
+//TODO switch back to MediaPlayer and use i1 endpoint api if needed
 //TODO low-res devices play button notification
 
 //TODO service quits automatically when playing after sometime
@@ -173,7 +173,6 @@ public class MainActivity extends ActionBarActivity {
 //TODO Notification click intent flags
 //TODO Implement playlists
 //TODO Change color of notification background
-//TODO remove share history in ActionBar
 //TODO replace default spinner in SongsFragment with Google's swiperefreshlayout
 
 //TODO refactor

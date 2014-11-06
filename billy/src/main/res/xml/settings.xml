@@ -2,19 +2,25 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="General">
-        <com.vibin.billy.ReorderedListPreference android:title="Genres" />
+        <com.vibin.billy.ReorderedListPreference
+            android:summary="Choose and reorder genres"
+            android:title="Genres" />
 
         <com.vibin.billy.CustomListPreference
             android:defaultValue="1"
             android:entries="@array/albumArtQuality"
             android:entryValues="@array/album_art_values"
             android:key="albumArtQuality"
+            android:summary="Higher quality takes up more cache"
             android:title="@string/album_art_title" />
 
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Interface">
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="compactCards"
-            android:summary="Make the cards in the list bigger"
+            android:summary="Make the cards in the list smaller"
             android:title="Compact cards" />
     </PreferenceCategory>
 </PreferenceScreen>

@@ -628,7 +628,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
     /**
      * If compact cards preference is on, reload listview
-     * If high resolution album art is on, update preference in Processing Task
+     * If album art preference is changed, update it in Processing Task
      * spawn all iTunes requests again
      */
 
