@@ -62,25 +62,24 @@ public class BillyApplication extends Application {
         if (!BuildConfig.DEBUG) {
             Crashlytics.start(this);
         }
-        checkFirstRun();
         getRequestQueue();
         createImageLoader();
         getGenresList();
     }
 
     /**
-     * Do some stuff when app is run for first time
+     * @return if app is being used for the first time by user
      */
-
-    private void checkFirstRun() {
-     boolean isFirstRun = pref.getBoolean("firstrun",true);
-        if(isFirstRun)
+    public boolean isFirstRun() {
+     boolean check = pref.getBoolean("firstrun",true);
+        if(check)
         {
-            // do some
             SharedPreferences.Editor ed = pref.edit();
             ed.putBoolean("firstrun",false);
             ed.apply();
+            return true;
         }
+        return false;
     }
 
 
