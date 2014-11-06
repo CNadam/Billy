@@ -695,7 +695,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 tintManager.setStatusBarTintEnabled(false);
             } else {
                 tintManager.setStatusBarTintEnabled(true);
-                tintManager.setStatusBarAlpha(1.0f);
+                tintManager.setStatusBarAlpha(0.0f);
                 tintManager.setTintColor(getResources().getColor(R.color.billy));
             }
         }

@@ -69,11 +69,13 @@ public class BillyApplication extends Application {
 
     /**
      * @return if app is being used for the first time by user
+     * Deleting database because we have changed the schema
      */
     public boolean isFirstRun() {
      boolean check = pref.getBoolean("firstrun",true);
         if(check)
         {
+            this.deleteDatabase("BillyDatabase");
             SharedPreferences.Editor ed = pref.edit();
             ed.putBoolean("firstrun",false);
             ed.apply();
