@@ -173,9 +173,9 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 }
-//TODO laggy Libvlc, try low cache
-//TODO switch back to MediaPlayer and use i1 endpoint api if needed
+//TODO use i1 endpoint api if needed
 //TODO low-res devices play button notification
+//TODO test on devices
 
 //TODO service quits automatically when playing after sometime
 //TODO handle 2G/3G devices efficiently API Level 17

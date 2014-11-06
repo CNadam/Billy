@@ -33,6 +33,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -295,7 +296,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             layout.setGravity(Gravity.CENTER_HORIZONTAL);
             final Button loadMore = new Button(getActivity());
             loadMore.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            loadMore.setText("Load more songs...");
+            loadMore.setText(billyapp.getString(R.string.loadmore));
             layout.addView(loadMore);
             getListView().addFooterView(layout);
 
@@ -552,6 +553,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
     /**
      * Pull to refresh, with animation. Using Google's SwipeRefreshLayout.
+     * Invalidates cache
      */
 
     @Override
@@ -560,6 +562,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             pulltorefresh = true;
             swingBottomInAnimationAdapter.reset();
             CustomStringRequest stringreq = new CustomStringRequest(Request.Method.GET, rssurl, billyComplete(), billyError());
+            req.getCache().invalidate(stringreq.getCacheKey(),true);
             req.add(stringreq);
             new Handler().postDelayed(new Runnable() {
                 @Override
