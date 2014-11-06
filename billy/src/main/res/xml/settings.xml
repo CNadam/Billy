@@ -23,4 +23,16 @@
             android:summary="Make the cards in the list smaller"
             android:title="Compact cards" />
     </PreferenceCategory>
+
+    <PreferenceCategory android:title="About">
+        <Preference
+            android:key="changelog"
+            android:title="Changelog" />
+        <Preference
+            android:key="rate"
+            android:title="Rate on Play Store" />
+        <Preference
+            android:key="licenses"
+            android:title="Licenses" />
+    </PreferenceCategory>
 </PreferenceScreen>
