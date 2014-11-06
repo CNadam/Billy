@@ -78,7 +78,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     private RotateAnimation rotateAnim;
     private ScaleAnimation scaleAnim;
     private ImageLoader imgload;
-    private PPlayerService mService;
+    private PlayerService mService;
     private Thread progressThread;
 
     private static final String TAG = DetailView.class.getSimpleName();
@@ -138,8 +138,8 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         NetworkImageView hero = (NetworkImageView) findViewById(R.id.image_header);
         hero.setImageUrl(artwork, imgload);
 
-        serviceIntent = new Intent(this, PPlayerService.class);
-        if (PPlayerService.isRunning) {
+        serviceIntent = new Intent(this, PlayerService.class);
+        if (PlayerService.isRunning) {
             bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
         }
     }
@@ -217,7 +217,6 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                     permaLink = result[0];
                     streamLink = result[1];
                     supportInvalidateOptionsMenu();
-//                    setShareButton(null);
 //                    JsonObjectRequest i1 = new JsonObjectRequest(Request.Method.GET, "https://api.soundcloud.com/i1/tracks/133433134/streams?client_id=apigee", null, i1Complete(), i1Error());
 //                    req.add(i1);
                     if (scaleAnim != null) {
@@ -426,7 +425,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 if (YouTubeIntents.isYouTubeInstalled(getBaseContext())) {
                     if (YouTubeIntents.canResolvePlayVideoIntent(getBaseContext())) {
                         Intent intent = YouTubeIntents.createPlayVideoIntentWithOptions(getBaseContext(), videoId, true, true);
-                        if (isMusicPlaying && PPlayerService.isRunning) {
+                        if (isMusicPlaying && PlayerService.isRunning) {
                             mService.doPause();
                         }
                         if (!isPreparing) {
@@ -450,7 +449,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
 
 
     /**
-     * Bind this activity and PPlayerService
+     * Bind this activity and PlayerService
      */
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -462,11 +461,11 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.i(TAG, "Service connected");
-            PPlayerService.PPlayerServiceBinder binder = (PPlayerService.PPlayerServiceBinder) service;
+            PlayerService.PlayerServiceBinder binder = (PlayerService.PlayerServiceBinder) service;
             mService = binder.getService();
 
             isMusicPlaying = mService.bp.isPlaying();
-            if (PPlayerService.isRunning && !PPlayerService.isIdle) {
+            if (PlayerService.isRunning && !PlayerService.isIdle) {
                 Log.i(TAG, "Service is running and is not idle");
                 if (song.equalsIgnoreCase(mService.song)) {
                     isCurrentSongBG = true;
@@ -477,7 +476,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 }
             }
 
-            binder.setListener(new PPlayerService.onBPChangedListener() {
+            binder.setListener(new PlayerService.onBPChangedListener() {
                 @Override
                 public void onPrepared(int duration) {
                     isMusicPlaying = true;
@@ -500,9 +499,9 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 }
 
                 @Override
-                public void onError() {
-                    //Toast.makeText(getBaseContext(), "An error has occurred. " + i + " " + i2,
-                    //        Toast.LENGTH_LONG).show();
+                public void onError(int i, int i2) {
+                    Toast.makeText(getBaseContext(), "An error has occurred. " + i + " " + i2,
+                            Toast.LENGTH_LONG).show();
                     Log.i(TAG, "OnError");
                     dashes.clearAnimation();
                     dashes.setVisibility(View.GONE);
@@ -545,10 +544,10 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     private void setSeekBar() {
         progressThread = new Thread(progress);
         progressThread.start();
-        songLength = (int) mService.bp.getLength() / 1000; //ms
+        songLength = mService.bp.getDuration() / 1000;
         secondaryProgressFactor = (float) songLength / 100;
         Log.d(TAG, "songlength, secondary " + songLength + " " + secondaryProgressFactor);
-        seekBar.setMax(1000);
+        seekBar.setMax(songLength);
         seekBar.setVisibility(View.VISIBLE);
     }
 
@@ -566,8 +565,8 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                     if (isCurrentSongBG) {
                         if (!isMusicPlaying) {
                             Log.i(TAG, "Song matched");
-                            if (PPlayerService.isRunning) {
-                                mService.doPlay();
+                            if (PlayerService.isRunning) {
+                                mService.playMedia();             //START OR PLAY ??
                                 isMusicPlaying = true;
                                 streamBtn.setImageDrawable(pauseIcon);
                                 if (!progressThread.isAlive()) {
@@ -631,11 +630,11 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 if (!DetailView.active || stopTh) {
                     stopTh = false;
                     return;
-                } else if (PPlayerService.isRunning) {
-                    if (!PPlayerService.isIdle) {
-                        seekBar.setProgress((int) (mService.bp.getPosition() * 1000));
-                        seekBar.setSecondaryProgress(mService.bufferPercent * 10);
-                        if (seekBar.getProgress() == 1000) {
+                } else if (PlayerService.isRunning) {
+                    if (!PlayerService.isIdle) {
+                        seekBar.setProgress(mService.bp.getCurrentPosition() / 1000);
+                        seekBar.setSecondaryProgress((int) (mService.bufferPercent * secondaryProgressFactor));
+                        if (seekBar.getProgress() == mService.bp.getDuration() / 1000) {
                             Log.i(TAG, "killing thread");
                             stopTh = true;
                         }
@@ -696,7 +695,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 tintManager.setStatusBarTintEnabled(false);
             } else {
                 tintManager.setStatusBarTintEnabled(true);
-                tintManager.setStatusBarAlpha(0.0f);
+                tintManager.setStatusBarAlpha(1.0f);
                 tintManager.setTintColor(getResources().getColor(R.color.billy));
             }
         }
@@ -813,7 +812,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
         seekBar.setAlpha(0.85f);
-        mService.bp.setPosition((float) seekBar.getProgress() / 1000);
+        mService.bp.seekTo(seekBar.getProgress() * 1000);
     }
 
     @Override
