@@ -3,15 +3,21 @@
 
     <!--
     Base theme
+    We set windowTranslucentStatus programmatically in Activities, for a better app preview window
     -->
-    <style name="Theme.Billy" parent="@android:style/Theme.Holo.Light">
-        <item name="android:actionBarStyle">@style/ActionBar.Solid.Billy</item>
-        <item name="android:actionOverflowButtonStyle">@style/OverFlow</item>
-        <item name="android:homeAsUpIndicator">@drawable/up</item>
+    <style name="Theme.Billy" parent="Theme.AppCompat.Light">
+        <item name="homeAsUpIndicator">@drawable/up</item>
+        <item name="actionBarItemBackground">@drawable/actionitem_background</item>
         <item name="android:actionBarItemBackground">@drawable/actionitem_background</item>
+        <item name="actionOverflowButtonStyle">@style/OverFlow</item>
+        <item name="android:actionOverflowButtonStyle">@style/OverFlow</item>
         <item name="android:buttonStyle">@style/Button.Billy</item>
         <item name="android:dialogTheme">@style/Button.Dialog.Billy</item>
-        <item name="android:popupMenuStyle">@style/PopupMenu.Billy</item>
+        <item name="popupMenuStyle">@style/PopupMenu.Billy</item>
+        <item name="actionBarStyle">@style/ActionBar.Solid.Billy</item>
+        <item name="colorControlActivated">@color/billy</item>
+        <item name="android:textColor">@color/text_black</item>
+        <item name="android:windowBackground">@color/lt_gray</item>
     </style>
 
     <!-- For Activities which are swipeable and have transparent ActionBar-->
@@ -28,18 +34,19 @@
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
-    <style name="ActionBar.Solid.Billy" parent="@android:style/Widget.Holo.Light.ActionBar">
-        <item name="android:background">@drawable/ab_solid</item>
-        <item name="android:titleTextStyle">@style/ActionBar.Billy.TextAppearance</item>
+    <style name="ActionBar.Solid.Billy" parent="Widget.AppCompat.Light.ActionBar">
+        <item name="background">@drawable/ab_solid</item>
+        <item name="titleTextStyle">@style/ActionBar.Billy.TextAppearance</item>
     </style>
 
-    <style name="ActionBar.Transparent.Billy" parent="@android:style/Widget.Holo.Light.ActionBar">
-        <item name="android:background">@drawable/ab_transparent</item>
-        <item name="android:titleTextStyle">@style/ActionBar.Billy.TextAppearance</item>
+    <style name="ActionBar.Transparent.Billy" parent="Widget.AppCompat.Light.ActionBar">
+        <item name="background">@drawable/ab_transparent</item>
+        <item name="titleTextStyle">@style/ActionBar.Billy.TextAppearance</item>
     </style>
 
     <style name="Button.Dialog.Billy" parent="@android:style/Theme.Holo.Light.Dialog">
         <item name="android:buttonStyle">@style/Button.Billy</item>
+        <item name="android:divider">@color/billy</item>
     </style>
 
     <!-- Button -->
@@ -52,19 +59,19 @@
 
     <!-- Popup Menu -->
 
-    <style name="PopupMenu.Billy" parent="@android:style/Widget.Holo.Light.ListPopupWindow">
+    <style name="PopupMenu.Billy" parent="Widget.AppCompat.Light.PopupMenu">
         <item name="android:popupBackground">@drawable/menu_dropdown_panel</item>
     </style>
 
     <!-- Overflow Action Button-->
 
-    <style name="OverFlow" parent="@android:style/Widget.Holo.Light.ActionButton.Overflow">
-        <item name="android:src">@drawable/ic_action_overflow</item>
+    <style name="OverFlow" parent="Widget.AppCompat.Light.ActionButton.Overflow">
+        <item name="android:src">@drawable/dot_overflow</item>
     </style>
 
     <!-- ActionBar Title -->
 
-    <style name="ActionBar.Billy.TextAppearance" parent="@android:style/TextAppearance.Holo.Widget.ActionBar.Title">
+    <style name="ActionBar.Billy.TextAppearance" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
         <item name="android:textColor">#fff</item>
         <item name="android:textSize">20sp</item>
         <item name="android:fontFamily">sans-serif-condensed</item>
@@ -72,7 +79,11 @@
         <item name="android:singleLine">true</item>
         <item name="android:ellipsize">end</item>
         <item name="android:alpha">1</item>
-        <item name="android:textAllCaps">true</item>
+        <item name="textAllCaps">true</item>
+    </style>
+
+    <style name="Dialog.Billy" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:dividerHorizontal">@color/billy</item>
     </style>
 
 </resources>
