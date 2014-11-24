@@ -210,7 +210,7 @@ public class ProcessingTask {
 
             int match = matchMagic(billySong, trackName);
 
-            // Track name from Billboard and iTunes don't match, also LOL
+            // Track name from Billboard and iTunes don't match
             if (match == -1) {
                 Log.e(TAG, "The unmatched itunes song is " + trackName);
                 int matchArtist = matchMagic(billyArtist, artistName);
@@ -283,7 +283,7 @@ public class ProcessingTask {
     }
 
     /**
-     * Uses the Levenshtein's Algorithm to find the closest match for iTunes song in {@code billySong}
+     * Uses the Levenshtein's Algorithm to find the closest match for iTunes song in {@link #billySong}
      */
 
     private int getLevenshteinMatch(String[] billySong, String trackName) {
@@ -356,8 +356,10 @@ public class ProcessingTask {
     }
 
     /**
-     * @return if Album art quality preference is changed
+     * Refreshes {@link #quality} by setting it to value from SharedPreference
+     * @return true if Album art quality preference is changed
      */
+
     public boolean refreshArtworkUrlResolution() {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
         int newQuality = Integer.parseInt(pref.getString("albumArtQuality", "1"));
@@ -369,8 +371,10 @@ public class ProcessingTask {
                 return false;
             }
         } else {
+          // doesn't matter what you return here, as quality is zero,
+          // only when this method is called by this class' constructor
             quality = newQuality;
-            return false;
+            return true;
         }
     }
 
@@ -389,6 +393,7 @@ public class ProcessingTask {
         String streamLink = "", firstLink = "", permaLink = "", firstPermaLink = "";
         String[] links = new String[2];
         String firstWord;
+        int counter = 0;
         if (song.contains(" ")) {
             firstWord = song.substring(0, song.indexOf(" "));
         } else {
@@ -396,7 +401,7 @@ public class ProcessingTask {
         }
         firstWord = firstWord.toLowerCase();
         boolean ignore = false;
-        Pattern pat = Pattern.compile("\\b(remix|cover|live)\\b");
+        Pattern pat = Pattern.compile("\\b(remix|cover|guitar|parody|acoustic|instrumental|drums)\\b");
 
         InputStream in = getStringAsInputStream(response);
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
@@ -408,14 +413,32 @@ public class ProcessingTask {
             String name = parser.getName();
 
             if (event == XmlPullParser.START_TAG) {
-                if (name.equals("title")) {
+                if (name.equals("tag-list")) {
+                    counter++;
                     if (parser.next() == XmlPullParser.TEXT) {
-                        if (pat.matcher(parser.getText().toLowerCase()).find() || !parser.getText().toLowerCase().contains(firstWord)) {
-                            Log.d(TAG, "Track ignored: " + parser.getText() + " " + firstWord);
+                        if (pat.matcher(parser.getText().toLowerCase()).find()) {
+                            Log.d(TAG, counter+" tag-list: "+ parser.getText().toLowerCase());
                             ignore = true;
                         }
                     }
-                } else if (name.equals("permalink-url")) {
+                }
+                else if (name.equals("title")) {
+                    if (parser.next() == XmlPullParser.TEXT) {
+                        if (pat.matcher(parser.getText().toLowerCase()).find() || !parser.getText().toLowerCase().contains(firstWord)) {
+                            Log.d(TAG, counter + " title: " + parser.getText() + " " + firstWord);
+                            ignore = true;
+                        }
+                    }
+                }
+                else if(name.equals("description"))
+                {
+                    if (parser.next() == XmlPullParser.TEXT) {
+                        if (pat.matcher(parser.getText().toLowerCase()).find()) {
+                            ignore = true;
+                        }
+                    }
+                }
+                else if (name.equals("permalink-url")) {
                     if (firstPermaLink.isEmpty() && parser.next() == XmlPullParser.TEXT) {
                         firstPermaLink = parser.getText();
                         permaLink = firstPermaLink;
@@ -425,7 +448,8 @@ public class ProcessingTask {
                     if (!ignore) {
                         links[0] = permaLink;
                     }
-                } else if (name.equals("stream-url")) {
+                }
+                else if (name.equals("stream-url")) {
                     if (firstLink.isEmpty() && parser.next() == XmlPullParser.TEXT) {
                         firstLink = parser.getText() + "?client_id=" + soundcloudKey;
                         streamLink = firstLink;
