@@ -1,6 +1,5 @@
 package com.vibin.billy;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -33,7 +32,6 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -182,9 +180,9 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
             ft.setBillySong(billySong);
             ft.setBillyArtist(billyArtist);
-            if (mData == null) {
-                Log.d(tag, "mData is null");
-                initializeArraylistitems();
+            if (!checkArrayList(mData)) {
+                Log.d(tag, "mData or its objects are null");
+//                initializeArraylistitems();
                 try {
                     performRequests();
                 } catch (UnsupportedEncodingException e) {
@@ -341,7 +339,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     @Override
     public void onResume() {
         super.onResume();
-        PreferenceManager.getDefaultSharedPreferences(getActivity()).registerOnSharedPreferenceChangeListener(myPrefListner);
+        PreferenceManager.getDefaultSharedPreferences(getActivity()).registerOnSharedPreferenceChangeListener(myPrefListener);
     }
 
     /**
@@ -599,7 +597,9 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     }
 
     /**
-     * Cancel all on-going requests if screen is rotated
+     * Cancel all on-going requests if screen is rotated, or fragment gets destroyed
+     *
+     * Note that FragmentStatePagerAdapter kills every fragment once you leave it (unlike other PagerAdapters)
      */
     @Override
     public void onDestroy() {
@@ -608,7 +608,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     }
 
     /**
-     * Check if ArrayList stored in database has null values
+     * Check if an ArrayList has null values
      *
      * @return true, if it doesn't have null values
      */
@@ -635,7 +635,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
      * spawn all iTunes requests again
      */
 
-    SharedPreferences.OnSharedPreferenceChangeListener myPrefListner = new SharedPreferences.OnSharedPreferenceChangeListener() {
+    SharedPreferences.OnSharedPreferenceChangeListener myPrefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
         public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
             if (key.equals("compactCards")) {
                 Log.d(tag,"compact cards preference changed");
