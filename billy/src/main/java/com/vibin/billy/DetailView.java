@@ -88,7 +88,19 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.detail_view);
+        onNewIntent(getIntent());
+    }
 
+    /**
+     * All intents including the first one is sent to this
+     * <p/>
+     * Use {@link #setIntent} to change the Activity's current intent to the new one and refresh UI.
+     */
+    @Override
+    protected void onNewIntent(Intent newIntent) {
+        super.onNewIntent(newIntent);
+
+        setIntent(newIntent);
         active = true;
         billyapp = (BillyApplication) this.getApplication();
 

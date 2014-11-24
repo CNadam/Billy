@@ -21,6 +21,7 @@
         </activity>
         <activity
             android:name=".DetailView"
+            android:launchMode="singleTask"
             android:parentActivityName=".MainActivity"
             android:theme="@style/Theme.Billy.Swipeable" />
 
