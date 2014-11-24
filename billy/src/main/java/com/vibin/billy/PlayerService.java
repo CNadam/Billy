@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
@@ -17,6 +18,7 @@ import android.support.v4.app.NotificationCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.RemoteViews;
 
 import com.android.volley.RequestQueue;
@@ -45,11 +47,6 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     public static boolean isInCall, isInCallMusicPaused;
     public static boolean isIdle = true;
 
-    public void doPause() {
-        bp.pause();
-        putNotification();
-    }
-
     public interface onBPChangedListener {
         void onPrepared(int duration);
 
@@ -57,11 +54,11 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
         void onError(int i, int i2);
 
-        void onStop();
+        void onMediaStop();
 
-        void onNotificationPausePressed();
+        void onMediaPlay();
 
-        void onNotificationPlayPressed();
+        void onMediaPause();
 
         void onNotificationStopPressed();
     }
@@ -126,6 +123,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
             if (!bp.isPlaying()) {
                 try {
                     bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
+                    bp.setAudioStreamType(AudioManager.STREAM_MUSIC);
                     //bp.setDataSource(streamLink);
 
                     bp.prepareAsync();
@@ -153,9 +151,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                             try {
                                 if (bp.isPlaying()) {
                                     isInCallMusicPaused = true;
-                                    bp.pause();
-                                    putNotification();
-                                    BPlistener.onNotificationPausePressed();
+                                    pauseMedia();
                                 }
                             } catch (IllegalStateException e) {
                                 e.printStackTrace();
@@ -168,9 +164,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                             if (isInCallMusicPaused) {
                                 isInCallMusicPaused = false;
                                 if (bp != null) {
-                                    bp.start();
-                                    putNotification();
-                                    BPlistener.onNotificationPlayPressed();
+                                    playMedia();
                                 }
                             }
                         }
@@ -200,7 +194,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         BPlistener.onCompletion();
         stopForeground(true);
         try {
-            unregisterReceiver(NotificationMediaControl);
+            unregisterReceiver(MediaControl);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
@@ -252,7 +246,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         }
         stopForeground(true);
         try {
-            unregisterReceiver(NotificationMediaControl);
+            unregisterReceiver(MediaControl);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
@@ -262,18 +256,37 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         isRunning = false;
     }
 
-    public void playMedia() {
+    public boolean playMedia() {
         if (!bp.isPlaying()) {
             bp.start();
             putNotification();
+            BPlistener.onMediaPlay();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean pauseMedia() {
+        if (bp.isPlaying()) {
+            bp.pause();
+            putNotification();
+            BPlistener.onMediaPause();
+            return true;
+        }
+        return false;
+    }
+
+    private void toggleMedia() {
+        if (!playMedia()) {
+            pauseMedia();
         }
     }
 
-
     public void stopMedia() {
         if (bp.isPlaying()) {
+            Log.d(TAG, "media has successfully stopped");
             bp.stop();
-            BPlistener.onStop();
+            BPlistener.onMediaStop();
         }
     }
 
@@ -289,7 +302,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         resultIntent.putExtra("index", songIndex);
         //resultIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         //resultIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        resultIntent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        //resultIntent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         note = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_notification)
@@ -335,32 +348,46 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         filter.addAction("com.vibin.billy.ACTION_PAUSE");
         filter.addAction("com.vibin.billy.ACTION_PLAY");
         filter.addAction("com.vibin.billy.ACTION_QUIT");
-        registerReceiver(NotificationMediaControl, filter);
+        registerReceiver(MediaControl, filter);
     }
 
-    private final BroadcastReceiver NotificationMediaControl = new BroadcastReceiver() {
+    private final BroadcastReceiver MediaControl = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
-            if (action.equalsIgnoreCase("com.vibin.billy.ACTION_PAUSE")) {
-                bp.pause();
-                BPlistener.onNotificationPausePressed();
-                putNotification();
+            if (Intent.ACTION_MEDIA_BUTTON.equals(action)) {
+                KeyEvent key = (KeyEvent) intent.getExtras().get(Intent.EXTRA_KEY_EVENT);
+
+                if (key.getAction() != KeyEvent.ACTION_DOWN) {
+                    return;
+                }
+                switch (key.getKeyCode()) {
+                    case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+                        toggleMedia();
+                        break;
+                    case KeyEvent.KEYCODE_MEDIA_PLAY:
+                        playMedia();
+                        break;
+                    case KeyEvent.KEYCODE_MEDIA_PAUSE:
+                        pauseMedia();
+                        break;
+                }
             }
 
+            if (action.equalsIgnoreCase("com.vibin.billy.ACTION_PAUSE")) {
+                pauseMedia();
+            }
             if (action.equalsIgnoreCase("com.vibin.billy.ACTION_PLAY")) {
-                bp.start();
-                BPlistener.onNotificationPlayPressed();
-                putNotification();
+                playMedia();
             }
             if (action.equalsIgnoreCase("com.vibin.billy.ACTION_QUIT")) {
-                stopForeground(true);
-                stopMedia();
+                if (bp.isPlaying()) {
+                    bp.stop();
+                }
                 BPlistener.onNotificationStopPressed();
                 stopSelf();
             }
         }
     };
-
 }

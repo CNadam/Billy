@@ -64,7 +64,10 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     private String[] relatedAlbumImg, relatedAlbums;
     private int songIndex, songLength;
     private float secondaryProgressFactor;
-    private boolean isMusicPlaying, stopTh, isCurrentSongBG, isPreparing;
+    private boolean isMusicPlaying;
+    private boolean stopTh;
+    private boolean isCurrentSongBG;
+    private boolean isPreparing;
     private static boolean active, mBound;
     private Drawable playIcon, pauseIcon;
     private ImageButton streamBtn;
@@ -106,7 +109,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
 
         imgload = billyapp.getImageLoader();
 
-        Bundle itemData = getIntent().getExtras();
+        Bundle itemData = newIntent.getExtras();
         song = itemData.getString("song");
         artist = itemData.getString("artist");
         if (artist.contains(",")) {
@@ -143,15 +146,17 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         });
 
         RequestQueue req = billyapp.getRequestQueue();
-        if (savedInstanceState == null) {
-            performRequests(req);
-        }
+        performRequests(req);
 
         NetworkImageView hero = (NetworkImageView) findViewById(R.id.image_header);
         hero.setImageUrl(artwork, imgload);
 
         serviceIntent = new Intent(this, PlayerService.class);
         if (PlayerService.isRunning) {
+            if (mBound) {
+                stopTh = true;
+                unbindService(); //unbind service if already bound so as to update UI with new intent
+            }
             bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
         }
     }
@@ -238,9 +243,9 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                     Log.d(TAG, "original streamLink is " + streamLink);
                     Log.d(TAG, "original permaLink is " + permaLink);
                 } catch (IOException e) {
-                    Log.e(TAG,e.toString());
+                    Log.e(TAG, e.toString());
                 } catch (XmlPullParserException e) {
-                    Log.e(TAG,e.toString());
+                    Log.e(TAG, e.toString());
                 }
             }
 
@@ -438,7 +443,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                     if (YouTubeIntents.canResolvePlayVideoIntent(getBaseContext())) {
                         Intent intent = YouTubeIntents.createPlayVideoIntentWithOptions(getBaseContext(), videoId, true, true);
                         if (isMusicPlaying && PlayerService.isRunning) {
-                            mService.doPause();
+                            mService.pauseMedia();
                         }
                         if (!isPreparing) {
                             startActivity(intent);
@@ -520,20 +525,20 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 }
 
                 @Override
-                public void onStop() {
+                public void onMediaStop() {
                     Log.i(TAG, "OnStop");
                     onCompletion();
                 }
 
                 @Override
-                public void onNotificationPausePressed() {
+                public void onMediaPause() {
                     streamBtn.setImageDrawable(playIcon);
                     //seekBar.setVisibility(View.GONE);
                     isMusicPlaying = false;
                 }
 
                 @Override
-                public void onNotificationPlayPressed() {
+                public void onMediaPlay() {
                     streamBtn.setImageDrawable(pauseIcon);
                     seekBar.setVisibility(View.VISIBLE);
                     isMusicPlaying = true;
@@ -541,7 +546,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
 
                 @Override
                 public void onNotificationStopPressed() {
-                    seekBar.setVisibility(View.GONE);
+                    onCompletion();
                     if (mBound) {
                         unbindService(mConnection);
                         mBound = false;
@@ -579,21 +584,16 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                             Log.i(TAG, "Song matched");
                             if (PlayerService.isRunning) {
                                 mService.playMedia();             //START OR PLAY ??
-                                isMusicPlaying = true;
-                                streamBtn.setImageDrawable(pauseIcon);
                                 if (!progressThread.isAlive()) {
                                     setSeekBar();
                                 }
-                                seekBar.setVisibility(View.VISIBLE);
                             } else {
                                 streamTrack();
                             }
                         } else {
-                            streamBtn.setImageDrawable(playIcon);
                             dashes.clearAnimation();
                             dashes.setVisibility(View.INVISIBLE);
-                            mService.doPause();
-                            isMusicPlaying = false;
+                            mService.pauseMedia();
                         }
                     } else {
                         streamTrack();
@@ -651,7 +651,6 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                             stopTh = true;
                         }
                         Log.d(TAG, "Max " + seekBar.getMax() + " progress " + seekBar.getProgress() + " and secondary " + seekBar.getSecondaryProgress());
-                        //Log.d(TAG,"Length "+mService.bp.getLength()+"          Time "+mService.bp.getTime()+"           Position "+mService.bp.getPosition());
                     }
                 }
             } catch (IllegalStateException e) {
@@ -757,7 +756,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     /**
      * Make intent for share button
      */
-    private Intent getShareIntent(){
+    private Intent getShareIntent() {
         Intent shareIntent = new Intent();
         shareIntent.setAction(Intent.ACTION_SEND);
         shareIntent.putExtra(Intent.EXTRA_TEXT, getIntentText());
@@ -788,19 +787,27 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * We unbind service on pause because we might be getting a new intent
+     */
     @Override
     protected void onPause() {
         super.onPause();
         overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
     }
 
-    /**
-     * Unbind service before Activity gets destroyed
-     */
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        unbindService();
+        active = false;
+    }
+
+    /**
+     * Unbind service and Activity
+     */
+
+    private void unbindService() {
         if (mBound) {
             try {
                 unbindService(mConnection);
@@ -809,7 +816,6 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
             }
             mBound = false;
         }
-        active = false;
     }
 
     /**

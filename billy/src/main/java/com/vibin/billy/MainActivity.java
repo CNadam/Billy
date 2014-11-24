@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -56,6 +57,7 @@ public class MainActivity extends ActionBarActivity {
             Log.d(TAG, "showing changelog");
         }
         billyapp.getActionBarView(getWindow()).addOnLayoutChangeListener(expandedDesktopListener);
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
     }
 
     void setViewpager() {
@@ -173,16 +175,19 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 }
+
+//TODO Crash fixes
+//TODO better SoundCloud track fetch
+//TODO Change color of notification background
+//TODO Custom preferences
+
 //TODO use i1 endpoint api if needed
 //TODO low-res devices play button notification
 //TODO test on devices
 
+//TODO Implement playlists
+
 //TODO service quits automatically when playing after sometime
 //TODO handle 2G/3G devices efficiently API Level 17
-//TODO Notification click intent flags
-//TODO Implement playlists
-//TODO Change color of notification background
 //TODO replace default spinner in SongsFragment with Google's swiperefreshlayout
-
-//TODO refactor
 //TODO Use RemoteController and put full screen lock image for KitKat+ devices

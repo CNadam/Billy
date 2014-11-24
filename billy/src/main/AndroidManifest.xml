@@ -37,6 +37,11 @@
             android:name=".Settings"
             android:parentActivityName=".MainActivity"
             android:theme="@style/Theme.Billy" />
+<!--        <receiver android:name="PlayerService$MediaControl" >
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>-->
         <meta-data
             android:name="com.crashlytics.ApiKey"
             android:value="019d3efb4ece685c209cd7098275f51694ab2a96" />
