@@ -44,7 +44,7 @@ android {
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
-        debug{
+        debug {
             applicationIdSuffix ".debug"
             versionNameSuffix " beta"
         }
@@ -90,3 +90,12 @@ def String getProjectProperty(String property) {
         return "";
     }
 }
+
+/*
+android.applicationVariants.all {
+    File valuesFile = file("${buildDir}/intermediates/res/${variant.dirName}/values/values.xml")
+    println("Replacing placeholder strings with API keys "+valuesFile.absolutePath)
+    String content = valuesFile.getText('UTF-8')
+    content = content.replaceAll(/sckey/, apiSoundcloud).replaceAll(/ytkey/, apiYoutube).replaceAll(/lfmkey/, apiLastfm)
+    valuesFile.write(content, 'UTF-8')
+}*/

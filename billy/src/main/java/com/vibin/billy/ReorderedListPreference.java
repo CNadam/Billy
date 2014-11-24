@@ -3,6 +3,7 @@ package com.vibin.billy;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.DialogPreference;
 import android.preference.PreferenceManager;
@@ -103,10 +104,14 @@ public class ReorderedListPreference extends DialogPreference {
     @Override
     protected void showDialog(Bundle state) {
         super.showDialog(state);
-        int divierId = getDialog().getContext().getResources()
-                .getIdentifier("android:id/titleDivider", null, null);
-        View divider = getDialog().findViewById(divierId);
-        divider.setBackgroundColor(getContext().getResources().getColor(R.color.billy));
+        try {
+            int divierId = getDialog().getContext().getResources()
+                    .getIdentifier("android:id/titleDivider", null, null);
+            View divider = getDialog().findViewById(divierId);
+            divider.setBackgroundColor(getContext().getResources().getColor(R.color.billy));
+        } catch (NullPointerException e) {
+            Log.d(TAG,e.toString());
+        }
     }
 
     private void getGenresWithCheck() {

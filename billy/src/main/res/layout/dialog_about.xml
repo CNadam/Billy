@@ -10,7 +10,7 @@
         android:id="@+id/dialog_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/about"
+        android:text="@string/action_about"
         android:textSize="24sp"
         android:fontFamily="sans-serif-condensed"
         android:textAllCaps="true"
