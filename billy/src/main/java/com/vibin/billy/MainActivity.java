@@ -23,7 +23,9 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.astuetz.PagerSlidingTabStrip;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
+import com.viewpagerindicator.TabPageIndicator;
 import com.viewpagerindicator.TitlePageIndicator;
 
 /**
@@ -46,6 +48,7 @@ public class MainActivity extends ActionBarActivity {
         }
         tintManager = new SystemBarTintManager(this);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
+        getSupportActionBar().setElevation(13.0f);
         setTitle(" " + "Billy".toUpperCase());
 
         setViewpager();
@@ -64,8 +67,10 @@ public class MainActivity extends ActionBarActivity {
         mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this);
         ViewPager mPager = (ViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
-        TitlePageIndicator mIndicator = (TitlePageIndicator) findViewById(R.id.indicator);
-        mIndicator.setViewPager(mPager);
+        //TabPageIndicator mIndicator = (TabPageIndicator) findViewById(R.id.indicator);
+        //mIndicator.setViewPager(mPager);
+        PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
+        tabs.setViewPager(mPager);
     }
 
     View.OnLayoutChangeListener expandedDesktopListener = new View.OnLayoutChangeListener() {
@@ -180,6 +185,8 @@ public class MainActivity extends ActionBarActivity {
 //TODO better SoundCloud track fetch
 //TODO Change color of notification background
 //TODO Custom preferences
+//TODO check if v21 single_row is needed
+//TODO button text color using styles.xml attributes
 
 //TODO use i1 endpoint api if needed
 //TODO low-res devices play button notification

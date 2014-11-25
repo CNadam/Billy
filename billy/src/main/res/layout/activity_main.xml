@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:fitsSystemWindows="true">
 
-    <com.viewpagerindicator.TitlePageIndicator xmlns:app="http://schemas.android.com/apk/res-auto"
+<!--    <com.viewpagerindicator.TabPageIndicator xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/indicator"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -14,7 +14,20 @@
         android:fontFamily="sans-serif-condensed"
         android:padding="10dp"
         android:textColor="#fff"
-        app:footerColor="#fff" />
+        app:footerColor="#fff" />-->
+    <com.astuetz.PagerSlidingTabStrip
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        app:pstsDividerColor="@android:color/transparent"
+        android:id="@+id/tabs"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:textColor="#fff"
+        app:pstsIndicatorColor="#fff"
+        app:pstsIndicatorHeight="2.5dp"
+        android:background="@color/billy"
+        app:pstsUnderlineHeight="0dp"
+        android:textSize="14sp"
+        />
 
     <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
