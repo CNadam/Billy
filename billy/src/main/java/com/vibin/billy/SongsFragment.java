@@ -59,6 +59,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     CustomDatabaseAdapter customDatabaseAdapter;
     SwingBottomInAnimationAdapter swingBottomInAnimationAdapter;
     RequestQueue req;
+    RequestQueue.RequestFilter allPass;
     BillyApplication billyapp;
     ProcessingTask ft;
     String uri, searchparam, table_name, rssurl;
@@ -79,6 +80,12 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         billyapp = (BillyApplication) getActivity().getApplication();
         imgload = billyapp.getImageLoader();
         req = billyapp.getRequestQueue();
+        allPass = new RequestQueue.RequestFilter() {
+            @Override
+            public boolean apply(Request<?> request) {
+                return true;
+            }
+        };
 
         rssurl = getResources().getStringArray(R.array.url)[position];
         table_name = getResources().getStringArray(R.array.table)[position];
@@ -203,7 +210,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
      * When DB is empty and User isn't connected to Internet
      * Show an Alert Dialog and exit app
      *
-     * Make sure to dismiss() Dialog, before calling finish() on Activity
+     * Make sure to call {@link android.content.DialogInterface#cancel()}, before calling {@link android.app.Activity#finish()}
      */
 
     private void nothingToShow() {
@@ -227,7 +234,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     }
 
     /**
-     * Dynamically initialize {@value com.vibin.billy.BillyApplication} number of objects in ArrayList
+     * Dynamically initialize {@link com.vibin.billy.BillyApplication#getMinBillySize(int)} number of objects in ArrayList
      * Call this before loading additional data into ListView
      * <p/>
      * Create a lighter version of {@link #mData}, by shallow-copying it to mDataLite
@@ -604,7 +611,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     @Override
     public void onDestroy() {
         super.onDestroy();
-        req.cancelAll("billyreq");
+        req.cancelAll(allPass);
     }
 
     /**
