@@ -10,7 +10,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:foreground="?android:attr/selectableItemBackground"
+    android:foreground="?android:attr/selectableItemBackgroundBorderless"
     card_view:cardElevation="@dimen/card_shadow"
     card_view:cardMaxElevation="@dimen/card_shadow"
     card_view:cardCornerRadius="@dimen/card_radius"

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!--Card's padding depends on cardMaxElevation attribute-->
+<!--In Pre-L, Card's padding depends on cardMaxElevation attribute-->
+<!-- So we use cardUseCompatPadding to add the same calculated padding for L and above too-->
 <android.support.v7.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
@@ -8,6 +9,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
+    android:foreground="?android:attr/selectableItemBackground"
     card_view:cardElevation="@dimen/card_shadow"
     card_view:cardMaxElevation="@dimen/card_shadow"
     card_view:cardCornerRadius="@dimen/card_radius"
