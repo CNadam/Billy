@@ -72,29 +72,33 @@ public class ReorderedListPreference extends DialogPreference {
         lv.post(new Runnable() {
             @Override
             public void run() {
-                for (int i = 0; i < genresWithCheck.length; i++) {
-                    if (genresWithCheck[i].charAt(0) == '1') {
-                        final CheckBox box = (CheckBox) lv.getChildAt(i).findViewById(R.id.checkBox);
-                        //Log.d(TAG, i + " is " + box.isChecked());
-                        box.setChecked(true);
-/*                        box.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                            @Override
-                            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                                Log.d(TAG, "before " + box.isChecked());
-                                box.setChecked(!box.isChecked());
-                                Log.d(TAG, "after " + box.isChecked());
-                            }
-                        });*/
-                        box.setOnTouchListener(new View.OnTouchListener() {
-                            @Override
-                            public boolean onTouch(View v, MotionEvent event) {
-                                Log.d(TAG, "before " + box.isChecked());
-                                box.setChecked(!box.isChecked());
-                                Log.d(TAG, "after " + box.isChecked());
-                                return false;
-                            }
-                        });
+                try {
+                    for (int i = 0; i < genresWithCheck.length; i++) {
+                        if (genresWithCheck[i].charAt(0) == '1') {
+                            final CheckBox box = (CheckBox) lv.getChildAt(i).findViewById(R.id.checkBox);
+                            //Log.d(TAG, i + " is " + box.isChecked());
+                            box.setChecked(true);
+    /*                        box.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                                @Override
+                                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                    Log.d(TAG, "before " + box.isChecked());
+                                    box.setChecked(!box.isChecked());
+                                    Log.d(TAG, "after " + box.isChecked());
+                                }
+                            });*/
+                            box.setOnTouchListener(new View.OnTouchListener() {
+                                @Override
+                                public boolean onTouch(View v, MotionEvent event) {
+                                    Log.d(TAG, "before " + box.isChecked());
+                                    box.setChecked(!box.isChecked());
+                                    Log.d(TAG, "after " + box.isChecked());
+                                    return false;
+                                }
+                            });
+                        }
                     }
+                } catch (NullPointerException e) {
+                    Log.e(TAG,e.toString());
                 }
 
             }

@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/gray">
+    android:background="#fff">
 
     <ImageView
         android:id="@+id/drag_handler"
@@ -19,7 +19,7 @@
         android:id="@+id/checkedTV"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#fff2f2f2"
+        android:background="#fff"
         android:layout_toRightOf="@+id/drag_handler"
         android:layout_centerVertical="true"
         android:gravity="center_vertical"
