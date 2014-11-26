@@ -64,13 +64,17 @@ public class MainActivity extends ActionBarActivity {
     }
 
     void setViewpager() {
-        mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this);
-        ViewPager mPager = (ViewPager) findViewById(R.id.pager);
-        mPager.setAdapter(mAdapter);
-        //TabPageIndicator mIndicator = (TabPageIndicator) findViewById(R.id.indicator);
-        //mIndicator.setViewPager(mPager);
-        PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
-        tabs.setViewPager(mPager);
+        try {
+            mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this);
+            ViewPager mPager = (ViewPager) findViewById(R.id.pager);
+            mPager.setAdapter(mAdapter);
+            //TabPageIndicator mIndicator = (TabPageIndicator) findViewById(R.id.indicator);
+            //mIndicator.setViewPager(mPager);
+            PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
+            tabs.setViewPager(mPager);
+        } catch (IllegalStateException e) {
+            Log.e(TAG, e.toString());
+        }
     }
 
     View.OnLayoutChangeListener expandedDesktopListener = new View.OnLayoutChangeListener() {

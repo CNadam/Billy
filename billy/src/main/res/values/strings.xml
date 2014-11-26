@@ -19,7 +19,7 @@
     <string name="newsongs">New songs have loaded</string>
     <string name="nonewsongs">No new songs available</string>
     <string name="rate">Rate on Play Store</string>
-    <string name="aboutdesc">Hello. I\'m Billy. I bring you the most popular songs right now.\n\nGot a second? Please rate me.</string>
+    <string name="aboutdesc">Billy is a beautiful and intuitive Billboard client. It\'s the best way to get to the top songs.\n\nGot a second? Leave a rating.</string>
     <string name="share">Share</string>
     <string name="reorder_pref_ok">Save</string>
     <string name="loadmore">Load more songs</string>

@@ -17,16 +17,17 @@
         app:footerColor="#fff" />-->
     <com.astuetz.PagerSlidingTabStrip
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        app:pstsDividerColor="@android:color/transparent"
         android:id="@+id/tabs"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:textColor="#fff"
-        app:pstsIndicatorColor="#fff"
-        app:pstsIndicatorHeight="2.5dp"
+        android:textSize="14sp"
         android:background="@color/billy"
         app:pstsUnderlineHeight="0dp"
-        android:textSize="14sp"
+        app:pstsDividerColor="@android:color/transparent"
+        app:pstsIndicatorColor="#fff"
+        app:pstsIndicatorHeight="2.5dp"
+        app:pstsTabBackground="@drawable/tab_strip"
         />
 
     <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
