@@ -1,5 +1,6 @@
 package com.vibin.billy;
 
+import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -9,10 +10,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.telephony.PhoneStateListener;
@@ -100,6 +103,8 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         bp.setOnInfoListener(this);
         bp.setOnSeekCompleteListener(this);
         bp.reset();
+
+        notifIcon = Bitmap.createBitmap(600,600, Bitmap.Config.ARGB_8888);
     }
 
     @Override
@@ -293,28 +298,9 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     /**
      * Put a sticky notification for media controls
      */
-    private void putNotification() {
-        Intent resultIntent = new Intent(this, DetailView.class);
-        resultIntent.putExtra("song", song);
-        resultIntent.putExtra("album", album);
-        resultIntent.putExtra("artist", artist);
-        resultIntent.putExtra("artwork", artwork);
-        resultIntent.putExtra("index", songIndex);
-        //resultIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        //resultIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        //resultIntent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        note = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setOngoing(true)
-                .setContentIntent(resultPendingIntent)
-                .setPriority(Notification.PRIORITY_MAX)
-                .setContentTitle("Billy").build();
-        note.bigContentView = notifView;
-        notifView.setTextViewText(R.id.song, song);
-        notifView.setTextViewText(R.id.artist, artist);
-        notifView.setTextViewText(R.id.album, album);
 
+    @TargetApi(Build.VERSION_CODES.L)
+    private void putNotification() {
         billyapp.getImageLoader().get(artwork, new ImageLoader.ImageListener() {
             @Override
             public void onResponse(ImageLoader.ImageContainer imageContainer, boolean b) {
@@ -327,6 +313,41 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                 Log.d(TAG, volleyError.toString());
             }
         });
+
+        Intent resultIntent = new Intent(this, DetailView.class);
+        resultIntent.putExtra("song", song);
+        resultIntent.putExtra("album", album);
+        resultIntent.putExtra("artist", artist);
+        resultIntent.putExtra("artwork", artwork);
+        resultIntent.putExtra("index", songIndex);
+
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        note = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setOngoing(true)
+                .setLargeIcon(notifIcon)
+                .setContentIntent(resultPendingIntent)
+                .setPriority(Notification.PRIORITY_MAX)
+                .setContentTitle(song)
+                .setContentText(artist).build();
+        note.bigContentView = notifView;
+
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            note.category = Notification.CATEGORY_TRANSPORT;
+            note.audioAttributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build();
+            note.visibility = Notification.VISIBILITY_PUBLIC;
+            notifView.setTextColor(R.id.song,getResources().getColor(R.color.nTitle));
+            notifView.setTextColor(R.id.artist,getResources().getColor(R.color.nDesc));
+            notifView.setTextColor(R.id.album,getResources().getColor(R.color.nDesc));
+            //notifView.setInt(R.id.notifDivider,"setBackgroundColor",getResources().getColor(R.color.nTitle));
+        }
+
+        notifView.setTextViewText(R.id.song, song);
+        notifView.setTextViewText(R.id.artist, artist);
+        notifView.setTextViewText(R.id.album, album);
 
         Intent playIntent = new Intent("com.vibin.billy.ACTION_PLAY");
         Intent pauseIntent = new Intent("com.vibin.billy.ACTION_PAUSE");

@@ -27,8 +27,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-light"
+            android:textAppearance="@android:style/TextAppearance.StatusBar.EventContent.Title"
             android:textColor="#fff"
-            android:textSize="20sp"
             tools:text="Get Lucky" />
 
         <LinearLayout
@@ -48,7 +48,7 @@
                 android:fontFamily="sans-serif"
                 android:singleLine="true"
                 android:textColor="#ffafafaf"
-                android:textSize="14sp"
+                android:textAppearance="@android:style/TextAppearance.StatusBar.EventContent"
                 tools:text="Random Access Memories" />
 
             <TextView
@@ -57,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif"
                 android:textColor="#ffafafaf"
-                android:textSize="14sp"
+                android:textAppearance="@android:style/TextAppearance.StatusBar.EventContent"
                 tools:text="Daft Punk" />
 
         </LinearLayout>
@@ -65,10 +65,11 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/notifDivider"
         android:layout_width="1dp"
         android:layout_height="100dp"
         android:layout_gravity="center_vertical"
-        android:background="#fff"
+        android:background="@android:color/darker_gray"
         android:clickable="false"
         android:orientation="vertical" />
 
@@ -90,7 +91,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_margin="15dp"
+            android:layout_marginLeft="5dp"
             android:background="@null" />
 
     </LinearLayout>
