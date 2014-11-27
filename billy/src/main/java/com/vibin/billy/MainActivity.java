@@ -13,6 +13,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -68,8 +69,6 @@ public class MainActivity extends ActionBarActivity {
             mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this);
             ViewPager mPager = (ViewPager) findViewById(R.id.pager);
             mPager.setAdapter(mAdapter);
-            //TabPageIndicator mIndicator = (TabPageIndicator) findViewById(R.id.indicator);
-            //mIndicator.setViewPager(mPager);
             PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
             tabs.setViewPager(mPager);
         } catch (IllegalStateException e) {
@@ -91,6 +90,27 @@ public class MainActivity extends ActionBarActivity {
             }
         }
     };
+
+    /**
+     * This gets around strange NullPointerExceptions (when tapping Menu key) on LG devices.
+     */
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_MENU && "LGE".equalsIgnoreCase(Build.BRAND)) {
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_MENU && "LGE".equalsIgnoreCase(Build.BRAND)) {
+            openOptionsMenu();
+            return true;
+        }
+        return super.onKeyUp(keyCode, event);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -185,7 +205,6 @@ public class MainActivity extends ActionBarActivity {
     }
 }
 
-//TODO Crash fixes
 //TODO better SoundCloud track fetch
 //TODO Change color of notification background
 //TODO Custom preferences

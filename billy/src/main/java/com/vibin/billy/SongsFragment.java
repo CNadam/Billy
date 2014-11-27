@@ -1,9 +1,12 @@
 package com.vibin.billy;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -11,6 +14,7 @@ import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -214,8 +218,9 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
      */
 
     private void nothingToShow() {
+        final Context c = getActivity();
         v.findViewById(android.R.id.list).setVisibility(View.GONE);
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(c);
         alertDialogBuilder.setTitle("No connection");
         alertDialogBuilder
                 .setMessage("Please connect to Internet.")
@@ -223,7 +228,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
-                        getActivity().finish();
+                        ((Activity) c).finish();
                     }
                 });
 

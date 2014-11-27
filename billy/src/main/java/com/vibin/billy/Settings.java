@@ -34,7 +34,7 @@ public class Settings extends ActionBarActivity {
         setTitle(" " + "Settings".toUpperCase());
 
         ((BillyApplication) getApplication()).getActionBarView(getWindow()).addOnLayoutChangeListener(expandedDesktopListener);
-        getFragmentManager().beginTransaction().replace(R.id.settingsLinear, new SettingsFragment()).commit();
+        getFragmentManager().beginTransaction().replace(R.id.settingsLinear, new SettingsFragment()).commitAllowingStateLoss();
     }
 
     /**

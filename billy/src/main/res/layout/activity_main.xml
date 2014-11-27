@@ -6,15 +6,6 @@
     android:orientation="vertical"
     android:fitsSystemWindows="true">
 
-<!--    <com.viewpagerindicator.TabPageIndicator xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/indicator"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/billy"
-        android:fontFamily="sans-serif-condensed"
-        android:padding="10dp"
-        android:textColor="#fff"
-        app:footerColor="#fff" />-->
     <com.astuetz.PagerSlidingTabStrip
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/tabs"

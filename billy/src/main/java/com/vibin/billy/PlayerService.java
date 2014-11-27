@@ -182,9 +182,13 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
-        isIdle = false;
-        BPlistener.onPrepared(mediaPlayer.getDuration() / 1000); //ms
-        playMedia();
+        try {
+            isIdle = false;
+            BPlistener.onPrepared(mediaPlayer.getDuration() / 1000); //ms
+            playMedia();
+        } catch (NullPointerException e) {
+            Log.e(TAG, e.toString());
+        }
     }
 
 
