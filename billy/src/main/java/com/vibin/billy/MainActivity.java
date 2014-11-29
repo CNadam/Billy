@@ -206,7 +206,6 @@ public class MainActivity extends ActionBarActivity {
 }
 
 //TODO better SoundCloud track fetch
-//TODO Change color of notification background
 //TODO Custom preferences
 //TODO check if v21 single_row is needed
 //TODO button text color using styles.xml attributes

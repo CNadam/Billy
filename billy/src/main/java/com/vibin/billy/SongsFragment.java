@@ -63,7 +63,6 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     CustomDatabaseAdapter customDatabaseAdapter;
     SwingBottomInAnimationAdapter swingBottomInAnimationAdapter;
     RequestQueue req;
-    RequestQueue.RequestFilter allPass;
     BillyApplication billyapp;
     ProcessingTask ft;
     String uri, searchparam, table_name, rssurl;
@@ -84,12 +83,6 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         billyapp = (BillyApplication) getActivity().getApplication();
         imgload = billyapp.getImageLoader();
         req = billyapp.getRequestQueue();
-        allPass = new RequestQueue.RequestFilter() {
-            @Override
-            public boolean apply(Request<?> request) {
-                return true;
-            }
-        };
 
         rssurl = getResources().getStringArray(R.array.url)[position];
         table_name = getResources().getStringArray(R.array.table)[position];
@@ -124,7 +117,6 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         if (!billyapp.isConnected()) {
             Log.d(tag, "No internet connection");
             jsonMdata = customDatabaseAdapter.getArrayList(table_name);
-            //Log.d(tag, "jsonMdata is " + jsonMdata);
             if (jsonMdata != null) {
                 Gson gson = new Gson();
                 mData = gson.fromJson(jsonMdata, new TypeToken<ArrayList<ProcessingTask.BillyData>>() {
@@ -142,7 +134,6 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
@@ -200,7 +191,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                     e.printStackTrace();
                 }
             } else {
-                Log.d(tag, "Oncreateview, mData size is " + mData.size());
+                Log.d(tag, "All songs have loaded, mData size is " + mData.size());
                 updateList();
             }
         } else if (!billyapp.isConnected()) {
@@ -264,6 +255,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
      * Make sure to get cached version of Billboard response before making a new request, for comparing later
      */
     private void performRequests() throws UnsupportedEncodingException {
+        CustomStringRequest stringreq = new CustomStringRequest(Request.Method.GET, rssurl, billyComplete(), billyError());
         spinnerVisible = true;
         Cache.Entry entry = req.getCache().get(rssurl);
         if (entry != null) {
@@ -273,9 +265,10 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             }
             //Log.d(tag, " " + entry.toString() + " " + entry.isExpired() + " " + entry.refreshNeeded());
         }
-        CustomStringRequest stringreq = new CustomStringRequest(Request.Method.GET, rssurl, billyComplete(), billyError());
-        stringreq.setTag("billyreq");
+        stringreq.setTag(this);
+
         req.add(stringreq);
+        Log.d(tag,"performrequests");
     }
 
 
@@ -409,6 +402,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                     String jsonMdata = customDatabaseAdapter.getArrayList(table_name);
                     if (pulltorefresh) {
                         Log.d(tag, "Pull to refresh");
+                        mIndex = 0;
                         handleXML(response, true);
                         pulltorefresh = false;
                     } else if (jsonMdata == null) {
@@ -472,17 +466,14 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             uri = getResources().getString(R.string.itunes, searchparam);
             Log.d(tag, uri);
             JsonObjectRequest jsonreq = new JsonObjectRequest(Request.Method.GET, uri, null, itunesComplete(), itunesError());
+            jsonreq.setTag(this);
             if (invalidateCache) {
-                //RequestQueue req = Volley.newRequestQueue(getActivity());
-                req.getCache().remove(jsonreq.getCacheKey());
-                //req.start();
+                req.getCache().invalidate(jsonreq.getCacheKey(),true);
             }
             req.add(jsonreq);
         } catch (NullPointerException e) {
-            pulltorefresh = true;
-            StringRequest stringreq = new StringRequest(Request.Method.GET, rssurl, billyComplete(), billyError());
-            req.add(stringreq);
-            e.printStackTrace();
+            Log.d(tag,e.toString());
+            onRefresh(); // Simulate a pull to refresh
         }
     }
 
@@ -573,6 +564,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             swingBottomInAnimationAdapter.reset();
             CustomStringRequest stringreq = new CustomStringRequest(Request.Method.GET, rssurl, billyComplete(), billyError());
             req.getCache().invalidate(stringreq.getCacheKey(),true);
+            stringreq.setTag(this);
             req.add(stringreq);
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -616,7 +608,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     @Override
     public void onDestroy() {
         super.onDestroy();
-        req.cancelAll(allPass);
+        req.cancelAll(this);
     }
 
     /**

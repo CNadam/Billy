@@ -401,7 +401,7 @@ public class ProcessingTask {
         }
         firstWord = firstWord.toLowerCase();
         boolean ignore = false;
-        Pattern pat = Pattern.compile("\\b(remix|cover|guitar|parody|acoustic|instrumental|drums)\\b");
+        Pattern pat = Pattern.compile("\\b(remix|cover|guitar|parody|acoustic|instrumental|drums|cloudseeder)\\b");
 
         InputStream in = getStringAsInputStream(response);
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
