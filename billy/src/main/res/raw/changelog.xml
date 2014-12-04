@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
-    <changelogversion versionName="1.6" changeDate="Nov 30, 2014">
+    <changelogversion versionName="1.6" changeDate="Dec 4, 2014">
         <changelogtext>[b]New![/b] Headphone play/pause control</changelogtext>
         <changelogtext>More Material Design!</changelogtext>
         <changelogtext>SoundCloud song accuracy fix</changelogtext>

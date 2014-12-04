@@ -206,8 +206,9 @@ public class MainActivity extends ActionBarActivity {
 //TODO better SoundCloud track fetch
 //TODO Youtube card padding on L
 //TODO change firstRun preference in BillyApplication
-//TODO use AudioManager in Service
+//TODO deleting database needed on first run?
 
+//TODO use AudioManager in Service
 //TODO use i1 endpoint api if needed
 //TODO Implement playlists
 

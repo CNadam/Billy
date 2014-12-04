@@ -16,4 +16,5 @@
     <!-- Notification / Lollipop -->
     <color name="nTitle">#d8000000</color>
     <color name="nDesc">#80000000</color>
+    <color name="material_background_light">#FFEEEEEE</color>
 </resources>

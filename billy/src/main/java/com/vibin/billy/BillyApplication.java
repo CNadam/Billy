@@ -72,12 +72,12 @@ public class BillyApplication extends Application {
      * Deleting database because we have changed the schema
      */
     public boolean isFirstRun() {
-     boolean check = pref.getBoolean("firstrun",true);
+     boolean check = pref.getBoolean("firstrun16",true);
         if(check)
         {
             this.deleteDatabase("BillyDatabase");
             SharedPreferences.Editor ed = pref.edit();
-            ed.putBoolean("firstrun",false);
+            ed.putBoolean("firstrun16",false);
             ed.apply();
             return true;
         }

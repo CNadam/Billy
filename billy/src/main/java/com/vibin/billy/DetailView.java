@@ -174,7 +174,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         final String scUrl = getResources().getString(R.string.soundcloud, (song + " " + UTF8(artist)).replaceAll(" ", "+"));
         final String lastFmBioUrl = getResources().getString(R.string.lastfm, "getinfo", UTF8(artist).replaceAll(" ", "+").replaceAll("&", "and"));
         final String lastFmTopAlbumsUrl = getResources().getString(R.string.lastfm, "gettopalbums", UTF8(artist).replaceAll(" ", "+"));
-        final String youtubeUrl = getResources().getString(R.string.youtube, (song + " " + UTF8(artist).replaceAll(" ", "+")));
+        final String youtubeUrl = getResources().getString(R.string.youtube, (song + " " + UTF8(artist)).replaceAll(" ", "+"));
         StringRequest stringreq = new StringRequest(Request.Method.GET, scUrl, scComplete(), scError());
         JsonObjectRequest lastFmBio = new JsonObjectRequest(Request.Method.GET, lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
         JsonObjectRequest lastFmTopAlbums = new JsonObjectRequest(Request.Method.GET, lastFmTopAlbumsUrl, null, lastFmTopAlbumsComplete(), lastFmTopAlbumsError());
