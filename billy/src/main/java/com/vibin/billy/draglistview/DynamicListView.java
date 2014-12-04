@@ -369,13 +369,14 @@ public class DynamicListView extends ListView {
 
             final int switchViewStartTop = switchView.getTop();
 
-            if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.KITKAT){
+//            if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.KITKAT){
                 mobileView.setVisibility(View.VISIBLE);
                 switchView.setVisibility(View.INVISIBLE);
-            } else{
+//            }
+            /*else{
                 mobileView.setVisibility(View.INVISIBLE);
                 switchView.setVisibility(View.VISIBLE);
-            }
+            }*/
 
             updateNeighborViewsForID(mMobileItemId);
 
@@ -427,11 +428,13 @@ public class DynamicListView extends ListView {
      */
     private void touchEventsEnded() {
         final View mobileView = getViewForID(mMobileItemId);
+        try {
         if (mCellIsMobile || mIsWaitingForScrollFinish) {
             mCellIsMobile = false;
             mIsWaitingForScrollFinish = false;
             mIsMobileScrolling = false;
             mActivePointerId = INVALID_POINTER_ID;
+
 
             // If the autoscroller has not completed scrolling, we need to wait for it to
             // finish in order to determine the final location of where the hover cell
@@ -441,40 +444,40 @@ public class DynamicListView extends ListView {
                 return;
             }
 
-            try {
                 mHoverCellCurrentBounds.offsetTo(mHoverCellOriginalBounds.left, mobileView.getTop());
-            } catch (NullPointerException e) {
-                Log.d(TAG, e.toString());
+
+
+                ObjectAnimator hoverViewAnimator = ObjectAnimator.ofObject(mHoverCell, "bounds",
+                        sBoundEvaluator, mHoverCellCurrentBounds);
+                hoverViewAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                        invalidate();
+                    }
+                });
+                hoverViewAnimator.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        setEnabled(false);
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        mAboveItemId = INVALID_ID;
+                        mMobileItemId = INVALID_ID;
+                        mBelowItemId = INVALID_ID;
+                        mobileView.setVisibility(VISIBLE);
+                        mHoverCell = null;
+                        setEnabled(true);
+                        invalidate();
+                    }
+                });
+                hoverViewAnimator.start();
+            }else{
+                touchEventsCancelled();
             }
-
-            ObjectAnimator hoverViewAnimator = ObjectAnimator.ofObject(mHoverCell, "bounds",
-                    sBoundEvaluator, mHoverCellCurrentBounds);
-            hoverViewAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                    invalidate();
-                }
-            });
-            hoverViewAnimator.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationStart(Animator animation) {
-                    setEnabled(false);
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mAboveItemId = INVALID_ID;
-                    mMobileItemId = INVALID_ID;
-                    mBelowItemId = INVALID_ID;
-                    mobileView.setVisibility(VISIBLE);
-                    mHoverCell = null;
-                    setEnabled(true);
-                    invalidate();
-                }
-            });
-            hoverViewAnimator.start();
-        } else {
-            touchEventsCancelled();
+        } catch (NullPointerException e) {
+            Log.d(TAG, e.toString());
         }
     }
 
