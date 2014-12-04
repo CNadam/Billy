@@ -14,15 +14,17 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.readystatesoftware.systembartint.SystemBarTintManager;
+import com.vibin.billy.swipeable.SwipeableActivity;
 
-public class Settings extends ActionBarActivity {
-    SystemBarTintManager tintManager;
+public class Settings extends SwipeableActivity {
+    protected SystemBarTintManager tintManager;
 
     private static final String TAG = Settings.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        super.enableSwipeToDismiss();
         setContentView(R.layout.settings_view);
 
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.KITKAT) {
@@ -68,9 +70,8 @@ public class Settings extends ActionBarActivity {
     }
 
     public static class SettingsFragment extends PreferenceFragment {
-
-        Preference rate,changelog,licenses;
-        FragmentManager fm;
+        private Preference rate,changelog,licenses;
+        private FragmentManager fm;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -84,6 +85,7 @@ public class Settings extends ActionBarActivity {
         }
 
         private void setOnClickListeners() {
+
             rate.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
