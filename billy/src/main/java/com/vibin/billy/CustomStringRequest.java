@@ -1,5 +1,7 @@
 package com.vibin.billy;
 
+import android.util.Log;
+
 import com.android.volley.Cache;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
@@ -11,6 +13,7 @@ import java.util.Map;
 
 public class CustomStringRequest extends Request<String> {
     private final Response.Listener<String> mListener;
+    private static final String TAG = CustomStringRequest.class.getSimpleName();
     public CustomStringRequest(int method, String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
         super(method, url, errorListener);
         mListener = listener;
@@ -22,7 +25,7 @@ public class CustomStringRequest extends Request<String> {
         try {
             parsed = new String(response.data, HttpHeaderParser.parseCharset(response.headers));
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            Log.d(TAG, e.toString());
         }
         return Response.success(parsed,parseIgnoreCacheHeaders(response));
     }

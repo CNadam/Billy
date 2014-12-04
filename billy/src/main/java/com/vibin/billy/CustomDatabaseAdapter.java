@@ -11,7 +11,7 @@ import android.util.Log;
 public class CustomDatabaseAdapter {
 
     private static final String TAG = CustomDatabaseAdapter.class.getSimpleName();
-    DatabaseHelper hlp;
+    private DatabaseHelper hlp;
     //Context c;
 
     public CustomDatabaseAdapter(Context context) {

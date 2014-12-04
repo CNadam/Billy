@@ -66,7 +66,6 @@ public class AnimationUtils {
         imageView.setScaleType(imageViewScaleType);
         transitionDrawable.setCrossFadeEnabled(crossFadeEnabled);
         transitionDrawable.startTransition(animDuration);
-
     }
 
     /**

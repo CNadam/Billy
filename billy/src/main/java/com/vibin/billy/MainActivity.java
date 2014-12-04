@@ -26,8 +26,6 @@ import android.widget.Toast;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
-import com.viewpagerindicator.TabPageIndicator;
-import com.viewpagerindicator.TitlePageIndicator;
 
 /**
  * The main activity. (no pun intended)
@@ -64,7 +62,7 @@ public class MainActivity extends ActionBarActivity {
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
     }
 
-    void setViewpager() {
+    private void setViewpager() {
         try {
             mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this);
             ViewPager mPager = (ViewPager) findViewById(R.id.pager);
@@ -206,14 +204,11 @@ public class MainActivity extends ActionBarActivity {
 }
 
 //TODO better SoundCloud track fetch
-//TODO Custom preferences
-//TODO check if v21 single_row is needed
-//TODO button text color using styles.xml attributes
+//TODO Youtube card padding on L
+//TODO change firstRun preference in BillyApplication
+//TODO use AudioManager in Service
 
 //TODO use i1 endpoint api if needed
-//TODO low-res devices play button notification
-//TODO test on devices
-
 //TODO Implement playlists
 
 //TODO service quits automatically when playing after sometime

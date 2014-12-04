@@ -55,7 +55,7 @@ import java.util.ArrayList;
 public class SongsFragment extends ListFragment implements AdapterView.OnItemClickListener, SwipeRefreshLayout.OnRefreshListener {
     ArrayList<ProcessingTask.BillyData> mData, mDataLite;
     String[] billySong, billyArtist, result;
-    String jsonMdata, billboardResponse, cacheData = "";
+    String jsonMdata, cacheData = "";
     LinearLayout spinner;
     View v;
     boolean spinnerVisible, pulltorefresh, isHot100;
@@ -132,7 +132,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             try {
                 performRequests();
             } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+                Log.d(tag, e.toString());
             }
         }
     }
@@ -150,7 +150,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         spinner = (LinearLayout) v.findViewById(R.id.spinner);
 
         /**
-         * Show Spinner or ListView (hidden by default)
+         * Show Spinner or ListView (both hidden by default)
          */
 
         if (spinnerVisible) {
@@ -188,14 +188,14 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 try {
                     performRequests();
                 } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
+                    Log.d(tag, e.toString());
                 }
             } else {
                 Log.d(tag, "All songs have loaded, mData size is " + mData.size());
                 updateList();
             }
         } else if (!billyapp.isConnected()) {
-            Log.d(tag, "Oncreateview + no internet connection, mData size is " + mData.size());
+            Log.d(tag, "Oncreateview + no network, mData size is " + mData.size());
             updateList();
         }
         return v;
@@ -395,7 +395,6 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             public void onResponse(String response) {
                 Log.d(tag, "response length is " + response.length());
                 spinnerVisible = false;
-                billboardResponse = response;
                 spinner.setVisibility(View.GONE);
                 v.findViewById(android.R.id.list).setVisibility(View.VISIBLE);
                 try {
@@ -421,11 +420,11 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                         customBaseAdapter.notifyDataSetChanged();
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.d(tag, e.toString());
                 } catch (XmlPullParserException e) {
-                    e.printStackTrace();
+                    Log.d(tag, e.toString());
                 } catch (NullPointerException e) {
-                    e.printStackTrace();
+                    Log.d(tag, e.toString());
                 }
             }
         };
@@ -494,7 +493,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                             customBaseAdapter.updateArrayList(mData);
                             customBaseAdapter.notifyDataSetChanged();
                         } catch (NullPointerException e) {
-                            e.printStackTrace();
+                            Log.d(tag, e.toString());
                         }
                     } else {
                         Crashlytics.log(Log.ERROR, tag, "Result object from iTunes is null for this track. " + jsonObject);
@@ -542,7 +541,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 Toast.makeText(getActivity(), billyapp.getString(R.string.nointernet), Toast.LENGTH_LONG).show();
             }
         } catch (NullPointerException e) {
-            e.printStackTrace();
+            Log.d(tag, e.toString());
             pulltorefresh = true;
             try {
                 performRequests(); // mData is null, so perform all requests again and construct it

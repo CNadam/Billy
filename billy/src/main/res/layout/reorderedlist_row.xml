@@ -1,8 +1,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="#fff">
+    android:layout_height="wrap_content">
 
     <ImageView
         android:id="@+id/drag_handler"
@@ -19,7 +18,6 @@
         android:id="@+id/checkedTV"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#fff"
         android:layout_toRightOf="@+id/drag_handler"
         android:layout_centerVertical="true"
         android:gravity="center_vertical"

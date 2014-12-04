@@ -444,7 +444,7 @@ public class DynamicListView extends ListView {
             try {
                 mHoverCellCurrentBounds.offsetTo(mHoverCellOriginalBounds.left, mobileView.getTop());
             } catch (NullPointerException e) {
-                e.printStackTrace();
+                Log.d(TAG, e.toString());
             }
 
             ObjectAnimator hoverViewAnimator = ObjectAnimator.ofObject(mHoverCell, "bounds",

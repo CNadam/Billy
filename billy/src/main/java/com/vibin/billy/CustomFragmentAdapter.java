@@ -8,17 +8,17 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.util.Log;
 
-import com.viewpagerindicator.IconPagerAdapter;
+//import com.viewpagerindicator.IconPagerAdapter;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class CustomFragmentAdapter extends FragmentStatePagerAdapter implements IconPagerAdapter {
+public class CustomFragmentAdapter extends FragmentStatePagerAdapter {
 
     private static final String TAG = CustomFragmentAdapter.class.getSimpleName();
-    protected static String[] content;
+    private static String[] content;
     private int mCount;
-    static List<String> resGenres; // Genres list from Resources
+    private static List<String> resGenres; // Genres list from Resources
 
     Context c;
 
@@ -30,11 +30,6 @@ public class CustomFragmentAdapter extends FragmentStatePagerAdapter implements 
         content = billyapp.getGenresList();
         mCount = content.length;
         resGenres = Arrays.asList(c.getResources().getStringArray(R.array.genres));
-    }
-
-    @Override
-    public int getIconResId(int index) {
-        return 0;
     }
 
     /**

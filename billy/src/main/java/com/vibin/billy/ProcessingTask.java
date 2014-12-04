@@ -30,10 +30,10 @@ public class ProcessingTask {
 
     private static final String TAG = ProcessingTask.class.getSimpleName();
 
-    String[] billySong, billyArtist;
-    int billySize;
-    Context context;
-    int quality;
+    private String[] billySong, billyArtist;
+    private int billySize;
+    private Context context;
+    private int quality;
 
     /**
      * For SoundCloud parsing
@@ -206,7 +206,7 @@ public class ProcessingTask {
             }
 
             // Replace Smart Quotes with Dumb Quotes
-            trackName = replaceSmartQuotes(trackName).trim();
+            trackName = replaceSmartQuotes(trackName);
 
             int match = matchMagic(billySong, trackName);
 
@@ -259,6 +259,7 @@ public class ProcessingTask {
         } else if (extractedArtist.contains("Duet")) {
             extractedArtist = extractedArtist.substring(0, extractedArtist.indexOf("Duet"));
         }
+        extractedArtist = StringUtils.stripAccents(extractedArtist);
         return extractedArtist.trim();
     }
 
@@ -306,7 +307,7 @@ public class ProcessingTask {
 
 
     /**
-     * Encode the song name
+     * Encode the song/artist name
      */
 
     public String paramEncode(String text) {
@@ -326,13 +327,13 @@ public class ProcessingTask {
      * via GData Utils
      */
 
-    String replaceSmartQuotes(String str) {
+    private String replaceSmartQuotes(String str) {
         str = replaceChars(str, "\u0091\u0092\u2018\u2019", '\'');
         str = replaceChars(str, "\u0093\u0094\u201c\u201d", '"');
-        return str;
+        return str.trim();
     }
 
-    String replaceChars(String str, String oldchars, char newchar) {
+    private String replaceChars(String str, String oldchars, char newchar) {
         int pos = indexOfChars(str, oldchars, 0);
         if (pos == -1) {
             return str;
@@ -346,7 +347,7 @@ public class ProcessingTask {
         return buf.toString();
     }
 
-    int indexOfChars(String str, String chars, int fromIndex) {
+    private int indexOfChars(String str, String chars, int fromIndex) {
         for (int pos = fromIndex; pos < str.length(); pos++) {
             if (chars.indexOf(str.charAt(pos)) >= 0) {
                 return pos;
@@ -473,7 +474,7 @@ public class ProcessingTask {
         return links;
     }
 
-    InputStream getStringAsInputStream(String text) throws UnsupportedEncodingException {
+    private InputStream getStringAsInputStream(String text) throws UnsupportedEncodingException {
         return new ByteArrayInputStream(text.getBytes(CharEncoding.UTF_8));
     }
 }

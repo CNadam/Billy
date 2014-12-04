@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -45,7 +46,6 @@ import com.google.android.youtube.player.YouTubeIntents;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.vibin.billy.swipeable.SwipeableActivity;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.protocol.HTTP;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -56,7 +56,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 /**
- * The detail view of a song. Is swipeable.
+ * The detail view of a song.
  */
 
 public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarChangeListener {
@@ -155,19 +155,20 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         if (PlayerService.isRunning) {
             if (mBound) {
                 stopTh = true;
-                unbindService(); //unbind service if already bound so as to update UI with new intent
+                removeBonding(); //unbind service if already bound so as to update UI with new intent
             }
             bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
         }
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
     }
 
     private void performRequests(RequestQueue req) {
         super.enableSwipeToDismiss();
 
-        final String scUrl = getResources().getString(R.string.soundcloud, (song + " " + StringUtils.stripAccents(artist)).replaceAll(" ", "+"));
+        final String scUrl = getResources().getString(R.string.soundcloud, (song + " " + artist).replaceAll(" ", "+"));
         final String lastFmBioUrl = getResources().getString(R.string.lastfm, "getinfo", artist.replaceAll(" ", "+").replaceAll("&", "and"));
         final String lastFmTopAlbumsUrl = getResources().getString(R.string.lastfm, "gettopalbums", artist.replaceAll(" ", "+"));
-        final String youtubeUrl = getResources().getString(R.string.youtube, (song + " " + StringUtils.stripAccents(artist)).replaceAll(" ", "+"));
+        final String youtubeUrl = getResources().getString(R.string.youtube, (song + " " + artist).replaceAll(" ", "+"));
         StringRequest stringreq = new StringRequest(Request.Method.GET, scUrl, scComplete(), scError());
         JsonObjectRequest lastFmBio = new JsonObjectRequest(Request.Method.GET, lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
         JsonObjectRequest lastFmTopAlbums = new JsonObjectRequest(Request.Method.GET, lastFmTopAlbumsUrl, null, lastFmTopAlbumsComplete(), lastFmTopAlbumsError());
@@ -271,7 +272,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                                 }
                             });
                         } catch (JSONException e) {
-                            e.printStackTrace();
+                            Log.d(TAG, e.toString());
                         }
                     }
                 };
@@ -378,7 +379,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                     thumbnail = jsonObject.getJSONArray("items").getJSONObject(0).getJSONObject("snippet").getJSONObject("thumbnails").getJSONObject("high").getString("url");
                     setYoutube(thumbnail, videoId);
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    Log.d(TAG, e.toString());
                 }
             }
         };
@@ -592,7 +593,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                             }
                         } else {
                             dashes.clearAnimation();
-                            dashes.setVisibility(View.INVISIBLE);
+                            dashes.setVisibility(View.GONE);
                             mService.pauseMedia();
                         }
                     } else {
@@ -654,7 +655,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                     }
                 }
             } catch (IllegalStateException e) {
-                e.printStackTrace();
+                Log.d(TAG, e.toString());
             }
             progressHandler.postDelayed(progress, 1000);
         }
@@ -799,7 +800,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService();
+        removeBonding();
         active = false;
     }
 
@@ -807,12 +808,12 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
      * Unbind service and Activity
      */
 
-    private void unbindService() {
+    private void removeBonding() {
         if (mBound) {
             try {
                 unbindService(mConnection);
             } catch (IllegalArgumentException e) {
-                e.printStackTrace();
+                Log.d(TAG, e.toString());
             }
             mBound = false;
         }
