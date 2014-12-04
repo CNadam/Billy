@@ -1,8 +1,8 @@
 package com.vibin.billy.swipeable;
 
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 
 /**
@@ -18,6 +18,7 @@ public class SwipeableActivity extends ActionBarActivity { // Extends Activity b
 
     // top most-level swipeable ViewGroup
     private SwipeDismissViewGroup mSwipeDismissViewGroup;
+    private ViewGroup content;
 
     /**
      * Enables Swipe to Dismiss on this Activity.
@@ -96,7 +97,7 @@ public class SwipeableActivity extends ActionBarActivity { // Extends Activity b
 
             @Override
             public void onSlide(float slideOffset) {
-
+                updateActivityAlpha(slideOffset);
                 onActivitySlide(slideOffset);
 
                 /*if(slideOffset == 0f)
@@ -117,6 +118,19 @@ public class SwipeableActivity extends ActionBarActivity { // Extends Activity b
     }
 
     /**
+     * Get the content view of activity (no status bar included) and change its alpha
+     *
+     * @param slideOffset ranges form 0.0 to 1.0
+     */
+    private void updateActivityAlpha(float slideOffset) {
+        if (content != null) {
+            content.setAlpha(1 - slideOffset);
+        } else {
+            content = ((ViewGroup) this.findViewById(android.R.id.content));
+        }
+    }
+
+    /**
      * Override this if you'd like to be notified when the activity has been
      * swiped successfully and is about to be finished. Don't forget to call super on this.
      * <p/>
@@ -134,6 +148,7 @@ public class SwipeableActivity extends ActionBarActivity { // Extends Activity b
      */
     public void onActivitySlide(float slideOffset) {
         // this space for rent
+
     }
 
 }
