@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.vibin.billy"
-    xmlns:tools="http://schemas.android.com/tools">
+    package="com.vibin.billy" >
 
-    <uses-sdk tools:node="replace" />
     <application
         android:name=".BillyApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.Billy">
+        android:theme="@style/Theme.Billy" >
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -28,7 +27,6 @@
         <service
             android:name=".PlayerService"
             android:enabled="true" />
-
         <service
             android:name=".PPlayerService"
             android:enabled="true" />
@@ -36,15 +34,19 @@
         <activity
             android:name=".Settings"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/Theme.Billy" />
-<!--        <receiver android:name="PlayerService$MediaControl" >
-            <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
-            </intent-filter>
-        </receiver>-->
+            android:theme="@style/Theme.Billy.Swipeable" />
+
         <meta-data
             android:name="com.crashlytics.ApiKey"
             android:value="019d3efb4ece685c209cd7098275f51694ab2a96" />
+
+        <receiver
+            android:name=".MediaControl"
+            android:enabled="true">
+            <intent-filter android:priority="1000000000">
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

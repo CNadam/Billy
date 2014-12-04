@@ -134,7 +134,7 @@ public class PPlayerService extends Service implements Handler.Callback {
             bp = LibVLC.getInstance();
             bp.init(getBaseContext());
         } catch (LibVlcException e) {
-            e.printStackTrace();
+            Log.d(TAG, e.toString());
         }
 
         Log.d(TAG, "Service's onCreate");
@@ -216,7 +216,7 @@ public class PPlayerService extends Service implements Handler.Callback {
                                     BPlistener.onNotificationPausePressed();
                                 }
                             } catch (IllegalStateException e) {
-                                e.printStackTrace();
+                                Log.d(TAG, e.toString());
                             }
                         }
                         break;
@@ -279,7 +279,7 @@ public class PPlayerService extends Service implements Handler.Callback {
         try {
             unregisterReceiver(NotificationMediaControl);
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+            Log.d(TAG, e.toString());
         }
         stopMedia();
     }
@@ -306,7 +306,7 @@ public class PPlayerService extends Service implements Handler.Callback {
         try {
             unregisterReceiver(NotificationMediaControl);
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+            Log.d(TAG, e.toString());
         }
         if (PSlistener != null) {
             telephony.listen(PSlistener, PhoneStateListener.LISTEN_NONE);

@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -37,18 +38,16 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     int songIndex;
     int bufferPercent;
     Notification note;
-    NotificationManager noteMan;
     Bitmap notifIcon;
     RequestQueue req;
-    RemoteViews notifView;
     BillyApplication billyapp;
     PhoneStateListener PSlistener;
     TelephonyManager telephony;
     private onBPChangedListener BPlistener;
     private final IBinder mBinder = new PlayerServiceBinder();
-    public static boolean isRunning;
-    public static boolean isInCall, isInCallMusicPaused;
+    private static boolean isInCall, isInCallMusicPaused;
     public static boolean isIdle = true;
+    public static boolean isRunning;
 
     public interface onBPChangedListener {
         void onPrepared(int duration);
@@ -88,12 +87,12 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     public void onCreate() {
         super.onCreate();
 
-        Log.d(TAG, "Service's onCreate");
+        Log.d(TAG, "onCreate");
         billyapp = (BillyApplication) this.getApplication();
 
         isRunning = true;
-        notifView = new RemoteViews(this.getPackageName(), R.layout.notification_view);
-        noteMan = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        setCustomExceptionHandler();
+        ((AudioManager)getSystemService(AUDIO_SERVICE)).registerMediaButtonEventReceiver(new ComponentName(this, MediaControl.class));
         req = billyapp.getRequestQueue();
 
         bp.setOnPreparedListener(this);
@@ -115,25 +114,31 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
-            setupPhoneListener();
-            streamLink = intent.getStringExtra("streamLink");
-            song = intent.getStringExtra("songName");
-            album = intent.getStringExtra("albumName");
-            artist = intent.getStringExtra("artistName");
-            songIndex = intent.getIntExtra("songIndex", 50);
-            artwork = intent.getStringExtra("artwork");
+            if (intent.getStringExtra("id") != null) {
+                Log.d(TAG, "recieving media button intent");
+                KeyEvent keyEvent = (KeyEvent) intent.getParcelableExtra("keyevent");
+                handleKeyDown(keyEvent);
+            } else {
+                setupPhoneListener();
+                streamLink = intent.getStringExtra("streamLink");
+                song = intent.getStringExtra("songName");
+                album = intent.getStringExtra("albumName");
+                artist = intent.getStringExtra("artistName");
+                songIndex = intent.getIntExtra("songIndex", 50);
+                artwork = intent.getStringExtra("artwork");
 
-            bp.reset();
+                bp.reset();
 
-            if (!bp.isPlaying()) {
-                try {
-                    bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
-                    bp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                    //bp.setDataSource(streamLink);
+                if (!bp.isPlaying()) {
+                    try {
+                        bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
+                        bp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                        //bp.setDataSource(streamLink);
 
-                    bp.prepareAsync();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                        bp.prepareAsync();
+                    } catch (IOException e) {
+                        Log.d(TAG, e.toString());
+                    }
                 }
             }
         }
@@ -159,7 +164,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                                     pauseMedia();
                                 }
                             } catch (IllegalStateException e) {
-                                e.printStackTrace();
+                                Log.d(TAG, e.toString());
                             }
                         }
                         break;
@@ -199,13 +204,13 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        Log.d(TAG, "Service onCompletion");
+        Log.d(TAG, "onCompletion");
         BPlistener.onCompletion();
         stopForeground(true);
         try {
-            unregisterReceiver(MediaControl);
+            unregisterReceiver(NotificationMediaControl);
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+            Log.d(TAG, e.toString());
         }
         stopMedia();
     }
@@ -244,7 +249,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(TAG, "Service onDestroy");
+        Log.d(TAG, "onDestroy");
         if (bp != null) {
             if (bp.isPlaying()) {
                 bp.stop();
@@ -255,9 +260,10 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         }
         stopForeground(true);
         try {
-            unregisterReceiver(MediaControl);
+            unregisterReceiver(NotificationMediaControl);
+            ((AudioManager)getSystemService(AUDIO_SERVICE)).unregisterMediaButtonEventReceiver(new ComponentName(this, MediaControl.class));
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+            Log.d(TAG, e.toString());
         }
         if (PSlistener != null) {
             telephony.listen(PSlistener, PhoneStateListener.LISTEN_NONE);
@@ -305,6 +311,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
     @TargetApi(Build.VERSION_CODES.L)
     private void putNotification() {
+        final RemoteViews notifView = new RemoteViews(this.getPackageName(), R.layout.notification_view);
         billyapp.getImageLoader().get(artwork, new ImageLoader.ImageListener() {
             @Override
             public void onResponse(ImageLoader.ImageContainer imageContainer, boolean b) {
@@ -373,32 +380,44 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         filter.addAction("com.vibin.billy.ACTION_PAUSE");
         filter.addAction("com.vibin.billy.ACTION_PLAY");
         filter.addAction("com.vibin.billy.ACTION_QUIT");
-        registerReceiver(MediaControl, filter);
+        registerReceiver(NotificationMediaControl, filter);
     }
 
-    private final BroadcastReceiver MediaControl = new BroadcastReceiver() {
+    /**
+     * @return false if key is not handled
+     */
+
+    private boolean handleKeyDown(KeyEvent keyEvent)
+    {
+        if (keyEvent.getAction()!=KeyEvent.ACTION_DOWN) {
+            int keyCode = keyEvent.getKeyCode();
+            Log.d(TAG,"Keycode is "+keyCode);
+
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+                    toggleMedia();
+                    return true;
+                case KeyEvent.KEYCODE_MEDIA_PLAY:
+                    playMedia();
+                    return true;
+                case KeyEvent.KEYCODE_MEDIA_PAUSE:
+                    pauseMedia();
+                    return true;
+                case KeyEvent.KEYCODE_HEADSETHOOK:
+                    toggleMedia();
+                    return true;
+                case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+                case KeyEvent.KEYCODE_MEDIA_NEXT:
+                case KeyEvent.KEYCODE_MEDIA_STOP:
+            }
+        }
+        return false;
+    }
+
+    private final BroadcastReceiver NotificationMediaControl = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-
-            if (Intent.ACTION_MEDIA_BUTTON.equals(action)) {
-                KeyEvent key = (KeyEvent) intent.getExtras().get(Intent.EXTRA_KEY_EVENT);
-
-                if (key.getAction() != KeyEvent.ACTION_DOWN) {
-                    return;
-                }
-                switch (key.getKeyCode()) {
-                    case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-                        toggleMedia();
-                        break;
-                    case KeyEvent.KEYCODE_MEDIA_PLAY:
-                        playMedia();
-                        break;
-                    case KeyEvent.KEYCODE_MEDIA_PAUSE:
-                        pauseMedia();
-                        break;
-                }
-            }
 
             if (action.equalsIgnoreCase("com.vibin.billy.ACTION_PAUSE")) {
                 pauseMedia();
@@ -415,4 +434,23 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
             }
         }
     };
+
+    /**
+     * Register a custom UncaughtException Handler for dismissing persistent notification on foreground Service's crash
+     * Do call the default Android UncaughtException Handler at last, to get the dialog
+     */
+    private void setCustomExceptionHandler() {
+        final Thread.UncaughtExceptionHandler defaultExHandler = Thread.getDefaultUncaughtExceptionHandler();
+        Thread.UncaughtExceptionHandler customExHandler = new Thread.UncaughtExceptionHandler() {
+
+            @Override
+            public void uncaughtException(Thread thread, Throwable throwable) {
+                Log.d(TAG,"Uncaught exception handled");
+                stopForeground(true);
+
+                defaultExHandler.uncaughtException(thread, throwable);
+            }
+        };
+        Thread.setDefaultUncaughtExceptionHandler(customExHandler);
+    }
 }
