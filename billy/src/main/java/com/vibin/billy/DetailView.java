@@ -53,6 +53,8 @@ import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Arrays;
 
 /**
@@ -146,7 +148,11 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         });
 
         RequestQueue req = billyapp.getRequestQueue();
-        performRequests(req);
+        try {
+            performRequests(req);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
 
         NetworkImageView hero = (NetworkImageView) findViewById(R.id.image_header);
         hero.setImageUrl(artwork, imgload);
@@ -162,13 +168,13 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
     }
 
-    private void performRequests(RequestQueue req) {
+    private void performRequests(RequestQueue req) throws UnsupportedEncodingException {
         super.enableSwipeToDismiss();
 
-        final String scUrl = getResources().getString(R.string.soundcloud, (song + " " + artist).replaceAll(" ", "+"));
-        final String lastFmBioUrl = getResources().getString(R.string.lastfm, "getinfo", artist.replaceAll(" ", "+").replaceAll("&", "and"));
-        final String lastFmTopAlbumsUrl = getResources().getString(R.string.lastfm, "gettopalbums", artist.replaceAll(" ", "+"));
-        final String youtubeUrl = getResources().getString(R.string.youtube, (song + " " + artist).replaceAll(" ", "+"));
+        final String scUrl = getResources().getString(R.string.soundcloud, (song + " " + UTF8(artist)).replaceAll(" ", "+"));
+        final String lastFmBioUrl = getResources().getString(R.string.lastfm, "getinfo", UTF8(artist).replaceAll(" ", "+").replaceAll("&", "and"));
+        final String lastFmTopAlbumsUrl = getResources().getString(R.string.lastfm, "gettopalbums", UTF8(artist).replaceAll(" ", "+"));
+        final String youtubeUrl = getResources().getString(R.string.youtube, (song + " " + UTF8(artist).replaceAll(" ", "+")));
         StringRequest stringreq = new StringRequest(Request.Method.GET, scUrl, scComplete(), scError());
         JsonObjectRequest lastFmBio = new JsonObjectRequest(Request.Method.GET, lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
         JsonObjectRequest lastFmTopAlbums = new JsonObjectRequest(Request.Method.GET, lastFmTopAlbumsUrl, null, lastFmTopAlbumsComplete(), lastFmTopAlbumsError());
@@ -184,6 +190,10 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         req.add(youtubeSearch);
 
         ft = new ProcessingTask(getBaseContext());
+    }
+
+    private String UTF8(String text) throws UnsupportedEncodingException {
+        return URLEncoder.encode(text,"utf-8");
     }
 
     @Override
@@ -223,6 +233,8 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
             }
         } catch (NullPointerException e) {
             Log.e(TAG, e.toString());
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
     }
 
