@@ -30,8 +30,8 @@ android {
     defaultConfig {
         minSdkVersion MIN_SDK
         targetSdkVersion TARGET_SDK
-        versionCode 3
-        versionName "1.6"
+        versionCode 4
+        versionName "1.6.1"
     }
 
     /**

@@ -207,6 +207,8 @@ public class MainActivity extends ActionBarActivity {
 //TODO Youtube card padding on L
 //TODO change firstRun preference in BillyApplication
 //TODO deleting database needed on first run?
+//TODO crash fixes
+//TODO update UI in DetailView only if song is in background
 
 //TODO use AudioManager in Service
 //TODO use i1 endpoint api if needed

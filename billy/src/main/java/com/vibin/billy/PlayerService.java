@@ -312,18 +312,22 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     @TargetApi(Build.VERSION_CODES.L)
     private void putNotification() {
         final RemoteViews notifView = new RemoteViews(this.getPackageName(), R.layout.notification_view);
-        billyapp.getImageLoader().get(artwork, new ImageLoader.ImageListener() {
-            @Override
-            public void onResponse(ImageLoader.ImageContainer imageContainer, boolean b) {
-                notifIcon = imageContainer.getBitmap();
-                notifView.setImageViewBitmap(R.id.artwork, notifIcon);
-            }
+        try {
+            billyapp.getImageLoader().get(artwork, new ImageLoader.ImageListener() {
+                @Override
+                public void onResponse(ImageLoader.ImageContainer imageContainer, boolean b) {
+                    notifIcon = imageContainer.getBitmap();
+                    notifView.setImageViewBitmap(R.id.artwork, notifIcon);
+                }
 
-            @Override
-            public void onErrorResponse(VolleyError volleyError) {
-                Log.d(TAG, volleyError.toString());
-            }
-        });
+                @Override
+                public void onErrorResponse(VolleyError volleyError) {
+                    Log.d(TAG, volleyError.toString());
+                }
+            });
+        } catch (NullPointerException e) {
+            Log.d(TAG,e.toString());
+        }
 
         Intent resultIntent = new Intent(this, DetailView.class);
         resultIntent.putExtra("song", song);

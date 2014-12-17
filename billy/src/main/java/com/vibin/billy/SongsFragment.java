@@ -461,15 +461,17 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
      */
     private void callitunes(int i, boolean invalidateCache) {
         try {
-            searchparam = ft.paramEncode(billyArtist[i]) + "+" + ft.paramEncode(billySong[i]);
-            uri = getResources().getString(R.string.itunes, searchparam);
-            Log.d(tag, uri);
-            JsonObjectRequest jsonreq = new JsonObjectRequest(Request.Method.GET, uri, null, itunesComplete(), itunesError());
-            jsonreq.setTag(this);
-            if (invalidateCache) {
-                req.getCache().invalidate(jsonreq.getCacheKey(),true);
+            if(isAdded()) {
+                searchparam = ft.paramEncode(billyArtist[i]) + "+" + ft.paramEncode(billySong[i]);
+                uri = getResources().getString(R.string.itunes, searchparam);
+                Log.d(tag, uri);
+                JsonObjectRequest jsonreq = new JsonObjectRequest(Request.Method.GET, uri, null, itunesComplete(), itunesError());
+                jsonreq.setTag(this);
+                if (invalidateCache) {
+                    req.getCache().invalidate(jsonreq.getCacheKey(), true);
+                }
+                req.add(jsonreq);
             }
-            req.add(jsonreq);
         } catch (NullPointerException e) {
             Log.d(tag,e.toString());
             onRefresh(); // Simulate a pull to refresh

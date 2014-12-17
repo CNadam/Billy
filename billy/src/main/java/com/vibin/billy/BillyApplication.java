@@ -63,7 +63,7 @@ public class BillyApplication extends Application {
             Crashlytics.start(this);
         }
         getRequestQueue();
-        createImageLoader();
+        getImageLoader();
         getGenresList();
     }
 
@@ -84,15 +84,15 @@ public class BillyApplication extends Application {
         return false;
     }
 
+    /**
+     * If ImageLoader is null, create one
+     */
 
-    private void createImageLoader() {
-        if (imageCache == null) {
+    public ImageLoader getImageLoader() {
+        if (imageLoader == null) {
             imageCache = new BitmapLruCache();
             imageLoader = new ImageLoader(Volley.newRequestQueue(this), imageCache);
         }
-    }
-
-    public ImageLoader getImageLoader() {
         return imageLoader;
     }
 
