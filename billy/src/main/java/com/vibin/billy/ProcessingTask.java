@@ -358,6 +358,7 @@ public class ProcessingTask {
 
     /**
      * Refreshes {@link #quality} by setting it to value from SharedPreference
+     *
      * @return true if Album art quality preference is changed
      */
 
@@ -372,8 +373,8 @@ public class ProcessingTask {
                 return false;
             }
         } else {
-          // doesn't matter what you return here, as quality is zero,
-          // only when this method is called by this class' constructor
+            // doesn't matter what you return here, as quality is zero,
+            // only when this method is called by this class' constructor
             quality = newQuality;
             return true;
         }
@@ -386,15 +387,16 @@ public class ProcessingTask {
      * <p/>
      * If we don't find any song which matches our conditions, we fallback to the first song.
      *
-     * @param response the JSON response
+     * @param response the JSONArray response
      * @return the SoundCloud stream link
      */
-    public String[] parseSoundcloud(String response, String song) throws IOException, XmlPullParserException {
+
+    public String[] parseSoundcloud(JSONArray response, String song) throws JSONException {
         String soundcloudKey = context.getResources().getStringArray(R.array.keys)[0];
-        String streamLink = "", firstLink = "", permaLink = "", firstPermaLink = "";
-        String[] links = new String[2];
+        String streamLink = "", firstLink = "", permaLink = "", firstPermaLink = "", firstUser = "", firstDuration = "";
+        String[] links = new String[4];
         String firstWord;
-        int counter = 0;
+        int count = 0;
         if (song.contains(" ")) {
             firstWord = song.substring(0, song.indexOf(" "));
         } else {
@@ -403,74 +405,68 @@ public class ProcessingTask {
         firstWord = firstWord.toLowerCase();
         boolean ignore = false;
         Pattern pat = Pattern.compile("\\b(remix|cover|guitar|parody|acoustic|instrumental|drums|cloudseeder)\\b");
-
-        InputStream in = getStringAsInputStream(response);
-        XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-        XmlPullParser parser = factory.newPullParser();
-        parser.setInput(in, null);
-
-        int event = parser.getEventType();
-        while (event != XmlPullParser.END_DOCUMENT) {
-            String name = parser.getName();
-
-            if (event == XmlPullParser.START_TAG) {
-                if (name.equals("tag-list")) {
-                    counter++;
-                    if (parser.next() == XmlPullParser.TEXT) {
-                        if (pat.matcher(parser.getText().toLowerCase()).find()) {
-                            Log.d(TAG, counter+" tag-list: "+ parser.getText().toLowerCase());
-                            ignore = true;
-                        }
-                    }
+        while (count < 8) {
+            JSONObject object = response.getJSONObject(count);
+            boolean streamble = object.getBoolean("streamable");
+            if(streamble) {
+                String tags = object.getString("tag_list");
+                if (pat.matcher(tags.toLowerCase()).find()) {
+                    Log.d(TAG, count + " tag-list: " + tags.toLowerCase());
+                    ignore = true;
                 }
-                else if (name.equals("title")) {
-                    if (parser.next() == XmlPullParser.TEXT) {
-                        if (pat.matcher(parser.getText().toLowerCase()).find() || !parser.getText().toLowerCase().contains(firstWord)) {
-                            Log.d(TAG, counter + " title: " + parser.getText() + " " + firstWord);
-                            ignore = true;
-                        }
-                    }
+                String title = object.getString("title");
+                if (pat.matcher(title.toLowerCase()).find() || !title.toLowerCase().contains(firstWord)) {
+                    Log.d(TAG, count + " title: " + title + " " + firstWord);
+                    ignore = true;
                 }
-                else if(name.equals("description"))
+                String desc = object.getString("description");
+                if (pat.matcher(desc.toLowerCase()).find()) {
+                    ignore = true;
+                }
+
+                String user = object.getJSONObject("user").getString("username");
+                if (firstUser.isEmpty()) {
+                    firstUser = user;
+                }
+                if (!ignore) {
+                    links[0] = user;
+                }
+
+                String duration = String.valueOf(object.getInt("duration"));
+                if(firstDuration.isEmpty())
                 {
-                    if (parser.next() == XmlPullParser.TEXT) {
-                        if (pat.matcher(parser.getText().toLowerCase()).find()) {
-                            ignore = true;
-                        }
-                    }
+                    firstDuration = duration;
                 }
-                else if (name.equals("permalink-url")) {
-                    if (firstPermaLink.isEmpty() && parser.next() == XmlPullParser.TEXT) {
-                        firstPermaLink = parser.getText();
-                        permaLink = firstPermaLink;
-                    } else if (parser.next() == XmlPullParser.TEXT && !ignore) {
-                        permaLink = parser.getText();
-                    }
-                    if (!ignore) {
-                        links[0] = permaLink;
-                    }
+                if(!ignore)
+                {
+                    links[1] = duration;
                 }
-                else if (name.equals("stream-url")) {
-                    if (firstLink.isEmpty() && parser.next() == XmlPullParser.TEXT) {
-                        firstLink = parser.getText() + "?client_id=" + soundcloudKey;
-                        streamLink = firstLink;
+                permaLink = object.getString("permalink_url");
+                if (firstPermaLink.isEmpty()) {
+                    firstPermaLink = permaLink;
+                }
+                if (!ignore) {
+                    links[2] = permaLink;
+                }
 
-                    } else if (parser.next() == XmlPullParser.TEXT && !ignore) {
-                        streamLink = parser.getText() + "?client_id=" + soundcloudKey;
-                    }
-                    if (ignore) {
-                        ignore = false;
-                    } else {
-                        links[1] = streamLink;
-                        return links;
-                    }
+                streamLink = object.getString("stream_url") + "?client_id=" + soundcloudKey;
+                if (firstLink.isEmpty()) {
+                    firstLink = streamLink;
+                }
+
+                if (ignore) {
+                    ignore = false;
+                } else {
+                    links[3] = streamLink;
+                    return links;
                 }
             }
-            event = parser.next();
+            count++;
         }
-
-        links[0] = firstPermaLink;
-        links[1] = firstLink;
+        links[0] = firstUser;
+        links[1] = firstDuration;
+        links[2] = firstPermaLink;
+        links[3] = firstLink;
         return links;
     }
 

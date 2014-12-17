@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -39,20 +40,19 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.NetworkImageView;
-import com.android.volley.toolbox.StringRequest;
 import com.google.android.youtube.player.YouTubeIntents;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.vibin.billy.swipeable.SwipeableActivity;
 
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.http.protocol.HTTP;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Arrays;
@@ -175,7 +175,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         final String lastFmBioUrl = getResources().getString(R.string.lastfm, "getinfo", UTF8(artist).replaceAll(" ", "+").replaceAll("&", "and"));
         final String lastFmTopAlbumsUrl = getResources().getString(R.string.lastfm, "gettopalbums", UTF8(artist).replaceAll(" ", "+"));
         final String youtubeUrl = getResources().getString(R.string.youtube, (song + " " + UTF8(artist)).replaceAll(" ", "+"));
-        StringRequest stringreq = new StringRequest(Request.Method.GET, scUrl, scComplete(), scError());
+        JsonArrayRequest stringreq = new JsonArrayRequest(scUrl, scComplete(), scError());
         JsonObjectRequest lastFmBio = new JsonObjectRequest(Request.Method.GET, lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
         JsonObjectRequest lastFmTopAlbums = new JsonObjectRequest(Request.Method.GET, lastFmTopAlbumsUrl, null, lastFmTopAlbumsComplete(), lastFmTopAlbumsError());
         JsonObjectRequest youtubeSearch = new JsonObjectRequest(Request.Method.GET, youtubeUrl, null, youtubeSearchComplete(), youtubeSearchError());
@@ -193,7 +193,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     }
 
     private String UTF8(String text) throws UnsupportedEncodingException {
-        return URLEncoder.encode(text,"utf-8");
+        return URLEncoder.encode(text, "utf-8");
     }
 
     @Override
@@ -238,28 +238,39 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         }
     }
 
-    private Response.Listener<String> scComplete() {
-        return new Response.Listener<String>() {
+    private Response.Listener<JSONArray> scComplete() {
+        return new Response.Listener<JSONArray>() {
             @Override
-            public void onResponse(String response) {
+            public void onResponse(JSONArray jsonArray) {
+                String[] result = new String[4];
                 try {
-                    String[] result = ft.parseSoundcloud(response, song);
-                    permaLink = result[0];
-                    streamLink = result[1];
-                    supportInvalidateOptionsMenu();
+                    result = ft.parseSoundcloud(jsonArray, song);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                permaLink = result[2];
+                streamLink = result[3];
+                Log.d(TAG,"User is "+result[0]+" duration is "+result[1]);
+                Log.d(TAG, "original streamLink is " + streamLink);
+                Log.d(TAG, "original permaLink is " + permaLink);
+                supportInvalidateOptionsMenu();
 //                    JsonObjectRequest i1 = new JsonObjectRequest(Request.Method.GET, "https://api.soundcloud.com/i1/tracks/133433134/streams?client_id=apigee", null, i1Complete(), i1Error());
 //                    req.add(i1);
-                    if (scaleAnim != null) {
-                        streamBtn.startAnimation(scaleAnim);
-                    }
-                    streamBtn.setVisibility(View.VISIBLE);
-                    Log.d(TAG, "original streamLink is " + streamLink);
-                    Log.d(TAG, "original permaLink is " + permaLink);
-                } catch (IOException e) {
-                    Log.e(TAG, e.toString());
-                } catch (XmlPullParserException e) {
-                    Log.e(TAG, e.toString());
+                if (scaleAnim != null) {
+                    streamBtn.startAnimation(scaleAnim);
                 }
+                streamBtn.setVisibility(View.VISIBLE);
+                RelativeLayout attribution = (RelativeLayout) findViewById(R.id.attribution);
+                attribution.setVisibility(View.VISIBLE);
+                ((TextView) attribution.getChildAt(0)).setText(result[0] + " on SoundCloud");
+                attribution.getChildAt(0).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(permaLink)));
+                    }
+                });
+                ((TextView) attribution.getChildAt(1)).setText(DurationFormatUtils.formatDuration(Long.parseLong(result[1]), "mm:ss", true));
+
             }
 
 /*            private Response.Listener<JSONObject> i1Complete() {
@@ -506,6 +517,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 }
             }
 
+
             binder.setListener(new PlayerService.onBPChangedListener() {
                 @Override
                 public void onPrepared(int duration) {
@@ -545,16 +557,20 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
 
                 @Override
                 public void onMediaPause() {
-                    streamBtn.setImageDrawable(playIcon);
-                    //seekBar.setVisibility(View.GONE);
-                    isMusicPlaying = false;
+                    if (isCurrentSongBG) {
+                        streamBtn.setImageDrawable(playIcon);
+                        //seekBar.setVisibility(View.GONE);
+                        isMusicPlaying = false;
+                    }
                 }
 
                 @Override
                 public void onMediaPlay() {
-                    streamBtn.setImageDrawable(pauseIcon);
-                    seekBar.setVisibility(View.VISIBLE);
-                    isMusicPlaying = true;
+                    if (isCurrentSongBG) {
+                        streamBtn.setImageDrawable(pauseIcon);
+                        seekBar.setVisibility(View.VISIBLE);
+                        isMusicPlaying = true;
+                    }
                 }
 
                 @Override

@@ -50,9 +50,40 @@
             android:visibility="invisible"
             tools:visibility="visible" />
 
+        <RelativeLayout
+            android:id="@+id/attribution"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/image_header"
+            android:orientation="vertical"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="CalvinHarris on SoundCloud"
+                android:fontFamily="sans-serif-condensed"
+                android:background="#33000000"
+                android:textColor="#fff"
+                android:padding="3dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-condensed"
+                android:background="#33000000"
+                android:textColor="#fff"
+                android:padding="3dp"
+                android:layout_alignParentRight="true"
+                tools:text="3:15"/>
+        </RelativeLayout>
+
         <SeekBar
             android:id="@+id/seekBar"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="30dp"
             android:layout_alignBottom="@id/image_header"
             android:layout_marginLeft="-16dp"
@@ -163,7 +194,6 @@
                     android:background="@android:color/white"
                     android:orientation="vertical"
                     android:paddingBottom="10dp"
-
                     android:paddingLeft="5dp"
                     android:paddingRight="5dp"
                     android:paddingTop="5dp">
@@ -260,12 +290,12 @@
                 android:id="@+id/youTube"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:paddingBottom="5dp"
                 android:visibility="gone"
                 card_view:cardCornerRadius="@dimen/card_radius"
                 card_view:cardElevation="@dimen/card_shadow"
                 card_view:cardMaxElevation="@dimen/card_shadow"
                 card_view:cardUseCompatPadding="true"
-                android:paddingBottom="5dp"
                 tools:visibility="visible">
 
                 <RelativeLayout
