@@ -205,7 +205,9 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         Log.d(TAG, "onCompletion");
-        BPlistener.onCompletion();
+        if(BPlistener != null) {
+            BPlistener.onCompletion();
+        }
         stopForeground(true);
         try {
             unregisterReceiver(NotificationMediaControl);
@@ -218,7 +220,9 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i2) {
         stopForeground(true);
-        BPlistener.onError(i, i2);
+        if(BPlistener != null) {
+            BPlistener.onError(i, i2);
+        }
         switch (i) {
             case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
                 Log.d(TAG, "MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK " + i2);
@@ -275,7 +279,9 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         if (!bp.isPlaying()) {
             bp.start();
             putNotification();
-            BPlistener.onMediaPlay();
+            if(BPlistener != null) {
+                BPlistener.onMediaPlay();
+            }
             return true;
         }
         return false;
@@ -285,7 +291,9 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         if (bp.isPlaying()) {
             bp.pause();
             putNotification();
-            BPlistener.onMediaPause();
+            if(BPlistener != null) {
+                BPlistener.onMediaPause();
+            }
             return true;
         }
         return false;
@@ -301,7 +309,9 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         if (bp.isPlaying()) {
             Log.d(TAG, "media has successfully stopped");
             bp.stop();
-            BPlistener.onMediaStop();
+            if(BPlistener != null) {
+                BPlistener.onMediaStop();
+            }
         }
     }
 
@@ -433,7 +443,9 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                 if (bp.isPlaying()) {
                     bp.stop();
                 }
-                BPlistener.onNotificationStopPressed();
+                if(BPlistener != null) {
+                    BPlistener.onNotificationStopPressed();
+                }
                 stopSelf();
             }
         }

@@ -128,12 +128,11 @@ public class ProcessingTask {
             if (i <= billySize && event == XmlPullParser.START_TAG) {
                 if (name.equals("description")) {
                     if (parser.next() == XmlPullParser.TEXT) {
-                        billySong[i] = extractSong(parser.getText());
-                        billyArtist[i] = extractArtist(parser.getText());
-                        if (response.length() > 10000) {
-                            //Log.d(TAG, billySong[i] + " " + billyArtist[i]);
+                        if(!parser.getText().contains("Nielsen")) { // Silly hack to skip the first <description> tag
+                            billySong[i] = extractSong(parser.getText());
+                            billyArtist[i] = extractArtist(parser.getText());
+                            i++;
                         }
-                        i++;
                     }
                 }
 

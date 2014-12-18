@@ -269,7 +269,9 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(permaLink)));
                     }
                 });
-                ((TextView) attribution.getChildAt(1)).setText(DurationFormatUtils.formatDuration(Long.parseLong(result[1]), "mm:ss", true));
+                if(result[1] != null) {
+                    ((TextView) attribution.getChildAt(1)).setText(DurationFormatUtils.formatDuration(Long.parseLong(result[1]), "mm:ss", true));
+                }
 
             }
 
