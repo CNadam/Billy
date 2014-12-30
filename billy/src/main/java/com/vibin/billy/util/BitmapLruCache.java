@@ -1,4 +1,4 @@
-package com.vibin.billy;
+package com.vibin.billy.util;
 
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;

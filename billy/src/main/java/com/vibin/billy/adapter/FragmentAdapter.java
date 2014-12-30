@@ -1,28 +1,29 @@
-package com.vibin.billy;
+package com.vibin.billy.adapter;
 
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.util.Log;
 
-//import com.viewpagerindicator.IconPagerAdapter;
+import com.vibin.billy.BillyApplication;
+import com.vibin.billy.R;
+import com.vibin.billy.fragment.SongsFragment;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class CustomFragmentAdapter extends FragmentStatePagerAdapter {
+public class FragmentAdapter extends FragmentStatePagerAdapter {
 
-    private static final String TAG = CustomFragmentAdapter.class.getSimpleName();
+    private static final String TAG = FragmentAdapter.class.getSimpleName();
     private static String[] content;
     private int mCount;
     private static List<String> resGenres; // Genres list from Resources
 
     Context c;
 
-    public CustomFragmentAdapter(FragmentManager fm, Context context) {
+    public FragmentAdapter(FragmentManager fm, Context context) {
         super(fm);
         this.c = context;
         Log.d(TAG,"CustomFragmentAdapter constructor");

@@ -1,4 +1,4 @@
-package com.vibin.billy;
+package com.vibin.billy.custom;
 
 import android.content.Context;
 import android.os.Build;
@@ -6,6 +6,7 @@ import android.util.AttributeSet;
 import android.widget.ScrollView;
 
 import com.android.volley.toolbox.NetworkImageView;
+import com.vibin.billy.R;
 
 /**
  * @author Cyril Mottier
@@ -52,5 +53,4 @@ public class NotifyingScrollView extends ScrollView {
     public void setOnScrollChangedListener(OnScrollChangedListener listener) {
         mOnScrollChangedListener = listener;
     }
-
 }

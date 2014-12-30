@@ -18,10 +18,13 @@ import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.crashlytics.android.Crashlytics;
+import com.vibin.billy.util.BitmapLruCache;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 
 public class BillyApplication extends Application {
@@ -175,15 +178,7 @@ public class BillyApplication extends Application {
         return (int) (DP * scale);
     }
 
-    public static void printViewHierarchy(ViewGroup $vg, String $prefix) {
-        for (int i = 0; i < $vg.getChildCount(); i++) {
-            View v = $vg.getChildAt(i);
-            String desc = $prefix + " | " + "[" + i + "/" + ($vg.getChildCount() - 1) + "] " + v.getClass().getSimpleName() + " " + v.getId();
-            Log.d("x", desc);
-
-            if (v instanceof ViewGroup) {
-                printViewHierarchy((ViewGroup) v, desc);
-            }
-        }
+    public String UTF8(String URL) throws UnsupportedEncodingException {
+        return URLEncoder.encode(URL,"utf-8");
     }
 }

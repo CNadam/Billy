@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.vibin.billy;
+package com.vibin.billy.util;
 
 import android.view.View;
 import android.view.ViewGroup;

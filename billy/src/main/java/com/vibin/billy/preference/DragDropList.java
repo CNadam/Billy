@@ -1,9 +1,8 @@
-package com.vibin.billy;
+package com.vibin.billy.preference;
 
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.DialogPreference;
 import android.preference.PreferenceManager;
@@ -15,6 +14,8 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
+import com.vibin.billy.BillyApplication;
+import com.vibin.billy.R;
 import com.vibin.billy.draglistview.DynamicListView;
 import com.vibin.billy.draglistview.StableArrayAdapter;
 
@@ -28,14 +29,14 @@ import java.util.Arrays;
  * Default Preference string is {@value com.vibin.billy.BillyApplication#defaultGenres}
  */
 
-public class ReorderedListPreference extends DialogPreference {
+public class DragDropList extends DialogPreference {
     Context c;
     DynamicListView lv;
     SharedPreferences pref;
     String[] genresWithCheck;
-    private static final String TAG = ReorderedListPreference.class.getSimpleName();
+    private static final String TAG = DragDropList.class.getSimpleName();
 
-    public ReorderedListPreference(Context context, AttributeSet attrs) {
+    public DragDropList(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.c = context;
         setPositiveButtonText(c.getString(R.string.reorder_pref_ok));

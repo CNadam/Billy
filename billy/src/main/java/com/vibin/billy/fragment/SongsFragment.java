@@ -1,4 +1,4 @@
-package com.vibin.billy;
+package com.vibin.billy.fragment;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -14,7 +13,6 @@ import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,16 +27,23 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.android.volley.Cache;
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.vibin.billy.BillyApplication;
+import com.vibin.billy.BillyItem;
+import com.vibin.billy.R;
+import com.vibin.billy.activity.DetailView;
+import com.vibin.billy.adapter.BaseAdapter;
+import com.vibin.billy.adapter.DatabaseAdapter;
+import com.vibin.billy.http.JsonObjectRequest;
+import com.vibin.billy.http.StringRequest;
+import com.vibin.billy.util.ProcessingTask;
+import com.vibin.billy.util.SwingBottomInAnimationAdapter;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,22 +58,23 @@ import java.util.ArrayList;
  * Fetches songs' data and puts that in a Listview. This goes inside a Viewpager.
  */
 public class SongsFragment extends ListFragment implements AdapterView.OnItemClickListener, SwipeRefreshLayout.OnRefreshListener {
-    ArrayList<ProcessingTask.BillyData> mData, mDataLite;
-    String[] billySong, billyArtist, result;
+    ArrayList<BillyItem> mData, mDataLite;
+    String[] billySong, billyArtist;
     String jsonMdata, cacheData = "";
     LinearLayout spinner;
     View v;
-    boolean spinnerVisible, pulltorefresh, isHot100;
-    CustomBaseAdapter customBaseAdapter;
-    CustomDatabaseAdapter customDatabaseAdapter;
-    SwingBottomInAnimationAdapter swingBottomInAnimationAdapter;
+    boolean spinnerVisible, pulltorefresh;
+    BaseAdapter baseAdapter;
+    DatabaseAdapter databaseAdapter;
+    SwingBottomInAnimationAdapter swingBottomInAdapter;
     RequestQueue req;
     BillyApplication billyapp;
     ProcessingTask ft;
-    String uri, searchparam, table_name, rssurl;
+    String tableName, rssurl;
     ImageLoader imgload;
     SwipeRefreshLayout swipelayout;
-    int mIndex, billySize, onlyOnce, position;
+    StringRequest stringreq;
+    int mIndex, billySize, onlyOnce;
     final long ANIMATION_DELAY = 200;
     final long ANIMATION_DURATION = 350;
 
@@ -78,24 +84,23 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        position = getArguments().getInt("position");
+        int position = getArguments().getInt("position");
         tag = tag.substring(0, tag.length() - 1) + Integer.toString(position);
         billyapp = (BillyApplication) getActivity().getApplication();
         imgload = billyapp.getImageLoader();
         req = billyapp.getRequestQueue();
 
         rssurl = getResources().getStringArray(R.array.url)[position];
-        table_name = getResources().getStringArray(R.array.table)[position];
+        tableName = getResources().getStringArray(R.array.table)[position];
 
         /**
          * Number of elements in Hot100 chart is 100
          * RnB 15, rest all 20
          */
 
-        if (table_name.equals("MostPopular")) {
-            isHot100 = true;
+        if (tableName.equals("MostPopular")) {
             billySize = 100;
-        } else if (table_name.equals("RnB")) {
+        } else if (tableName.equals("RnB")) {
             billySize = 15;
         } else {
             billySize = 20;
@@ -104,11 +109,11 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         billySong = new String[billySize];
         billyArtist = new String[billySize];
         ft = new ProcessingTask(billySize, getActivity());
-        mData = new ArrayList<ProcessingTask.BillyData>(billySize);
-        mDataLite = new ArrayList<ProcessingTask.BillyData>(billyapp.getMinBillySize(billySize));
+        mData = new ArrayList<BillyItem>(billySize);
+        mDataLite = new ArrayList<BillyItem>(billyapp.getMinBillySize(billySize));
         initializeArraylistitems();
 
-        customDatabaseAdapter = new CustomDatabaseAdapter(getActivity());
+        databaseAdapter = new DatabaseAdapter(getActivity());
         setHasOptionsMenu(true);
 
         /**
@@ -116,10 +121,10 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
          */
         if (!billyapp.isConnected()) {
             Log.d(tag, "No internet connection");
-            jsonMdata = customDatabaseAdapter.getArrayList(table_name);
+            jsonMdata = databaseAdapter.getArrayList(tableName);
             if (jsonMdata != null) {
                 Gson gson = new Gson();
-                mData = gson.fromJson(jsonMdata, new TypeToken<ArrayList<ProcessingTask.BillyData>>() {
+                mData = gson.fromJson(jsonMdata, new TypeToken<ArrayList<BillyItem>>() {
                 }.getType());
             }
         }
@@ -130,7 +135,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
          */
         if (savedInstanceState == null && billyapp.isConnected()) {
             try {
-                performRequests();
+                performRequests(false);
             } catch (UnsupportedEncodingException e) {
                 Log.d(tag, e.toString());
             }
@@ -139,14 +144,14 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d(tag, "oncreateview");
+        //Log.d(tag, "oncreateview");
         v = inflater.inflate(R.layout.fragment_songs, container, false);
 
         if (jsonMdata == null && !billyapp.isConnected()) {
             nothingToShow();
         }
 
-        customBaseAdapter = new CustomBaseAdapter(getActivity(), mData, imgload);
+        baseAdapter = new BaseAdapter(getActivity(), mData, imgload);
         spinner = (LinearLayout) v.findViewById(R.id.spinner);
 
         /**
@@ -166,6 +171,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 android.R.color.holo_orange_light,
                 R.color.green);
         swipelayout.setSize(SwipeRefreshLayout.LARGE);
+        swipelayout.setRefreshing(true);
 
         /**
          * Restore instance, on Orientation change
@@ -173,7 +179,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
          */
 
         if (savedInstanceState != null) {
-            Log.d(tag, "savedInstanceState is not null");
+            //Log.d(tag, "savedInstanceState is not null");
 
             mData = savedInstanceState.getParcelableArrayList("MDATA");
             mDataLite = savedInstanceState.getParcelableArrayList("MDATALITE");
@@ -186,7 +192,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 Log.d(tag, "mData or its objects are null");
 //                initializeArraylistitems();
                 try {
-                    performRequests();
+                    performRequests(false);
                 } catch (UnsupportedEncodingException e) {
                     Log.d(tag, e.toString());
                 }
@@ -204,7 +210,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     /**
      * When DB is empty and User isn't connected to Internet
      * Show an Alert Dialog and exit app
-     *
+     * <p/>
      * Make sure to call {@link android.content.DialogInterface#cancel()}, before calling {@link android.app.Activity#finish()}
      */
 
@@ -238,13 +244,13 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
     private void initializeArraylistitems() {
         if (mData.size() == billyapp.getMinBillySize(billySize)) {
-            Log.d(tag, "mDataLite is same as mData");
-            mDataLite = new ArrayList<ProcessingTask.BillyData>(mData);
-            Log.d(tag, "intitialize, size of mDataLite is " + mDataLite.size() + " size of mData is " + mData.size());
+            //Log.d(tag, "mDataLite is same as mData");
+            mDataLite = new ArrayList<BillyItem>(mData);
+            //Log.d(tag, "intitialize, size of mDataLite is " + mDataLite.size() + " size of mData is " + mData.size());
         }
         int i = 0;
         while (i < billyapp.getMinBillySize(billySize)) {
-            mData.add(new ProcessingTask.BillyData());
+            mData.add(new BillyItem());
             i++;
         }
         Log.d(tag, "new size of mData is " + mData.size() + " and new size of mDataLite is " + mDataLite.size());
@@ -254,27 +260,28 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
      * Spawn Billboard request
      * Make sure to get cached version of Billboard response before making a new request, for comparing later
      */
-    private void performRequests() throws UnsupportedEncodingException {
-        CustomStringRequest stringreq = new CustomStringRequest(Request.Method.GET, rssurl, billyComplete(), billyError());
+    private void performRequests(boolean invalidateCache) throws UnsupportedEncodingException {
+        stringreq = new StringRequest(rssurl, billyComplete(), billyError());
         spinnerVisible = true;
         Cache.Entry entry = req.getCache().get(rssurl);
         if (entry != null) {
             if (entry.data != null) {
                 cacheData = new String(entry.data, "UTF-8");
-                Log.d(tag, "cache length is " + entry.data.length + " softtl is " + entry.softTtl + " ttl is " + entry.ttl + " " + entry.refreshNeeded());
+                //Log.d(tag, "data is " + cacheData.substring(7500,8000)+" isExpired "+entry.isExpired()+" refreshNeeded "+entry.refreshNeeded()+" ttl "+entry.ttl+" softtl "+entry.softTtl);
             }
-            //Log.d(tag, " " + entry.toString() + " " + entry.isExpired() + " " + entry.refreshNeeded());
         }
         stringreq.setTag(this);
 
+        if (invalidateCache) {
+            req.getCache().invalidate(stringreq.getCacheKey(), true);
+        }
         req.add(stringreq);
-        Log.d(tag,"performrequests");
     }
 
 
     public void updateList() {
-        customBaseAdapter.updateArrayList(mData);
-        customBaseAdapter.notifyDataSetChanged();
+        baseAdapter.updateArrayList(mData);
+        baseAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -284,16 +291,16 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        setListAdapter(customBaseAdapter);
+        setListAdapter(baseAdapter);
 
         // Assign the ListView to the AnimationAdapter and vice versa
-        swingBottomInAnimationAdapter = new SwingBottomInAnimationAdapter(customBaseAdapter, ANIMATION_DELAY, ANIMATION_DURATION);
-        swingBottomInAnimationAdapter.setAbsListView(getListView());
-        getListView().setAdapter(swingBottomInAnimationAdapter);
-        swingBottomInAnimationAdapter.setShouldAnimate(false);
+        swingBottomInAdapter = new SwingBottomInAnimationAdapter(baseAdapter, ANIMATION_DELAY, ANIMATION_DURATION);
+        swingBottomInAdapter.setAbsListView(getListView());
+        getListView().setAdapter(swingBottomInAdapter);
+        swingBottomInAdapter.setShouldAnimate(false);
         getListView().setOnItemClickListener(this);
 
-        if (isHot100) {
+        if (tableName.equals("MostPopular")) {
             final LinearLayout layout = new LinearLayout(getActivity());
             layout.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, AbsListView.LayoutParams.WRAP_CONTENT));
             layout.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -318,11 +325,15 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                         }
                         if (mData.size() < billySize) {
                             initializeArraylistitems();
-                            customBaseAdapter.updateArrayList(mData);
-                            customBaseAdapter.notifyDataSetChanged();
+                            baseAdapter.updateArrayList(mData);
+                            baseAdapter.notifyDataSetChanged();
 
                             for (int i = 0; i < billyapp.getMinBillySize(billySize); i++) {
-                                callitunes(mData.size() - billyapp.getMinBillySize(billySize) + i, false);
+                                try {
+                                    callitunes(mData.size() - billyapp.getMinBillySize(billySize) + i, false);
+                                } catch (UnsupportedEncodingException e) {
+                                    Log.d(tag, e.toString());
+                                }
                             }
                         }
                     } else {
@@ -338,7 +349,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     public void onPause() {
         super.onPause();
         getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
-        swingBottomInAnimationAdapter.setShouldAnimate(false);
+        swingBottomInAdapter.setShouldAnimate(false);
     }
 
     @Override
@@ -370,12 +381,12 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         super.onSaveInstanceState(outState);
     }
 
-    private boolean saveToDB(ArrayList<ProcessingTask.BillyData> list) {
+    private boolean saveToDB(ArrayList<BillyItem> list) {
         if (onlyOnce == 0 && billyapp.isConnected()) {
             if (checkArrayList(list)) {
                 Gson gson = new Gson();
                 String jsonMdata = gson.toJson(list);
-                long yolo = customDatabaseAdapter.insertArrayList(jsonMdata, table_name);
+                long yolo = databaseAdapter.insertArrayList(jsonMdata, tableName);
                 onlyOnce++;
                 if (yolo != -1) {
                     return true;
@@ -393,12 +404,13 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         return new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.d(tag, "response length is " + response.length());
+                boolean cacheHit = stringreq.isCacheHit();
+                Log.d(tag, "cacheHit? " + cacheHit);
                 spinnerVisible = false;
                 spinner.setVisibility(View.GONE);
                 v.findViewById(android.R.id.list).setVisibility(View.VISIBLE);
                 try {
-                    String jsonMdata = customDatabaseAdapter.getArrayList(table_name);
+                    String jsonMdata = databaseAdapter.getArrayList(tableName);
                     if (pulltorefresh) {
                         Log.d(tag, "Pull to refresh");
                         mIndex = 0;
@@ -407,17 +419,19 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                     } else if (jsonMdata == null) {
                         Log.d(tag, "DB empty. Requests made.");
                         handleXML(response, true);
-                    } else if (!response.equals(cacheData) && !cacheData.isEmpty()) {
+                    } else if (!cacheHit && !response.equals(cacheData)) {
                         Log.d(tag, "New data available. Requests made.");
+                        Toast.makeText(getActivity(), "New data available. Requests made.",
+                                Toast.LENGTH_LONG).show();
                         handleXML(response, true);
                     } else {
                         handleXML(response, false);
                         Log.d(tag, "Cache and response are equal, no requests made");
                         Gson gson = new Gson();
-                        mData = gson.fromJson(jsonMdata, new TypeToken<ArrayList<ProcessingTask.BillyData>>() {
+                        mData = gson.fromJson(jsonMdata, new TypeToken<ArrayList<BillyItem>>() {
                         }.getType());
-                        customBaseAdapter.updateArrayList(mData);
-                        customBaseAdapter.notifyDataSetChanged();
+                        baseAdapter.updateArrayList(mData);
+                        baseAdapter.notifyDataSetChanged();
                     }
                 } catch (IOException e) {
                     Log.d(tag, e.toString());
@@ -459,13 +473,13 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     /**
      * Spawn an iTunes request with song and artist Strings
      */
-    private void callitunes(int i, boolean invalidateCache) {
+    private void callitunes(int i, boolean invalidateCache) throws UnsupportedEncodingException {
         try {
-            if(isAdded()) {
-                searchparam = ft.paramEncode(billyArtist[i]) + "+" + ft.paramEncode(billySong[i]);
-                uri = getResources().getString(R.string.itunes, searchparam);
+            if (isAdded()) {
+                String searchparam = billyapp.UTF8(billyArtist[i]) + "+" + billyapp.UTF8(billySong[i]);
+                String uri = getResources().getString(R.string.itunes, searchparam);
                 Log.d(tag, uri);
-                JsonObjectRequest jsonreq = new JsonObjectRequest(Request.Method.GET, uri, null, itunesComplete(), itunesError());
+                JsonObjectRequest jsonreq = new JsonObjectRequest(uri, null, itunesComplete(), itunesError());
                 jsonreq.setTag(this);
                 if (invalidateCache) {
                     req.getCache().invalidate(jsonreq.getCacheKey(), true);
@@ -473,7 +487,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 req.add(jsonreq);
             }
         } catch (NullPointerException e) {
-            Log.d(tag,e.toString());
+            Log.d(tag, e.toString());
             onRefresh(); // Simulate a pull to refresh
         }
     }
@@ -486,19 +500,18 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             @Override
             public void onResponse(JSONObject jsonObject) {
                 try {
-                    result = ft.parseItunes(jsonObject);
+                    String[] result = ft.parseItunes(jsonObject);
 
                     if (result != null) {
                         try {
-                            // Log.d(tag, "Match is" +Integer.parseInt(result[4]));
                             mData.get(Integer.parseInt(result[4])).setItunes(result[0], result[1], result[2], result[3]);
-                            customBaseAdapter.updateArrayList(mData);
-                            customBaseAdapter.notifyDataSetChanged();
+                            baseAdapter.updateArrayList(mData);
+                            baseAdapter.notifyDataSetChanged();
                         } catch (NullPointerException e) {
                             Log.d(tag, e.toString());
                         }
                     } else {
-                        Crashlytics.log(Log.ERROR, tag, "Result object from iTunes is null for this track. " + jsonObject);
+                        Crashlytics.log(Log.ERROR, tag, "Result object from iTunes is null for this track. " + jsonObject.getString("url"));
                     }
                 } catch (JSONException e) {
                     Log.d(tag, e + "");
@@ -524,20 +537,15 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         try {
             if (billyapp.isConnected()) {
-                ProcessingTask.BillyData billyData = mData.get(i);
+                BillyItem b = mData.get(i);
 
                 Intent myintent = new Intent(getActivity(), DetailView.class);
-                if (billyData.artwork != null) {
-                    myintent.putExtra("song", billyData.song);
-                    myintent.putExtra("album", billyData.album);
-                    myintent.putExtra("artist", billyData.artist);
-                    myintent.putExtra("artwork", billyData.artwork);
-                    myintent.putExtra("index", i);
+                if (b.getArtwork() != null) {
+                    myintent.putExtra("item", b);
                     startActivity(myintent);
                 } else {
-                    //Toast.makeText(getActivity(), "Tap the card to refresh", Toast.LENGTH_LONG).show();
                     callitunes(i, true);
-                    customBaseAdapter.notifyDataSetChanged();
+                    baseAdapter.notifyDataSetChanged();
                 }
             } else {
                 Toast.makeText(getActivity(), billyapp.getString(R.string.nointernet), Toast.LENGTH_LONG).show();
@@ -546,10 +554,12 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             Log.d(tag, e.toString());
             pulltorefresh = true;
             try {
-                performRequests(); // mData is null, so perform all requests again and construct it
+                performRequests(false); // mData is null, so perform all requests again and construct it
             } catch (UnsupportedEncodingException e1) {
-                e1.printStackTrace();
+                Log.d(tag, e1.toString());
             }
+        } catch (UnsupportedEncodingException e) {
+            Log.d(tag, e.toString());
         }
     }
 
@@ -562,11 +572,11 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     public void onRefresh() {
         if (billyapp.isConnected()) {
             pulltorefresh = true;
-            swingBottomInAnimationAdapter.reset();
-            CustomStringRequest stringreq = new CustomStringRequest(Request.Method.GET, rssurl, billyComplete(), billyError());
-            req.getCache().invalidate(stringreq.getCacheKey(),true);
-            stringreq.setTag(this);
-            req.add(stringreq);
+            swingBottomInAdapter.reset();
+            try {
+                performRequests(true);
+            } catch (UnsupportedEncodingException ignored) {
+            }
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -603,7 +613,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
     /**
      * Cancel all on-going requests if screen is rotated, or fragment gets destroyed
-     *
+     * <p/>
      * Note that FragmentStatePagerAdapter kills every fragment once you leave it (unlike other PagerAdapters)
      */
     @Override
@@ -617,21 +627,20 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
      *
      * @return true, if it doesn't have null values
      */
-    private boolean checkArrayList(ArrayList<ProcessingTask.BillyData> mData) {
-        int i = 0;
+    private boolean checkArrayList(ArrayList<BillyItem> mData) {
+        int i=0;
         try {
-            while (i < mData.size()) {
-                if (mData.get(i) == null) {
-                    return false;
-                } else if (mData.get(i).artwork.isEmpty()) {
-                    return false;
+            for (BillyItem b : mData) {
+                if (b == null) {
+                    i++;
+                } else if (b.getArtwork() == null) {
+                    i++;
                 }
-                i++;
             }
         } catch (NullPointerException e) {
             return false;
         }
-        return true;
+        return i < 4;
     }
 
     /**
@@ -643,14 +652,18 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     SharedPreferences.OnSharedPreferenceChangeListener myPrefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
         public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
             if (key.equals("compactCards")) {
-                Log.d(tag,"compact cards preference changed");
-                ((ListView) v.findViewById(android.R.id.list)).setAdapter(customBaseAdapter);
+                Log.d(tag, "compact cards preference changed");
+                ((ListView) v.findViewById(android.R.id.list)).setAdapter(baseAdapter);
             } else if (key.equals("albumArtQuality")) {
-                if(ft.refreshArtworkUrlResolution()) {
-                    Log.i(tag,"album art quality preference changed");
+                if (ft.refreshArtworkUrlResolution()) {
+                    Log.i(tag, "album art quality preference changed");
                     mIndex = 0;
                     while (mIndex < billyapp.getMinBillySize(billySize)) {
-                        callitunes(mIndex, false);
+                        try {
+                            callitunes(mIndex, false);
+                        } catch (UnsupportedEncodingException e) {
+                            Log.d(tag, e.toString());
+                        }
                         mIndex++;
                     }
                 }

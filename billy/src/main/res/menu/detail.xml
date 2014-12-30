@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context="com.vibin.billy.DetailView">
+    tools:context="com.vibin.billy.activity.DetailView">
 
     <item
         android:id="@+id/share"
@@ -9,5 +9,5 @@
         android:orderInCategory="100"
         app:showAsAction="always"
         android:icon="@drawable/share_holo_light"
-        app:actionProviderClass="com.vibin.billy.CustomShareActionProvider" />
+        app:actionProviderClass="com.vibin.billy.custom.ShareActionProvider" />
 </menu>

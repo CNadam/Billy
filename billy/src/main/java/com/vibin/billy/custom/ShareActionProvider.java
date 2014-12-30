@@ -1,17 +1,18 @@
-package com.vibin.billy;
+package com.vibin.billy.custom;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.View;
 
+import com.vibin.billy.R;
+
 import java.lang.reflect.Method;
 
-public class CustomShareActionProvider extends ShareActionProvider {
+public class ShareActionProvider extends android.support.v7.widget.ShareActionProvider {
     Context c;
 
-    public CustomShareActionProvider(Context context) {
+    public ShareActionProvider(Context context) {
         super(context);
         this.c = context;
     }

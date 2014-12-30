@@ -1,22 +1,22 @@
-package com.vibin.billy;
+package com.vibin.billy.preference;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.os.Bundle;
-import android.preference.ListPreference;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
-public class CustomListPreference extends ListPreference {
+import com.vibin.billy.R;
 
-    private static final String TAG = CustomListPreference.class.getSimpleName();
+public class ListPreference extends android.preference.ListPreference {
 
-    public CustomListPreference(Context context, AttributeSet attrs) {
+    private static final String TAG = ListPreference.class.getSimpleName();
+
+    public ListPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public CustomListPreference(Context context) {
+    public ListPreference(Context context) {
         super(context);
     }
 
@@ -32,7 +32,4 @@ public class CustomListPreference extends ListPreference {
             Log.d(TAG,e.toString());
         }
     }
-
-
-
 }

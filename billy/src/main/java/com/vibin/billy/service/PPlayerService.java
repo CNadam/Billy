@@ -1,4 +1,4 @@
-package com.vibin.billy;
+package com.vibin.billy.service;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -23,6 +23,9 @@ import android.widget.RemoteViews;
 import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
+import com.vibin.billy.BillyApplication;
+import com.vibin.billy.R;
+import com.vibin.billy.activity.DetailView;
 
 import org.videolan.libvlc.EventHandler;
 import org.videolan.libvlc.LibVLC;

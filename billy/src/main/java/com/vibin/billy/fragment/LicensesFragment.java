@@ -1,4 +1,4 @@
-package com.vibin.billy;
+package com.vibin.billy.fragment;
 
 /**
  * Copyright 2013 Adam Speakman
@@ -27,6 +27,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
+
+import com.vibin.billy.R;
 
 import java.io.BufferedReader;
 import java.io.IOException;

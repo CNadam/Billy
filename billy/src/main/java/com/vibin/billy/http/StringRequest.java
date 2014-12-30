@@ -1,4 +1,4 @@
-package com.vibin.billy;
+package com.vibin.billy.http;
 
 import android.util.Log;
 
@@ -11,12 +11,19 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
-public class CustomStringRequest extends Request<String> {
+public class StringRequest extends Request<String> {
     private final Response.Listener<String> mListener;
-    private static final String TAG = CustomStringRequest.class.getSimpleName();
-    public CustomStringRequest(int method, String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
+    private static final String TAG = StringRequest.class.getSimpleName();
+    private boolean cacheHit;
+
+    public StringRequest(int method, String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
         super(method, url, errorListener);
         mListener = listener;
+    }
+
+    // for GET requests
+    public StringRequest(String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
+        this(Method.GET, url, listener, errorListener);
     }
 
     @Override
@@ -37,7 +44,7 @@ public class CustomStringRequest extends Request<String> {
 
     /**
      * Extracts a {@link Cache.Entry} from a {@link NetworkResponse}.
-     * Cache-control headers are ignored. SoftTtl == 3 mins, ttl == 24 hours.
+     * Cache-control headers are ignored.
      * @param response The network response to parse headers from
      * @return a cache entry for the given response, or null if the response is not cacheable.
      */
@@ -69,7 +76,20 @@ public class CustomStringRequest extends Request<String> {
         entry.serverDate = serverDate;
         entry.responseHeaders = headers;
 
+        //Log.d(TAG," ttl "+entry.ttl+" softTtl "+entry.softTtl+" data "+parsed.substring(7500,8000));
         return entry;
     }
 
+    @Override
+    public void addMarker(String tag) {
+        super.addMarker(tag);
+        if (tag.equals("cache-hit")){
+            cacheHit = true;
+            Log.d(TAG, "cachie hit");
+        }
+    }
+
+    public boolean isCacheHit() {
+        return cacheHit;
+    }
 }

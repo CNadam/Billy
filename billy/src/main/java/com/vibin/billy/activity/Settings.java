@@ -1,4 +1,4 @@
-package com.vibin.billy;
+package com.vibin.billy.activity;
 
 import android.app.FragmentManager;
 import android.content.ActivityNotFoundException;
@@ -14,6 +14,10 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.readystatesoftware.systembartint.SystemBarTintManager;
+import com.vibin.billy.BillyApplication;
+import com.vibin.billy.R;
+import com.vibin.billy.fragment.ChangelogDialog;
+import com.vibin.billy.fragment.LicensesFragment;
 import com.vibin.billy.swipeable.SwipeableActivity;
 
 public class Settings extends SwipeableActivity {

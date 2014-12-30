@@ -1,4 +1,4 @@
-package com.vibin.billy;
+package com.vibin.billy.service;
 
 import android.annotation.TargetApi;
 import android.app.Notification;
@@ -28,15 +28,20 @@ import android.widget.RemoteViews;
 import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
+import com.vibin.billy.BillyApplication;
+import com.vibin.billy.BillyItem;
+import com.vibin.billy.R;
+import com.vibin.billy.activity.DetailView;
+import com.vibin.billy.reciever.MediaControl;
 
 import java.io.IOException;
 
 public class PlayerService extends Service implements MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnInfoListener, MediaPlayer.OnSeekCompleteListener {
     private static final String TAG = PlayerService.class.getSimpleName();
-    MediaPlayer bp = new MediaPlayer();
-    String streamLink, song, album, artist, artwork;
+    public MediaPlayer bp = new MediaPlayer();
+    public String streamLink, song, album, artist, artwork;
     int songIndex;
-    int bufferPercent;
+    public int bufferPercent;
     Notification note;
     Bitmap notifIcon;
     RequestQueue req;
@@ -120,12 +125,13 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                 handleKeyDown(keyEvent);
             } else {
                 setupPhoneListener();
-                streamLink = intent.getStringExtra("streamLink");
-                song = intent.getStringExtra("songName");
-                album = intent.getStringExtra("albumName");
-                artist = intent.getStringExtra("artistName");
-                songIndex = intent.getIntExtra("songIndex", 50);
-                artwork = intent.getStringExtra("artwork");
+                BillyItem b = intent.getParcelableExtra("item");
+                streamLink = b.getStreamLink();
+                song = b.getSong();
+                album = b.getAlbum();
+                artist = b.getArtist();
+                songIndex = b.getIndex();
+                artwork = b.getArtwork();
 
                 bp.reset();
 

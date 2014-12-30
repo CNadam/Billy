@@ -1,4 +1,4 @@
-package com.vibin.billy;
+package com.vibin.billy.activity;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -35,17 +35,23 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.NetworkImageView;
 import com.google.android.youtube.player.YouTubeIntents;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
+import com.vibin.billy.BillyApplication;
+import com.vibin.billy.BillyItem;
+import com.vibin.billy.R;
+import com.vibin.billy.custom.ShareActionProvider;
+import com.vibin.billy.custom.NotifyingScrollView;
+import com.vibin.billy.http.JsonObjectRequest;
+import com.vibin.billy.service.PlayerService;
 import com.vibin.billy.swipeable.SwipeableActivity;
+import com.vibin.billy.util.ProcessingTask;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.http.protocol.HTTP;
@@ -54,7 +60,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Arrays;
 
 /**
@@ -64,6 +69,7 @@ import java.util.Arrays;
 public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarChangeListener {
     private String song, artwork, artist, album, streamLink, permaLink, lastFmBio, thumbnail, videoId;
     private String[] relatedAlbumImg, relatedAlbums;
+    BillyItem b;
     private int songIndex, songLength;
     private float secondaryProgressFactor;
     private boolean isMusicPlaying;
@@ -111,15 +117,12 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
 
         imgload = billyapp.getImageLoader();
 
-        Bundle itemData = newIntent.getExtras();
-        song = itemData.getString("song");
-        artist = itemData.getString("artist");
-        if (artist.contains(",")) {
-            artist = artist.substring(0, artist.indexOf(","));
-        }
-        album = itemData.getString("album");
-        artwork = itemData.getString("artwork");
-        songIndex = itemData.getInt("index");
+        b = newIntent.getExtras().getParcelable("item");
+        song = b.getSong();
+        artist = b.getSingleArtist();
+        album = b.getAlbum();
+        artwork = b.getArtwork();
+        songIndex = b.getIndex();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
@@ -171,14 +174,14 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     private void performRequests(RequestQueue req) throws UnsupportedEncodingException {
         super.enableSwipeToDismiss();
 
-        final String scUrl = getResources().getString(R.string.soundcloud, (song + " " + UTF8(artist)).replaceAll(" ", "+"));
-        final String lastFmBioUrl = getResources().getString(R.string.lastfm, "getinfo", UTF8(artist).replaceAll(" ", "+").replaceAll("&", "and"));
-        final String lastFmTopAlbumsUrl = getResources().getString(R.string.lastfm, "gettopalbums", UTF8(artist).replaceAll(" ", "+"));
-        final String youtubeUrl = getResources().getString(R.string.youtube, (song + " " + UTF8(artist)).replaceAll(" ", "+"));
+        final String scUrl = getResources().getString(R.string.soundcloud, (song + " " + billyapp.UTF8(artist)).replaceAll(" ", "+"));
+        final String lastFmBioUrl = getResources().getString(R.string.lastfm, "getinfo", billyapp.UTF8(artist).replaceAll(" ", "+").replaceAll("&", "and"));
+        final String lastFmTopAlbumsUrl = getResources().getString(R.string.lastfm, "gettopalbums", billyapp.UTF8(artist).replaceAll(" ", "+"));
+        final String youtubeUrl = getResources().getString(R.string.youtube, (song + " " + billyapp.UTF8(artist)).replaceAll(" ", "+"));
         JsonArrayRequest stringreq = new JsonArrayRequest(scUrl, scComplete(), scError());
-        JsonObjectRequest lastFmBio = new JsonObjectRequest(Request.Method.GET, lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
-        JsonObjectRequest lastFmTopAlbums = new JsonObjectRequest(Request.Method.GET, lastFmTopAlbumsUrl, null, lastFmTopAlbumsComplete(), lastFmTopAlbumsError());
-        JsonObjectRequest youtubeSearch = new JsonObjectRequest(Request.Method.GET, youtubeUrl, null, youtubeSearchComplete(), youtubeSearchError());
+        JsonObjectRequest lastFmBio = new JsonObjectRequest(lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
+        JsonObjectRequest lastFmTopAlbums = new JsonObjectRequest(lastFmTopAlbumsUrl, null, lastFmTopAlbumsComplete(), lastFmTopAlbumsError());
+        JsonObjectRequest youtubeSearch = new JsonObjectRequest(youtubeUrl, null, youtubeSearchComplete(), youtubeSearchError());
 
         Log.d(TAG, "scUrl is " + scUrl);
         Log.d(TAG, "topalbum " + lastFmTopAlbumsUrl);
@@ -190,10 +193,6 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         req.add(youtubeSearch);
 
         ft = new ProcessingTask(getBaseContext());
-    }
-
-    private String UTF8(String text) throws UnsupportedEncodingException {
-        return URLEncoder.encode(text, "utf-8");
     }
 
     @Override
@@ -250,7 +249,8 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 }
                 permaLink = result[2];
                 streamLink = result[3];
-                Log.d(TAG,"User is "+result[0]+" duration is "+result[1]);
+                b.setStreamLink(streamLink);
+                Log.d(TAG, "User is " + result[0] + " duration is " + result[1]);
                 Log.d(TAG, "original streamLink is " + streamLink);
                 Log.d(TAG, "original permaLink is " + permaLink);
                 supportInvalidateOptionsMenu();
@@ -380,7 +380,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                     }
                     setRelatedAlbums();
                 } catch (JSONException e) {
-                    Log.e(TAG, e.toString());
+                    //Log.e(TAG, e.toString());
                 }
             }
         };
@@ -645,12 +645,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
             dashes.startAnimation(rotateAnim);
             isPreparing = true;
             //streamLink = "rtmp://ec-rtmp-media.soundcloud.com/mp3:7faed9oUCfzf.128?9527d18f1063a01f059bf10590159adb10dea0996b8c0cdb674f9e2a22158b9e2c124b95828db74e27f9807e908a0a15c5d9a2b9db27558bfafb06c4246b4f9e1e181b56d687209f037cda21bb2a36b9f63ca84bed96bfaa0d62";
-            serviceIntent.putExtra("streamLink", streamLink);
-            serviceIntent.putExtra("songName", song);
-            serviceIntent.putExtra("songIndex", songIndex);
-            serviceIntent.putExtra("albumName", album);
-            serviceIntent.putExtra("artistName", artist);
-            serviceIntent.putExtra("artwork", artwork);
+            serviceIntent.putExtra("item", b);
             startService(serviceIntent);
             bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
         } else {
@@ -779,7 +774,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         super.onPrepareOptionsMenu(menu);
         MenuItem shareItem = menu.findItem(R.id.share);
 
-        CustomShareActionProvider actionProv = (CustomShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
+        ShareActionProvider actionProv = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
         actionProv.setShareIntent(getShareIntent());
         return true;
     }

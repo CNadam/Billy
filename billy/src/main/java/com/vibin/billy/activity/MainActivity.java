@@ -1,4 +1,4 @@
-package com.vibin.billy;
+package com.vibin.billy.activity;
 
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
@@ -26,6 +26,10 @@ import android.widget.Toast;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
+import com.vibin.billy.BillyApplication;
+import com.vibin.billy.R;
+import com.vibin.billy.adapter.FragmentAdapter;
+import com.vibin.billy.fragment.ChangelogDialog;
 
 /**
  * The main activity. (no pun intended)
@@ -34,7 +38,7 @@ import com.readystatesoftware.systembartint.SystemBarTintManager;
 public class MainActivity extends ActionBarActivity {
 
     SystemBarTintManager tintManager;
-    CustomFragmentAdapter mAdapter;
+    FragmentAdapter mAdapter;
     private static final String TAG = MainActivity.class.getSimpleName();
 
     @Override
@@ -64,7 +68,7 @@ public class MainActivity extends ActionBarActivity {
 
     private void setViewpager() {
         try {
-            mAdapter = new CustomFragmentAdapter(getSupportFragmentManager(), this);
+            mAdapter = new FragmentAdapter(getSupportFragmentManager(), this);
             ViewPager mPager = (ViewPager) findViewById(R.id.pager);
             mPager.setAdapter(mAdapter);
             PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
@@ -202,6 +206,7 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 }
+//TODO Volley caching works fine, but SongsFragment onResponse needs better handling
 
 //TODO better SoundCloud track fetch
 //TODO Youtube card padding on L
@@ -213,6 +218,7 @@ public class MainActivity extends ActionBarActivity {
 //TODO use AudioManager in Service
 //TODO use i1 endpoint api if needed
 //TODO Implement playlists
+//TODO add fastscroll in hot100
 
 //TODO service quits automatically when playing after sometime
 //TODO handle 2G/3G devices efficiently API Level 17

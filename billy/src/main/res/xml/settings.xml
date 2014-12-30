@@ -2,11 +2,11 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="General">
-        <com.vibin.billy.ReorderedListPreference
+        <com.vibin.billy.preference.DragDropList
             android:summary="Choose and reorder genres"
             android:title="Genres" />
 
-        <com.vibin.billy.CustomListPreference
+        <com.vibin.billy.preference.ListPreference
             android:defaultValue="1"
             android:entries="@array/albumArtQuality"
             android:entryValues="@array/album_art_values"

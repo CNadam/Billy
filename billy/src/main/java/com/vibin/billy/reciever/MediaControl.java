@@ -1,9 +1,11 @@
-package com.vibin.billy;
+package com.vibin.billy.reciever;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+
+import com.vibin.billy.service.PlayerService;
 
 public class MediaControl extends BroadcastReceiver {
     private static final String TAG = MediaControl.class.getSimpleName();

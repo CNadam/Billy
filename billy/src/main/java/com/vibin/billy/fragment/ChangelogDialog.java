@@ -1,4 +1,4 @@
-package com.vibin.billy;
+package com.vibin.billy.fragment;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.vibin.billy.R;
 
 public class ChangelogDialog extends DialogFragment {
     View changelogView;

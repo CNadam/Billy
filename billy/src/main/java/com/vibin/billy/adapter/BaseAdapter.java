@@ -1,34 +1,35 @@
-package com.vibin.billy;
+package com.vibin.billy.adapter;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.LayoutRes;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
+import com.vibin.billy.BillyApplication;
+import com.vibin.billy.BillyItem;
+import com.vibin.billy.util.ProcessingTask;
+import com.vibin.billy.R;
 
 import java.util.ArrayList;
 
-class CustomBaseAdapter extends BaseAdapter {
+public class BaseAdapter extends android.widget.BaseAdapter {
 
-    private static final String TAG = CustomBaseAdapter.class.getSimpleName();
+    private static final String TAG = BaseAdapter.class.getSimpleName();
     Context c;
-    ArrayList<ProcessingTask.BillyData> mData;
+    ArrayList<BillyItem> mData;
     ImageLoader imgload;
     SharedPreferences sharedPref;
     BillyApplication billyapp;
     @LayoutRes int resource;
 
-    CustomBaseAdapter(Context c, ArrayList<ProcessingTask.BillyData> arrayList, ImageLoader imgload) {
+    public BaseAdapter(Context c, ArrayList<BillyItem> arrayList, ImageLoader imgload) {
         this.c = c;
         mData = arrayList;
         this.imgload = imgload;
@@ -56,7 +57,7 @@ class CustomBaseAdapter extends BaseAdapter {
         }
     }
 
-    public void updateArrayList(ArrayList<ProcessingTask.BillyData> arraylist) {
+    public void updateArrayList(ArrayList<BillyItem> arraylist) {
         mData = arraylist;
     }
 
@@ -106,14 +107,14 @@ class CustomBaseAdapter extends BaseAdapter {
             holder = (MyViewHolder) row.getTag();
         }
 
-        ProcessingTask.BillyData temp = mData.get(i);
+        BillyItem b = mData.get(i);
 
         //Log.d(TAG, i + " " + temp.album + " " + temp.artist + " " + temp.song + " " + temp.artwork);
 
-        holder.album.setText(temp.album);
-        holder.artist.setText(temp.artist);
-        holder.song.setText(temp.song);
-        holder.artwork.setImageUrl(temp.artwork, imgload);
+        holder.album.setText(b.getAlbum());
+        holder.artist.setText(b.getArtist());
+        holder.song.setText(b.getSong());
+        holder.artwork.setImageUrl(b.getArtwork(), imgload);
 
         return row;
     }

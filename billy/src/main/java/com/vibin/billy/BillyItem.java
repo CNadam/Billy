@@ -3,9 +3,54 @@ package com.vibin.billy;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class BillyItem implements Parcelable {
-    String song, album, artist, artwork, streamLink, permaLink, lastFmBio, ytThumbnail, ytId;
+    String song, album, artist, artwork, streamLink;
     int index;
+
+    public BillyItem(){}
+
+    public BillyItem(Parcel in) {
+        super();
+        readFromParcel(in);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        List<String> fields = Arrays.asList(song,album,artist,artwork,streamLink);
+        for (String field: fields)
+        {
+            dest.writeString(field);
+        }
+        dest.writeInt(index);
+    }
+
+    private void readFromParcel(Parcel in) {
+        song = in.readString();
+        album = in.readString();
+        artist = in.readString();
+        artwork = in.readString();
+        streamLink = in.readString();
+        index = in.readInt();
+    }
+
+    public static final Parcelable.Creator<BillyItem> CREATOR = new Parcelable.Creator<BillyItem>() {
+        public BillyItem createFromParcel(Parcel in) {
+            return new BillyItem(in);
+        }
+
+        public BillyItem[] newArray(int size) {
+            return new BillyItem[size];
+        }
+
+    };
 
     public String getSong() {
         return song;
@@ -31,11 +76,19 @@ public class BillyItem implements Parcelable {
         this.artist = artist;
     }
 
+    public void setItunes(String song, String album, String artist, String artwork)
+    {
+       setSong(song);
+       setAlbum(album);
+       setArtist(artist);
+       setArtwork(artwork);
+    }
+
     /**
      * Get the first artist, when there are more than one
      * Example: Bang Bang - Jessie J, Ariana Grande, Nicki Minaj. We return "Jessie J".
      */
-    public String getOnlyArtist() {
+    public String getSingleArtist() {
         if (artist.contains(",")) {
             return artist.substring(0, artist.indexOf(","));
         }
@@ -58,7 +111,7 @@ public class BillyItem implements Parcelable {
         this.streamLink = streamLink;
     }
 
-    public String getPermaLink() {
+/*    public String getPermaLink() {
         return permaLink;
     }
 
@@ -88,7 +141,7 @@ public class BillyItem implements Parcelable {
 
     public void setYtId(String ytId) {
         this.ytId = ytId;
-    }
+    }*/
 
     public int getIndex() {
         return index;
@@ -97,34 +150,4 @@ public class BillyItem implements Parcelable {
     public void setIndex(int index) {
         this.index = index;
     }
-
-    public BillyItem(Parcel in) {
-        super();
-        readFromParcel(in);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-
-    }
-
-    private void readFromParcel(Parcel in) {
-
-    }
-
-    public static final Parcelable.Creator<BillyItem> CREATOR = new Parcelable.Creator<BillyItem>() {
-        public BillyItem createFromParcel(Parcel in) {
-            return new BillyItem(in);
-        }
-
-        public BillyItem[] newArray(int size) {
-            return new BillyItem[size];
-        }
-
-    };
 }

@@ -1,4 +1,4 @@
-package com.vibin.billy;
+package com.vibin.billy.adapter;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -8,19 +8,19 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-public class CustomDatabaseAdapter {
+public class DatabaseAdapter {
 
-    private static final String TAG = CustomDatabaseAdapter.class.getSimpleName();
+    private static final String TAG = DatabaseAdapter.class.getSimpleName();
     private DatabaseHelper hlp;
     //Context c;
 
-    public CustomDatabaseAdapter(Context context) {
+    public DatabaseAdapter(Context context) {
         //this.c = context;
         hlp = DatabaseHelper.getInstance(context);
     }
 
     public long insertArrayList(String data, String table) {
-        Log.d(TAG, "insertArrayList called");
+        //Log.d(TAG, "insertArrayList called");
         SQLiteDatabase db = hlp.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHelper.UID, 0);
@@ -31,7 +31,7 @@ public class CustomDatabaseAdapter {
     }
 
     public String getArrayList(String table) {
-        Log.d(TAG, "getArrayList called");
+        //Log.d(TAG, "getArrayList called");
         SQLiteDatabase db = hlp.getWritableDatabase();
         String[] columns = {DatabaseHelper.UID, DatabaseHelper.ArrayList};
         Cursor cursor = db.query(table, columns, DatabaseHelper.UID + " = '" + 0 + "'", null, null, null, null, null);

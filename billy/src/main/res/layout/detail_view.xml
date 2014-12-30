@@ -1,4 +1,4 @@
-<com.vibin.billy.NotifyingScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.vibin.billy.custom.NotifyingScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/scroll_view"
@@ -343,4 +343,4 @@
 
         </LinearLayout>
     </RelativeLayout>
-</com.vibin.billy.NotifyingScrollView>
+</com.vibin.billy.custom.NotifyingScrollView>
