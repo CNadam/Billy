@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
@@ -22,6 +23,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.astuetz.PagerSlidingTabStrip;
@@ -51,7 +54,7 @@ public class MainActivity extends ActionBarActivity {
         }
         tintManager = new SystemBarTintManager(this);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
-        getSupportActionBar().setElevation(13.0f);
+        getSupportActionBar().setElevation(0);
         setTitle(" " + "Billy".toUpperCase());
 
         setViewpager();
@@ -73,6 +76,7 @@ public class MainActivity extends ActionBarActivity {
             mPager.setAdapter(mAdapter);
             PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
             tabs.setViewPager(mPager);
+            tabs.setTextColor(Color.WHITE);
         } catch (IllegalStateException e) {
             Log.e(TAG, e.toString());
         }
@@ -206,14 +210,13 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 }
-//TODO Volley caching works fine, but SongsFragment onResponse needs better handling
 
+//TODO ripple for play button
+//TODO seekbar not visible on notification click
 //TODO better SoundCloud track fetch
-//TODO Youtube card padding on L
 //TODO change firstRun preference in BillyApplication
 //TODO deleting database needed on first run?
 //TODO crash fixes
-//TODO update UI in DetailView only if song is in background
 
 //TODO use AudioManager in Service
 //TODO use i1 endpoint api if needed

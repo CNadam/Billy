@@ -1,1 +1,2 @@
-include ':billy'
+include ':billy', ':tabstriplib'
+project(':tabstriplib').projectDir = new File('billy/libs/PagerSlidingTabStrip/library')
