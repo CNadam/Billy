@@ -171,7 +171,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 android.R.color.holo_orange_light,
                 R.color.green);
         swipelayout.setSize(SwipeRefreshLayout.LARGE);
-        swipelayout.setRefreshing(true);
+        //swipelayout.setRefreshing(true);
 
         /**
          * Restore instance, on Orientation change
@@ -477,7 +477,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         try {
             if (isAdded()) {
                 String searchparam = billyapp.UTF8(billyArtist[i]) + "+" + billyapp.UTF8(billySong[i]);
-                String uri = getResources().getString(R.string.itunes, searchparam);
+                String uri = getResources().getString(R.string.itunes, searchparam)+"&id="+i;
                 Log.d(tag, uri);
                 JsonObjectRequest jsonreq = new JsonObjectRequest(uri, null, itunesComplete(), itunesError());
                 jsonreq.setTag(this);
@@ -500,18 +500,20 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             @Override
             public void onResponse(JSONObject jsonObject) {
                 try {
-                    String[] result = ft.parseItunes(jsonObject);
+                    String url = jsonObject.getString("url");
+                    int id = Integer.parseInt(url.substring(url.lastIndexOf("=")+1));
+                    String[] result = ft.parseItunes(jsonObject, id);
 
                     if (result != null) {
                         try {
-                            mData.get(Integer.parseInt(result[4])).setItunes(result[0], result[1], result[2], result[3]);
+                            mData.get(id).setItunes(result[0], result[1], result[2], result[3]);
                             baseAdapter.updateArrayList(mData);
                             baseAdapter.notifyDataSetChanged();
                         } catch (NullPointerException e) {
                             Log.d(tag, e.toString());
                         }
                     } else {
-                        Crashlytics.log(Log.ERROR, tag, "Result object from iTunes is null for this track. " + jsonObject.getString("url"));
+                        Crashlytics.log(Log.ERROR, tag, "Result object from iTunes is null for this track. " + url);
                     }
                 } catch (JSONException e) {
                     Log.d(tag, e + "");
