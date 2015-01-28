@@ -40,6 +40,8 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     private static final String TAG = PlayerService.class.getSimpleName();
     public MediaPlayer bp = new MediaPlayer();
     public String streamLink, song, album, artist, artwork;
+    BillyItem b;
+    long duration;
     int songIndex;
     public int bufferPercent;
     Notification note;
@@ -55,7 +57,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     public static boolean isRunning;
 
     public interface onBPChangedListener {
-        void onPrepared(int duration);
+        void onPrepared();
 
         void onCompletion();
 
@@ -125,13 +127,14 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                 handleKeyDown(keyEvent);
             } else {
                 setupPhoneListener();
-                BillyItem b = intent.getParcelableExtra("item");
+                b = intent.getParcelableExtra("item");
                 streamLink = b.getStreamLink();
                 song = b.getSong();
                 album = b.getAlbum();
                 artist = b.getArtist();
                 songIndex = b.getIndex();
                 artwork = b.getArtwork();
+                duration = b.getDuration();
 
                 bp.reset();
 
@@ -192,10 +195,10 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     }
 
     @Override
-    public void onPrepared(MediaPlayer mediaPlayer) {
+    public void onPrepared(MediaPlayer mp) {
         try {
             isIdle = false;
-            BPlistener.onPrepared(mediaPlayer.getDuration() / 1000); //ms
+            BPlistener.onPrepared();
             playMedia();
         } catch (NullPointerException e) {
             Log.e(TAG, e.toString());
@@ -204,12 +207,12 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
 
     @Override
-    public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
+    public void onBufferingUpdate(MediaPlayer mp, int i) {
         bufferPercent = i;
     }
 
     @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
+    public void onCompletion(MediaPlayer mp) {
         Log.d(TAG, "onCompletion");
         if(BPlistener != null) {
             BPlistener.onCompletion();
@@ -224,7 +227,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     }
 
     @Override
-    public boolean onError(MediaPlayer mediaPlayer, int i, int i2) {
+    public boolean onError(MediaPlayer mp, int i, int i2) {
         stopForeground(true);
         if(BPlistener != null) {
             BPlistener.onError(i, i2);
@@ -247,12 +250,12 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     }
 
     @Override
-    public boolean onInfo(MediaPlayer mediaPlayer, int i, int i2) {
+    public boolean onInfo(MediaPlayer mp, int i, int i2) {
         return false;
     }
 
     @Override
-    public void onSeekComplete(MediaPlayer mediaPlayer) {
+    public void onSeekComplete(MediaPlayer mp) {
 
     }
 
@@ -321,6 +324,11 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         }
     }
 
+    // Duration as given by SoundCloud, no state-exceptions while calling this
+    public int getDuration() {
+        return (int) duration;
+    }
+
     /**
      * Put a sticky notification for media controls
      */
@@ -346,11 +354,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         }
 
         Intent resultIntent = new Intent(this, DetailView.class);
-        resultIntent.putExtra("song", song);
-        resultIntent.putExtra("album", album);
-        resultIntent.putExtra("artist", artist);
-        resultIntent.putExtra("artwork", artwork);
-        resultIntent.putExtra("index", songIndex);
+        resultIntent.putExtra("item", b);
 
         PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         note = new NotificationCompat.Builder(this)

@@ -24,7 +24,7 @@
         <item name="colorControlActivated">@color/billy</item>
         <item name="colorControlNormal">@color/billy_lighter</item>
         <item name="colorButtonNormal">@color/billy</item>
-
+        <item name="android:windowContentOverlay">@null</item>
     </style>
 
     <!-- For Activities which are swipeable and have transparent ActionBar-->

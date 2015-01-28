@@ -9,6 +9,7 @@ import java.util.List;
 public class BillyItem implements Parcelable {
     String song, album, artist, artwork, streamLink;
     int index;
+    long duration;
 
     public BillyItem(){}
 
@@ -30,6 +31,7 @@ public class BillyItem implements Parcelable {
             dest.writeString(field);
         }
         dest.writeInt(index);
+        dest.writeLong(duration);
     }
 
     private void readFromParcel(Parcel in) {
@@ -39,6 +41,7 @@ public class BillyItem implements Parcelable {
         artwork = in.readString();
         streamLink = in.readString();
         index = in.readInt();
+        duration = in.readLong();
     }
 
     public static final Parcelable.Creator<BillyItem> CREATOR = new Parcelable.Creator<BillyItem>() {
@@ -111,37 +114,13 @@ public class BillyItem implements Parcelable {
         this.streamLink = streamLink;
     }
 
-/*    public String getPermaLink() {
-        return permaLink;
+    public long getDuration() {
+        return duration;
     }
 
-    public void setPermaLink(String permaLink) {
-        this.permaLink = permaLink;
+    public void setDuration(long duration) {
+        this.duration = duration;
     }
-
-    public String getLastFmBio() {
-        return lastFmBio;
-    }
-
-    public void setLastFmBio(String lastFmBio) {
-        this.lastFmBio = lastFmBio;
-    }
-
-    public String getYtThumbnail() {
-        return ytThumbnail;
-    }
-
-    public void setYtThumbnail(String ytThumbnail) {
-        this.ytThumbnail = ytThumbnail;
-    }
-
-    public String getYtId() {
-        return ytId;
-    }
-
-    public void setYtId(String ytId) {
-        this.ytId = ytId;
-    }*/
 
     public int getIndex() {
         return index;

@@ -15,8 +15,7 @@
     card_view:cardElevation="@dimen/card_shadow"
     card_view:cardMaxElevation="@dimen/card_shadow"
     card_view:cardCornerRadius="@dimen/card_radius"
-    card_view:cardUseCompatPadding="true"
-    card_view:contentPadding="0.75dp">
+    card_view:cardUseCompatPadding="true">
 
     <RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
