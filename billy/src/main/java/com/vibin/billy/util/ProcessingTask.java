@@ -2,8 +2,6 @@ package com.vibin.billy.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -58,57 +56,6 @@ public class ProcessingTask {
         refreshArtworkUrlResolution();
     }
 
-    public static class BillyData implements Parcelable {
-        public String song, album, artist, artwork;
-
-        public BillyData() {
-        }
-
-        public BillyData(Parcel in) {
-            super();
-            readFromParcel(in);
-        }
-
-        public void setItunes(String album, String artist, String artwork, String song) {
-            this.album = album;
-            this.artist = artist;
-            this.artwork = artwork;
-            this.song = song;
-        }
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(Parcel parcel, int i) {
-            parcel.writeString(song);
-            parcel.writeString(album);
-            parcel.writeString(artist);
-            parcel.writeString(artwork);
-        }
-
-        public void readFromParcel(Parcel in) {
-            song = in.readString();
-            album = in.readString();
-            artist = in.readString();
-            artwork = in.readString();
-        }
-
-        public static final Parcelable.Creator<BillyData> CREATOR = new Parcelable.Creator<BillyData>() {
-            public BillyData createFromParcel(Parcel in) {
-                return new BillyData(in);
-            }
-
-            public BillyData[] newArray(int size) {
-                return new BillyData[size];
-            }
-
-        };
-
-    }
-
     /**
      * Parses XML from Billboard and populates {@link #billySong} and {@link #billyArtist}
      *
@@ -131,7 +78,7 @@ public class ProcessingTask {
             if (i <= billySize && event == XmlPullParser.START_TAG) {
                 if (name.equals("description")) {
                     if (parser.next() == XmlPullParser.TEXT) {
-                        if(!skip) {
+                        if (!skip) {
                             billySong[i] = extractSong(parser.getText());
                             billyArtist[i] = extractArtist(parser.getText());
                             i++;
@@ -170,19 +117,19 @@ public class ProcessingTask {
      * @return A String Array containing metadata of a song
      * @throws JSONException
      */
-    public String[] parseItunes(JSONObject jsonObject) throws JSONException {
+    public String[] parseItunes(JSONObject jsonObject, int id) throws JSONException {
         int counter = 0;
         String trackName, artworkUrl, collectionName, artistName;
         JSONArray mJsonArray = jsonObject.getJSONArray("results");
         if (jsonObject.getInt("resultCount") == 0) {
             Log.e(TAG, "resultCount is zero " + jsonObject.toString());
-        }
-        else {
+        } else {
             while (counter < 2) {
-                artistName = mJsonArray.getJSONObject(counter).getString("artistName");
-                collectionName = mJsonArray.getJSONObject(counter).getString("collectionName");
-                artworkUrl = mJsonArray.getJSONObject(counter).getString("artworkUrl100");
-                trackName = mJsonArray.getJSONObject(counter).getString("trackName");
+                JSONObject result = mJsonArray.getJSONObject(counter);
+                artistName = result.getString("artistName");
+                collectionName = result.getString("collectionName");
+                artworkUrl = result.getString("artworkUrl100");
+                trackName = result.getString("trackName");
 
                 // Change quality of artwork according to user settings
                 if (quality == 2) {
@@ -210,21 +157,20 @@ public class ProcessingTask {
                 // Replace Smart Quotes with Dumb Quotes
                 trackName = replaceSmartQuotes(trackName);
 
-                int match = matchMagic(billySong, trackName);
+                //int match = matchMagic(billySong, trackName);
 
                 // Track name from Billboard and iTunes don't match
-                if (match == -1) {
+                if (!getLevensteinMatch(billySong[id], trackName)) {
                     Log.e(TAG, "The unmatched itunes song is " + trackName);
-                    int matchArtist = matchMagic(billyArtist, artistName);
                     counter++;
-                    if (matchArtist == -1) {
+                    if (!getLevensteinMatch(billyArtist[id], artistName)) {
                         Log.e(TAG, "Artists haven't matched " + artistName + " and counter is " + counter);
                     } else {
                         Log.e(TAG, "Something wrong with text manipulation " + trackName + " " + artistName);
                     }
                 } else {
                     // Most ideal situation
-                    return new String[]{trackName, collectionName, artistName, artworkUrl, match + ""};
+                    return new String[]{trackName, collectionName, artistName, artworkUrl};
                 }
             }
         }
@@ -255,10 +201,9 @@ public class ProcessingTask {
 
     private String extractArtist(String text) {
         String extractedArtist = text.substring(text.indexOf(" by ") + 4, text.indexOf(" ranks "));
-        String[] collabs = {" Featuring "," Ft"," Duet "," With "};
+        String[] collabs = {" Featuring ", " Ft", " Duet ", " With "};
         Pattern pat = Pattern.compile("\\b(Featuring|Ft|Duet|With)\\b");
-        if(pat.matcher(extractedArtist).find()) {
-            //Log.d(TAG,"Collab tag found: "+extractedArtist);
+        if (pat.matcher(extractedArtist).find()) {
             for (String collab : collabs) {
                 if (extractedArtist.contains(collab)) {
                     extractedArtist = extractedArtist.substring(0, extractedArtist.indexOf(collab));
@@ -269,46 +214,9 @@ public class ProcessingTask {
         return extractedArtist.trim();
     }
 
-    /**
-     * Searches for given String in the String array and returns index. Case-insensitive.
-     * If no match is found, we try Levenshtein's Algo
-     */
-
-    private int matchMagic(String[] billySong, String trackName) {
-        int index = 0;
-        for (String name : billySong) {
-            if (name != null) {
-                if (name.equalsIgnoreCase(trackName)) {
-                    return index;
-                }
-                index++;
-            } else {
-                Log.d(TAG, "Index is " + index + " trackName is " + trackName);
-            }
-        }
-        return getLevenshteinMatch(billySong, trackName);
-    }
-
-    /**
-     * Uses the Levenshtein's Algorithm to find the closest match for iTunes song in {@link #billySong}
-     */
-
-    private int getLevenshteinMatch(String[] billySong, String trackName) {
-        int index = 0;
-        for (String name : billySong) {
-            if (name != null) {
-                int match = StringUtils.getLevenshteinDistance(billySong[index].toLowerCase(), trackName.toLowerCase());
-                if (match >= 0 && match <= 3) {
-                    Log.i(TAG, "Levenshtein Algo passed: " + billySong[index] + " " + trackName);
-                    billySong[index] = trackName;
-                    return index;
-                }
-            } else {
-                Log.d(TAG, "Index is " + index + " trackName is " + trackName);
-            }
-            index++;
-        }
-        return -1;
+    private boolean getLevensteinMatch(String a, String b) {
+        int diff = StringUtils.getLevenshteinDistance(a, b);
+        return diff <= 3;
     }
 
     /**
@@ -398,7 +306,7 @@ public class ProcessingTask {
         while (count < 8) {
             JSONObject object = response.getJSONObject(count);
             boolean streamble = object.getBoolean("streamable");
-            if(streamble) {
+            if (streamble) {
                 String tags = object.getString("tag_list");
                 if (pat.matcher(tags.toLowerCase()).find()) {
                     Log.d(TAG, count + " tag-list: " + tags.toLowerCase());
@@ -423,12 +331,10 @@ public class ProcessingTask {
                 }
 
                 String duration = String.valueOf(object.getInt("duration"));
-                if(firstDuration.isEmpty())
-                {
+                if (firstDuration.isEmpty()) {
                     firstDuration = duration;
                 }
-                if(!ignore)
-                {
+                if (!ignore) {
                     links[1] = duration;
                 }
                 permaLink = object.getString("permalink_url");
