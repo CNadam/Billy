@@ -291,8 +291,8 @@ public class ProcessingTask {
 
     public String[] parseSoundcloud(JSONArray response, String song) throws JSONException {
         String soundcloudKey = context.getResources().getStringArray(R.array.keys)[0];
-        String streamLink = "", firstLink = "", permaLink = "", firstPermaLink = "", firstUser = "", firstDuration = "";
-        String[] links = new String[4];
+        String[] links;
+        String[] firstScSong = new String[4];
         String firstWord;
         int count = 0;
         if (song.contains(" ")) {
@@ -302,11 +302,12 @@ public class ProcessingTask {
         }
         firstWord = firstWord.toLowerCase();
         boolean ignore = false;
+        boolean first = true;
         Pattern pat = Pattern.compile("\\b(remix|cover|guitar|parody|acoustic|instrumental|drums|cloudseeder)\\b");
         while (count < 8) {
             JSONObject object = response.getJSONObject(count);
-            boolean streamble = object.getBoolean("streamable");
-            if (streamble) {
+            boolean streamable = object.getBoolean("streamable");
+            if (streamable) {
                 String tags = object.getString("tag_list");
                 if (pat.matcher(tags.toLowerCase()).find()) {
                     Log.d(TAG, count + " tag-list: " + tags.toLowerCase());
@@ -323,47 +324,24 @@ public class ProcessingTask {
                 }
 
                 String user = object.getJSONObject("user").getString("username");
-                if (firstUser.isEmpty()) {
-                    firstUser = user;
-                }
-                if (!ignore) {
-                    links[0] = user;
-                }
-
                 String duration = String.valueOf(object.getInt("duration"));
-                if (firstDuration.isEmpty()) {
-                    firstDuration = duration;
-                }
-                if (!ignore) {
-                    links[1] = duration;
-                }
-                permaLink = object.getString("permalink_url");
-                if (firstPermaLink.isEmpty()) {
-                    firstPermaLink = permaLink;
-                }
-                if (!ignore) {
-                    links[2] = permaLink;
-                }
+                String permaLink = object.getString("permalink_url");
+                String streamLink = object.getString("stream_url") + "?client_id=" + soundcloudKey;
 
-                streamLink = object.getString("stream_url") + "?client_id=" + soundcloudKey;
-                if (firstLink.isEmpty()) {
-                    firstLink = streamLink;
+                if (first) {
+                    firstScSong = new String[]{user, duration, permaLink, streamLink};
+                    first = false;
                 }
-
                 if (ignore) {
                     ignore = false;
                 } else {
-                    links[3] = streamLink;
+                    links = new String[]{user, duration, permaLink, streamLink};
                     return links;
                 }
             }
             count++;
         }
-        links[0] = firstUser;
-        links[1] = firstDuration;
-        links[2] = firstPermaLink;
-        links[3] = firstLink;
-        return links;
+        return firstScSong;
     }
 
     private InputStream getStringAsInputStream(String text) throws UnsupportedEncodingException {
