@@ -211,6 +211,9 @@ public class MainActivity extends ActionBarActivity {
     }
 }
 
+//TODO Lag 'cos of action bar tabs opacity
+//TODO proxy script
+
 //TODO ripple for play button
 //TODO seekbar not visible on notification click
 //TODO better SoundCloud track fetch

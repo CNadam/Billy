@@ -608,5 +608,14 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 			}
 		};
 	}
+    /**
+     * @param opaqueColor color as int, with no alpha
+     * @param alphaInHex alpha in hex, as a string
+     * @return color as int, with alpha
+     */
+    
+    private int addAlpha(int opaqueColor, String alphaInHex) {
+        return (Byte.parseByte(alphaInHex, 16) << 24) | (opaqueColor & 0x00ffffff);
+    }
 
 }
