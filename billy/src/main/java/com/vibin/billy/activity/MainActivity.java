@@ -211,8 +211,9 @@ public class MainActivity extends ActionBarActivity {
     }
 }
 
-//TODO Lag 'cos of action bar tabs opacity
 //TODO proxy script
+//TODO volley cache
+//TODO Implement playlists - Use Google's draglistview, with handlers (only), show SC likes, comments count
 
 //TODO ripple for play button
 //TODO seekbar not visible on notification click
@@ -223,7 +224,7 @@ public class MainActivity extends ActionBarActivity {
 
 //TODO use AudioManager in Service
 //TODO use i1 endpoint api if needed
-//TODO Implement playlists
+
 //TODO add fastscroll in hot100
 
 //TODO service quits automatically when playing after sometime

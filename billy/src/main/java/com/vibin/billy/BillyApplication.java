@@ -20,6 +20,7 @@ import com.android.volley.toolbox.Volley;
 import com.crashlytics.android.Crashlytics;
 import com.vibin.billy.util.BitmapLruCache;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -35,7 +36,6 @@ public class BillyApplication extends Application {
     SharedPreferences pref;
     private static BillyApplication mInstance;
     public static final String defaultGenres = "1Most Popular.1Pop.1Rock.1Dance.1Metal.1R&B.1Country.";
-    final int DEFAULT_CACHE_SIZE = 16 * 1024 * 1024; // for DiskBasedCache
     private static final String DEFAULT_CACHE_DIR = "volley";
 
     private static final String TAG = BillyApplication.class.getSimpleName();
@@ -107,7 +107,7 @@ public class BillyApplication extends Application {
         if (req == null) {
             req = Volley.newRequestQueue(this);
             File cacheDir = new File(this.getCacheDir(), DEFAULT_CACHE_DIR);
-            DiskBasedCache cache = new DiskBasedCache(cacheDir, DEFAULT_CACHE_SIZE);
+            DiskBasedCache cache = new DiskBasedCache(cacheDir);
             req = new RequestQueue(cache, new BasicNetwork(new HurlStack()));
             req.start();
         }
