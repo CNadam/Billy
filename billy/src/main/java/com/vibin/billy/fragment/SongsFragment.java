@@ -330,7 +330,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
                             for (int i = 0; i < billyapp.getMinBillySize(billySize); i++) {
                                 try {
-                                    callitunes(mData.size() - billyapp.getMinBillySize(billySize) + i, false);
+                                    callitunes(mData.size() - billyapp.getMinBillySize(billySize) + i, true);
                                 } catch (UnsupportedEncodingException e) {
                                     Log.d(tag, e.toString());
                                 }
@@ -464,7 +464,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         billyArtist = ft.getBillyArtist();
         if (doItunesRequests) {
             while (mIndex < billyapp.getMinBillySize(billySize)) {
-                callitunes(mIndex, false);
+                callitunes(mIndex, true);
                 mIndex++;
             }
         }
@@ -473,18 +473,25 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     /**
      * Spawn an iTunes request with song and artist Strings
      */
-    private void callitunes(int i, boolean invalidateCache) throws UnsupportedEncodingException {
+    private void callitunes(int i, boolean simpleParams) throws UnsupportedEncodingException {
         try {
             if (isAdded()) {
-                String searchparam = billyapp.UTF8(billyArtist[i]) + "+" + billyapp.UTF8(billySong[i]);
-                String uri = getResources().getString(R.string.itunes, searchparam)+"&id="+i;
+                String searchparam;
+                if (simpleParams) {
+                    searchparam = billyapp.UTF8(ft.getSimpleString(billySong[i])) + "+" + billyapp.UTF8(ft.getSimpleString(billyArtist[i]));
+                } else {
+                    Log.d(tag, "trying normal params");
+                    searchparam = billyapp.UTF8(billySong[i]) + "+" + billyapp.UTF8(billyArtist[i]);
+                }
+                int simple = simpleParams ? 1 : 0;
+                String uri = getResources().getString(R.string.itunes, searchparam) + "&id=" + i + "&simple=" + simple;
                 Log.d(tag, uri);
                 JsonObjectRequest jsonreq = new JsonObjectRequest(uri, null, itunesComplete(), itunesError());
                 jsonreq.setTag(this);
-                if (invalidateCache) {
-                    req.getCache().invalidate(jsonreq.getCacheKey(), true);
-                }
                 req.add(jsonreq);
+/*                if (invalidateCache) {
+                    req.getCache().invalidate(jsonreq.getCacheKey(), true);
+                }*/
             }
         } catch (NullPointerException e) {
             Log.d(tag, e.toString());
@@ -494,6 +501,8 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
     /**
      * Parses JSONObject, populates {@code mData}, notifies the BaseAdapter
+     * <p/>
+     * Re-requests iTunes with no parameter simplification, if result is null
      */
     private Response.Listener<JSONObject> itunesComplete() {
         return new Response.Listener<JSONObject>() {
@@ -501,7 +510,8 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             public void onResponse(JSONObject jsonObject) {
                 try {
                     String url = jsonObject.getString("url");
-                    int id = Integer.parseInt(url.substring(url.lastIndexOf("=")+1));
+                    int id = Integer.parseInt(url.substring(url.indexOf("id=") + 3, url.lastIndexOf("&")));
+                    int simpleParam = Integer.parseInt(url.substring(url.length() - 1));
                     String[] result = ft.parseItunes(jsonObject, id);
 
                     if (result != null) {
@@ -512,11 +522,16 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                         } catch (NullPointerException e) {
                             Log.d(tag, e.toString());
                         }
+                    } else if (simpleParam == 1) {
+                        Log.e(tag, "Result object is null with simple params. " + url);
+                        callitunes(id, false);
                     } else {
-                        Crashlytics.log(Log.ERROR, tag, "Result object from iTunes is null for this track. " + url);
+                        Crashlytics.log(Log.ERROR, tag, "Result object is null with normal params. " + url);
                     }
                 } catch (JSONException e) {
                     Log.d(tag, e + "");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
                 }
             }
         };
@@ -540,6 +555,8 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         try {
             if (billyapp.isConnected()) {
                 BillyItem b = mData.get(i);
+                b.setSimpleSong(ft.getSimpleString(billySong[i]));
+                b.setSimpleArtist(ft.getSimpleString(billyArtist[i]));
 
                 Intent myintent = new Intent(getActivity(), DetailView.class);
                 if (b.getArtwork() != null) {
@@ -630,7 +647,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
      * @return true, if it doesn't have null values
      */
     private boolean checkArrayList(ArrayList<BillyItem> mData) {
-        int i=0;
+        int i = 0;
         try {
             for (BillyItem b : mData) {
                 if (b == null) {
@@ -662,7 +679,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                     mIndex = 0;
                     while (mIndex < billyapp.getMinBillySize(billySize)) {
                         try {
-                            callitunes(mIndex, false);
+                            callitunes(mIndex, true);
                         } catch (UnsupportedEncodingException e) {
                             Log.d(tag, e.toString());
                         }

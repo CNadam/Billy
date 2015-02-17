@@ -118,7 +118,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
 
         b = newIntent.getExtras().getParcelable("item");
         song = b.getSong();
-        artist = b.getSingleArtist();
+        artist = b.getArtist();
         String artwork = b.getArtwork();
         songIndex = b.getIndex();
 
@@ -173,10 +173,13 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     private void performRequests(RequestQueue req) throws UnsupportedEncodingException {
         super.enableSwipeToDismiss();
 
-        final String scUrl = getResources().getString(R.string.soundcloud, (song + " " + billyapp.UTF8(artist)).replaceAll(" ", "+"));
-        final String lastFmBioUrl = getResources().getString(R.string.lastfm, "getinfo", billyapp.UTF8(artist).replaceAll(" ", "+").replaceAll("&", "and"));
-        final String lastFmTopAlbumsUrl = getResources().getString(R.string.lastfm, "gettopalbums", billyapp.UTF8(artist).replaceAll(" ", "+"));
-        final String youtubeUrl = getResources().getString(R.string.youtube, (song + " " + billyapp.UTF8(artist)).replaceAll(" ", "+"));
+        String singleArtist = b.getSingleArtist();
+        String simpleArtist = b.getSimpleArtist();
+        String simpleSong = b.getSimpleSong();
+        final String scUrl = getResources().getString(R.string.soundcloud, (simpleSong + " " + billyapp.UTF8(simpleArtist)).replaceAll(" ", "+"));
+        final String lastFmBioUrl = getResources().getString(R.string.lastfm, "getinfo", billyapp.UTF8(singleArtist).replaceAll(" ", "+"));
+        final String lastFmTopAlbumsUrl = getResources().getString(R.string.lastfm, "gettopalbums", billyapp.UTF8(singleArtist).replaceAll(" ", "+"));
+        final String youtubeUrl = getResources().getString(R.string.youtube, (simpleSong + " " + billyapp.UTF8(simpleArtist)).replaceAll(" ", "+"));
         JsonArrayRequest stringreq = new JsonArrayRequest(scUrl, scComplete(), scError());
         JsonObjectRequest lastFmBio = new JsonObjectRequest(lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
         JsonObjectRequest lastFmTopAlbums = new JsonObjectRequest(lastFmTopAlbumsUrl, null, lastFmTopAlbumsComplete(), lastFmTopAlbumsError());
@@ -270,7 +273,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                     }
                 });
                 if (result[1] != null) {
-                    ((TextView) attribution.getChildAt(1)).setText(DurationFormatUtils.formatDuration(Long.parseLong(result[1]), "mm:ss", true));
+                    ((TextView) attribution.getChildAt(1)).setText(DurationFormatUtils.formatDuration(b.getDuration(), "mm:ss", true));
                 }
 
             }

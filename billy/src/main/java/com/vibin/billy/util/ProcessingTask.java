@@ -121,10 +121,11 @@ public class ProcessingTask {
         int counter = 0;
         String trackName, artworkUrl, collectionName, artistName;
         JSONArray mJsonArray = jsonObject.getJSONArray("results");
-        if (jsonObject.getInt("resultCount") == 0) {
+        int resultCount = jsonObject.getInt("resultCount");
+        if (resultCount == 0) {
             Log.e(TAG, "resultCount is zero " + jsonObject.toString());
         } else {
-            while (counter < 2) {
+            while (counter < resultCount) {
                 JSONObject result = mJsonArray.getJSONObject(counter);
                 artistName = result.getString("artistName");
                 collectionName = result.getString("collectionName");
@@ -157,8 +158,6 @@ public class ProcessingTask {
                 // Replace Smart Quotes with Dumb Quotes
                 trackName = replaceSmartQuotes(trackName);
 
-                //int match = matchMagic(billySong, trackName);
-
                 // Track name from Billboard and iTunes don't match
                 if (!getLevensteinMatch(billySong[id], trackName)) {
                     Log.e(TAG, "The unmatched itunes song is " + trackName);
@@ -181,17 +180,10 @@ public class ProcessingTask {
      * Parse song substring from Billboard <description> tag
      */
     private String extractSong(String text) {
-        char symbols[] = {'!', '(', '#', '&', '+'};
         String extractedSong = text.substring(0, text.indexOf(" by "));
-        if (StringUtils.containsAny(extractedSong, symbols)) {
-            if (extractedSong.contains("!")) {
-                extractedSong = extractedSong.replace("!", "");
-            } else if (extractedSong.contains("(")) {
+            if (extractedSong.contains("(")) {
                 extractedSong = extractedSong.substring(0, extractedSong.indexOf("("));
-            } else if (extractedSong.contains("+")) {
-                extractedSong = extractedSong.replace("+", "and");
             }
-        }
         return extractedSong.trim();
     }
 
@@ -207,6 +199,7 @@ public class ProcessingTask {
             for (String collab : collabs) {
                 if (extractedArtist.contains(collab)) {
                     extractedArtist = extractedArtist.substring(0, extractedArtist.indexOf(collab));
+                    break;
                 }
             }
         }
@@ -216,7 +209,24 @@ public class ProcessingTask {
 
     private boolean getLevensteinMatch(String a, String b) {
         int diff = StringUtils.getLevenshteinDistance(a, b);
-        return diff <= 3;
+        return diff <= 4;
+    }
+
+    /**
+     * Simplify string by removing special characters
+     * for using in URLs
+     */
+
+    public String getSimpleString(String str){
+        String simpleStr = str;
+        char symbols[] = {'!', '#', '&', '+','"','.'};
+        if(StringUtils.containsAny(str,symbols)){
+            for(char symbol: symbols){
+                simpleStr = StringUtils.remove(simpleStr, symbol);
+            }
+        }
+
+        return simpleStr;
     }
 
     /**
@@ -279,19 +289,19 @@ public class ProcessingTask {
     }
 
     /**
-     * We try to avoid songs which have remix/cover/live mentioned in their title.
+     * We try to avoid songs which have remix/cover/live mentioned in their title, tags list, desc.
      * We also make sure we get a relevant result by checking if the first word of song
      * is present in song's name.
      * <p/>
      * If we don't find any song which matches our conditions, we fallback to the first song.
      *
      * @param response the JSONArray response
-     * @return the SoundCloud stream link
+     * @return SoundCloud song details
      */
 
     public String[] parseSoundcloud(JSONArray response, String song) throws JSONException {
+        //Log.d(TAG, "len "+response.length());
         String soundcloudKey = context.getResources().getStringArray(R.array.keys)[0];
-        String[] links;
         String[] firstScSong = new String[4];
         String firstWord;
         int count = 0;
@@ -305,38 +315,38 @@ public class ProcessingTask {
         boolean first = true;
         Pattern pat = Pattern.compile("\\b(remix|cover|guitar|parody|acoustic|instrumental|drums|cloudseeder)\\b");
         while (count < 8) {
-            JSONObject object = response.getJSONObject(count);
-            boolean streamable = object.getBoolean("streamable");
+            JSONObject obj = response.getJSONObject(count);
+            boolean streamable = obj.getBoolean("streamable");
             if (streamable) {
-                String tags = object.getString("tag_list");
+                String tags = obj.getString("tag_list");
                 if (pat.matcher(tags.toLowerCase()).find()) {
                     Log.d(TAG, count + " tag-list: " + tags.toLowerCase());
                     ignore = true;
                 }
-                String title = object.getString("title");
+                String title = obj.getString("title");
                 if (pat.matcher(title.toLowerCase()).find() || !title.toLowerCase().contains(firstWord)) {
                     Log.d(TAG, count + " title: " + title + " " + firstWord);
                     ignore = true;
                 }
-                String desc = object.getString("description");
+                String desc = obj.getString("description");
                 if (pat.matcher(desc.toLowerCase()).find()) {
                     ignore = true;
                 }
 
-                String user = object.getJSONObject("user").getString("username");
-                String duration = String.valueOf(object.getInt("duration"));
-                String permaLink = object.getString("permalink_url");
-                String streamLink = object.getString("stream_url") + "?client_id=" + soundcloudKey;
+                String user = obj.getJSONObject("user").getString("username");
+                String duration = String.valueOf(obj.getInt("duration"));
+                String permaLink = obj.getString("permalink_url");
+                String streamLink = obj.getString("stream_url") + "?client_id=" + soundcloudKey;
 
                 if (first) {
                     firstScSong = new String[]{user, duration, permaLink, streamLink};
                     first = false;
                 }
+
                 if (ignore) {
                     ignore = false;
                 } else {
-                    links = new String[]{user, duration, permaLink, streamLink};
-                    return links;
+                    return new String[]{user, duration, permaLink, streamLink};
                 }
             }
             count++;

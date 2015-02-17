@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BillyItem implements Parcelable {
-    String song, album, artist, artwork, streamLink;
+    String song, album, artist, artwork, streamLink, simpleSong, simpleArtist;
     int index;
     long duration;
 
@@ -25,7 +25,7 @@ public class BillyItem implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        List<String> fields = Arrays.asList(song,album,artist,artwork,streamLink);
+        List<String> fields = Arrays.asList(song,album,artist,artwork,streamLink, simpleSong, simpleArtist);
         for (String field: fields)
         {
             dest.writeString(field);
@@ -40,6 +40,8 @@ public class BillyItem implements Parcelable {
         artist = in.readString();
         artwork = in.readString();
         streamLink = in.readString();
+        simpleSong = in.readString();
+        simpleArtist = in.readString();
         index = in.readInt();
         duration = in.readLong();
     }
@@ -128,5 +130,21 @@ public class BillyItem implements Parcelable {
 
     public void setIndex(int index) {
         this.index = index;
+    }
+
+    public String getSimpleSong() {
+        return simpleSong;
+    }
+
+    public void setSimpleSong(String simpleSong) {
+        this.simpleSong = simpleSong;
+    }
+
+    public String getSimpleArtist() {
+        return simpleArtist;
+    }
+
+    public void setSimpleArtist(String simpleArtist) {
+        this.simpleArtist = simpleArtist;
     }
 }
