@@ -319,6 +319,10 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 public void onClick(View view) {
                     if (billyapp.isConnected()) {
                         Log.d(tag, "Size is " + mData.size());
+                        if (mData.size() == 40) {
+                            getListView().setFastScrollEnabled(true);
+                        }
+
                         if (mData.size() >= billySize - billyapp.getMinBillySize(billySize)) {
                             getListView().removeFooterView(loadMore);
                             loadMore.setVisibility(View.GONE); // just a bit precautionary
