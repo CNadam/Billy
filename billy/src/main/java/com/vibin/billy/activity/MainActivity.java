@@ -218,14 +218,11 @@ public class MainActivity extends ActionBarActivity {
 //TODO ripple for play button
 //TODO seekbar not visible on notification click
 //TODO better SoundCloud track fetch
+
 //TODO change firstRun preference in BillyApplication
-//TODO deleting database needed on first run?
 //TODO crash fixes
-//TODO fix invisible album art in noification
-//TODO get jsonobject count in SC result instead of assuming to 8
 
 //TODO use AudioManager in Service
-//TODO use i1 endpoint api if needed
 
 //TODO service quits automatically when playing after sometime
 //TODO handle 2G/3G devices efficiently API Level 17

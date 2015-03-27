@@ -138,6 +138,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
                 bp.reset();
 
+                setNotificationArtwork();
                 if (!bp.isPlaying()) {
                     try {
                         bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
@@ -329,6 +330,27 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         return (int) duration;
     }
 
+    void setNotificationArtwork(){
+        try {
+            final ImageLoader.ImageListener imgload = new ImageLoader.ImageListener() {
+                @Override
+                public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                    notifIcon = response.getBitmap();
+                    //Log.d(TAG,"notificon "+notifIcon.getByteCount());
+                    //Log.d(TAG,"image container "+imageContainer.getBitmap().getByteCount());
+                }
+
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.d(TAG, error.toString());
+                }
+            };
+            billyapp.getImageLoader().get(artwork, imgload);
+        } catch (NullPointerException e) {
+            Log.d(TAG,e.toString());
+        }
+    }
+
     /**
      * Put a sticky notification for media controls
      */
@@ -336,22 +358,8 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     @TargetApi(Build.VERSION_CODES.L)
     private void putNotification() {
         final RemoteViews notifView = new RemoteViews(this.getPackageName(), R.layout.notification_view);
-        try {
-            billyapp.getImageLoader().get(artwork, new ImageLoader.ImageListener() {
-                @Override
-                public void onResponse(ImageLoader.ImageContainer imageContainer, boolean b) {
-                    notifIcon = imageContainer.getBitmap();
-                    notifView.setImageViewBitmap(R.id.artwork, notifIcon);
-                }
-
-                @Override
-                public void onErrorResponse(VolleyError volleyError) {
-                    Log.d(TAG, volleyError.toString());
-                }
-            });
-        } catch (NullPointerException e) {
-            Log.d(TAG,e.toString());
-        }
+        setNotificationArtwork();
+        notifView.setImageViewBitmap(R.id.artwork, notifIcon);
 
         Intent resultIntent = new Intent(this, DetailView.class);
         resultIntent.putExtra("item", b);
@@ -398,6 +406,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
             PendingIntent pendingPlayIntent = PendingIntent.getBroadcast(getBaseContext(), 100, playIntent, 0);
             notifView.setOnClickPendingIntent(R.id.control, pendingPlayIntent);
         }
+        Log.d(TAG,"put");
         startForeground(1, note);
 
         IntentFilter filter = new IntentFilter();

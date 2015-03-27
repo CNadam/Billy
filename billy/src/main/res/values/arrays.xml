@@ -21,13 +21,13 @@
     </string-array>
 
     <string-array name="url">
-        <item name="hot100">http://www.billboard.com/rss/charts/hot-100</item>
-        <item name="pop">http://www.billboard.com/rss/charts/pop-songs</item>
-        <item name="rock">http://www.billboard.com/rss/charts/rock-songs</item>
-        <item name="dance">http://www.billboard.com/rss/charts/dance-electronic-songs</item>
-        <item name="metal">http://www.billboard.com/rss/charts/hot-mainstream-rock-tracks</item>
-        <item name="rnb">http://www.billboard.com/rss/charts/r-and-b-songs</item>
-        <item name="country">http://www.billboard.com/rss/charts/country-songs</item>
+        <item name="hot100">http://www.billboard.com/rss/charts/hot-100?mobile_redirection=false</item>
+        <item name="pop">http://www.billboard.com/rss/charts/pop-songs?mobile_redirection=false</item>
+        <item name="rock">http://www.billboard.com/rss/charts/rock-songs?mobile_redirection=false</item>
+        <item name="dance">http://www.billboard.com/rss/charts/dance-electronic-songs?mobile_redirection=false</item>
+        <item name="metal">http://www.billboard.com/rss/charts/hot-mainstream-rock-tracks?mobile_redirection=false</item>
+        <item name="rnb">http://www.billboard.com/rss/charts/r-and-b-songs?mobile_redirection=false</item>
+        <item name="country">http://www.billboard.com/rss/charts/country-songs?mobile_redirection=false</item>
     </string-array>
 
     <!-- Potential Nuclear launch codes...-->

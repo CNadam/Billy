@@ -225,7 +225,9 @@ public class ProcessingTask {
                 simpleStr = StringUtils.remove(simpleStr, symbol);
             }
         }
-
+        simpleStr = simpleStr.replace(" x "," "); // Chris Brown x Tyga
+        simpleStr = simpleStr.replace(" X "," ");
+        //Log.d(TAG,"1 "+simpleStr);
         return simpleStr;
     }
 
@@ -300,7 +302,7 @@ public class ProcessingTask {
      */
 
     public String[] parseSoundcloud(JSONArray response, String song) throws JSONException {
-        //Log.d(TAG, "len "+response.length());
+        Log.d(TAG, "len "+response.length());
         String soundcloudKey = context.getResources().getStringArray(R.array.keys)[0];
         String[] firstScSong = new String[4];
         String firstWord;
@@ -314,7 +316,7 @@ public class ProcessingTask {
         boolean ignore = false;
         boolean first = true;
         Pattern pat = Pattern.compile("\\b(remix|cover|guitar|parody|acoustic|instrumental|drums|cloudseeder)\\b");
-        while (count < 8) {
+        while (count < response.length()) {
             JSONObject obj = response.getJSONObject(count);
             boolean streamable = obj.getBoolean("streamable");
             if (streamable) {

@@ -425,8 +425,8 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                         handleXML(response, true);
                     } else if (!cacheHit && !response.equals(cacheData)) {
                         Log.d(tag, "New data available. Requests made.");
-                        Toast.makeText(getActivity(), "New data available. Requests made.",
-                                Toast.LENGTH_LONG).show();
+                        //Toast.makeText(getActivity(), "New data available. Requests made.",
+                        //       Toast.LENGTH_LONG).show();
                         handleXML(response, true);
                     } else {
                         handleXML(response, false);
