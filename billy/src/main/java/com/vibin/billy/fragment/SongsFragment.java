@@ -486,6 +486,23 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 } else {
                     Log.d(tag, "trying normal params");
                     searchparam = billyapp.UTF8(billySong[i]) + "+" + billyapp.UTF8(billyArtist[i]);
+                String searchparam = "";
+
+                switch (method) {
+                    case SIMPLE:
+                        searchparam = billyapp.UTF8(ft.getSimpleString(billySong[i])) + "+" + billyapp.UTF8(ft.getSimpleString(billyArtist[i]));
+                        createItunesRequest(searchparam, i, method.getValue());
+                        break;
+                    case NORMAL:
+                        Log.d(tag, "trying normal params");
+                        searchparam = billyapp.UTF8(billySong[i]) + "+" + billyapp.UTF8(billyArtist[i]);
+                        createItunesRequest(searchparam, i, method.getValue());
+                        break;
+                    case ELIM:
+                        JsonArrayRequest me = new JsonArrayRequest(getResources().getString(R.string.mistake), meComplete(i), meError());
+                        me.setTag(this);
+                        req.add(me);
+                        break;
                 }
                 int simple = simpleParams ? 1 : 0;
                 String uri = getResources().getString(R.string.itunes, searchparam) + "&id=" + i + "&simple=" + simple;
@@ -501,6 +518,46 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             Log.d(tag, e.toString());
             onRefresh(); // Simulate a pull to refresh
         }
+    }
+
+    private Response.Listener<JSONArray> meComplete(final int i) {
+        return new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                try {
+                    for (int z = 0; z < response.length(); z++) {
+                        JSONObject obj = response.getJSONObject(z);
+                        if (obj.getString("actual").equals(billySong[i])) {
+                            billySong[i] = obj.getString("correctedSong");
+                            billyArtist[i] = obj.getString("correctedArtist");
+                            ft.setBillySong(billySong);
+                            ft.setBillyArtist(billyArtist);
+                            callitunes(i, ItunesParamType.NORMAL);
+                        }
+                    }
+                } catch (JSONException e) {
+
+                } catch (UnsupportedEncodingException e1) {
+                }
+            }
+        };
+    }
+
+    private Response.ErrorListener meError() {
+        return new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+                Log.d(tag, volleyError.toString());
+            }
+        };
+    }
+
+    private void createItunesRequest(String searchparam, int i, int method) {
+        String uri = getResources().getString(R.string.itunes, searchparam) + "&id=" + i + "&method=" + method;
+        Log.d(tag, uri);
+        JsonObjectRequest jsonreq = new JsonObjectRequest(uri, null, itunesComplete(), itunesError());
+        jsonreq.setTag(this);
+        req.add(jsonreq);
     }
 
     /**
@@ -530,7 +587,12 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                         Log.e(tag, "Result object is null with simple params. " + url);
                         callitunes(id, false);
                     } else {
+                        callitunes(id, ItunesParamType.NORMAL);
+                    } else if (method == 1) {
                         Crashlytics.log(Log.ERROR, tag, "Result object is null with normal params. " + url);
+                        callitunes(id, ItunesParamType.ELIM);
+                    } else {
+                        Log.e(tag, "Result object is null with elim params. " + url);
                     }
                 } catch (JSONException e) {
                     Log.d(tag, e + "");
