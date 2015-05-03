@@ -5,6 +5,7 @@ import android.app.DialogFragment;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,7 +26,7 @@ public class ChangelogDialog extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        return super.onCreateDialog(savedInstanceState);
+        return new AppCompatDialog(getActivity(), getTheme());
     }
 
     @Override

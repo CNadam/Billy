@@ -8,10 +8,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.readystatesoftware.systembartint.SystemBarTintManager;
@@ -102,8 +104,18 @@ public class Settings extends SwipeableActivity {
             setOnClickListeners();
         }
 
-        private void setOnClickListeners() {
+        @Override
+        public void onResume() {
+            super.onResume();
+            View rootView = getView();
+            if (rootView != null) {
+                ListView list = (ListView) rootView.findViewById(android.R.id.list);
+                //list.setPadding(0, 0, 0, 0);
+                list.setDivider(null);
+            }
+        }
 
+        private void setOnClickListeners() {
             rate.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {

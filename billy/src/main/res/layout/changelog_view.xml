@@ -6,6 +6,5 @@
     android:layout_height="match_parent"
     android:id="@+id/changelogView"
     chg:rowLayoutId="@layout/changelogrow_material_layout"
-    chg:rowHeaderLayoutId="@layout/changelogrowheader_material_layout"
     android:paddingRight="5dp"
     />

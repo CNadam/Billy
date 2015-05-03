@@ -16,12 +16,14 @@ package com.vibin.billy.fragment;
  limitations under the License.
  */
 
+import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -87,6 +89,20 @@ public class LicensesFragment extends DialogFragment {
         mIndeterminateProgress = (ProgressBar) view.findViewById(R.id.licensesFragmentIndeterminateProgress);
         mWebView = (WebView) view.findViewById(R.id.licensesFragmentWebView);
         return view;
+    }
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        return new AppCompatDialog(getActivity(), getTheme());
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        getDialog().setTitle("Open Source Licenses");
+        int width = getResources().getDimensionPixelSize(R.dimen.licensedialog_width);
+        int height = getResources().getDimensionPixelSize(R.dimen.licensedialog_height);
+        getDialog().getWindow().setLayout(width, height);
     }
 
     @Override

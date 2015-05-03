@@ -15,6 +15,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatDialog;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -52,8 +53,6 @@ public class MainActivity extends ActionBarActivity{
 
     SystemBarTintManager tintManager;
     FragmentAdapter mAdapter;
-    private View mHeaderView;
-    private Toolbar bar;
     private ViewPager mPager;
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -65,8 +64,8 @@ public class MainActivity extends ActionBarActivity{
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
-        mHeaderView = findViewById(R.id.header);
-        bar = (Toolbar) findViewById(R.id.toolbar);
+        View mHeaderView = findViewById(R.id.header);
+        Toolbar bar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(bar);
 
         tintManager = new SystemBarTintManager(this);
@@ -235,15 +234,19 @@ public class MainActivity extends ActionBarActivity{
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            Dialog dialog = super.onCreateDialog(savedInstanceState);
-            dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-            return dialog;
+            return new AppCompatDialog(getActivity(),getTheme());
+        }
+
+        @Override
+        public void onStart() {
+            super.onStart();
+            getDialog().setTitle("About");
         }
     }
 }
 
-//TODO proxy script
 //TODO volley cache
+//TODO add international charts - UK singles, germany and france
 //TODO Implement playlists - Use Google's draglistview, with handlers (only), show SC likes, comments count
 
 //TODO seekbar not visible on notification click
