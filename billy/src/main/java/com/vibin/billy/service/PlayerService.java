@@ -361,7 +361,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
      * Put a sticky notification for media controls
      */
 
-    @TargetApi(Build.VERSION_CODES.L)
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void putNotification() {
         final RemoteViews notifView = new RemoteViews(this.getPackageName(), R.layout.notification_view);
         setNotificationArtwork();

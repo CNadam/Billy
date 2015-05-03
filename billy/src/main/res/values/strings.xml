@@ -10,7 +10,7 @@
     <string name="soundcloud">http://api.soundcloud.com/tracks.json?consumer_key=d0f2d22083bc8233aab32f3f7d1d0bbc&amp;q=%1$s&amp;order=hotness&amp;limit=8</string>
     <string name="youtube">https://www.googleapis.com/youtube/v3/search?part=snippet&amp;q=%1$s&amp;maxResults=2&amp;type=video&amp;key=AIzaSyBTd_9XHpK-Jj7ZW8sNAstNKwSU18gf-6g</string>
     <string name="lastfm">http://ws.audioscrobbler.com/2.0/?method=artist.%1$s&amp;artist=%2$s&amp;autocorrect=1&amp;limit=3&amp;api_key=67b01760e70bb90ff51ae8590b3c2ba8&amp;format=json</string>
-    <string name="mistake">http://vibinreddy.me/billy/</string>
+    <string name="me">http://vibinreddy.me/billy/</string>
 
     <string name="loadingtext">Loading…</string>
     <string name="topalbums">Top Albums</string>

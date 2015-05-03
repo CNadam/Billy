@@ -12,8 +12,8 @@
         <item name="android:actionBarItemBackground">@drawable/actionitem_background</item>
         <item name="actionOverflowButtonStyle">@style/OverFlow</item>
         <item name="android:actionOverflowButtonStyle">@style/OverFlow</item>
-        <item name="android:buttonStyle">@style/Button.Billy</item>
-        <item name="android:dialogTheme">@style/Button.Dialog.Billy</item>
+        <item name="dialogTheme">@style/Dialog.Billy</item>
+        <item name="buttonStyle">@style/Button.Billy</item>
         <item name="android:fastScrollThumbDrawable">@drawable/fastscroll_thumb</item>
         <item name="popupMenuStyle">@style/PopupMenu.Billy</item>
         <item name="toolbarStyle">@style/Toolbar.Solid.Billy</item>
@@ -52,17 +52,12 @@
         <item name="titleTextAppearance">@style/Toolbar.Billy.TextAppearance</item>
     </style>
 
-    <style name="Button.Dialog.Billy" parent="@android:style/Theme.Holo.Light.Dialog">
-        <item name="android:buttonStyle">@style/Button.Billy</item>
-        <item name="android:divider">@color/billy</item>
-    </style>
+
 
     <!-- Button -->
 
-    <style name="Button.Billy" parent="@android:style/Widget.Button">
-        <item name="android:background">@drawable/billybutton</item>
-        <item name="android:padding">12dp</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
+    <style name="Button.Billy" parent="Widget.AppCompat.Button">
+        <item name="backgroundTint">@color/billy_lighter</item>
     </style>
 
     <!-- Popup Menu -->
@@ -92,7 +87,7 @@
     </style>
 
     <style name="Dialog.Billy" parent="Theme.AppCompat.Light.Dialog">
-        <item name="android:dividerHorizontal">@color/billy</item>
+        <item name="windowNoTitle">false</item>
     </style>
 
 </resources>

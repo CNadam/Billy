@@ -161,15 +161,6 @@ public class BillyApplication extends Application {
     }
 
     /**
-     * @return View associated with Action Bar
-     */
-    public View getActionBarView(Window window) {
-        View decorView = window.getDecorView();
-        int resId = getResources().getIdentifier("action_bar_container", "id", this.getPackageName());
-        return decorView.findViewById(resId);
-    }
-
-    /**
      * Convert display-independent pixels to pixels
      */
 

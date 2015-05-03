@@ -20,7 +20,7 @@
         <item name="country">Country</item>
     </string-array>
 
-    <string-array name="url">
+    <string-array name="charturl">
         <item name="hot100">http://www.billboard.com/rss/charts/hot-100?mobile_redirection=false</item>
         <item name="pop">http://www.billboard.com/rss/charts/pop-songs?mobile_redirection=false</item>
         <item name="rock">http://www.billboard.com/rss/charts/rock-songs?mobile_redirection=false</item>

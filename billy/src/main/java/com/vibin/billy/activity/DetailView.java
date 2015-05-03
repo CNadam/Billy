@@ -258,8 +258,8 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 permaLink = result[2];
                 streamLink = result[3];
                 b.setStreamLink(streamLink);
-                if(result[1] == null){
-                    Crashlytics.log(Log.ERROR, TAG, "Duration is null, for song: "+song);
+                if (result[1] == null) {
+                    Crashlytics.log(Log.ERROR, TAG, "Duration is null, for song: " + song);
                 }
                 b.setDuration(Long.parseLong(result[1]));
                 Log.d(TAG, "User is " + result[0] + " duration is " + result[1]);
@@ -609,7 +609,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
 
     private void setSeekBar() {
         if (progressThread != null) {
-            Log.d(TAG,"thread not null");
+            Log.d(TAG, "thread not null");
             stopTh = true;
         }
         progressThread = new Thread(progress);
@@ -643,21 +643,6 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                         } else {
                             streamTrack();
                         }
-/*                        if (!isMusicPlaying) {
-                            Log.i(TAG, "Song matched");
-                            if (isThisSongOn()) {
-                                mService.playMedia();             //START OR PLAY ??
-                                if (!progressThread.isAlive()) {
-                                    setSeekBar();
-                                }
-                            } else {
-                                streamTrack();
-                            }
-                        } else {
-                            dashes.clearAnimation();
-                            dashes.setVisibility(View.GONE);
-                            mService.pauseMedia();
-                        }*/
                     } else {
                         streamTrack();
                     }
@@ -675,7 +660,6 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
             isPreparing = true;
             dashes.setVisibility(View.VISIBLE);
             dashes.startAnimation(rotateAnim);
-            //streamLink = "rtmp://ec-rtmp-media.soundcloud.com/mp3:7faed9oUCfzf.128?9527d18f1063a01f059bf10590159adb10dea0996b8c0cdb674f9e2a22158b9e2c124b95828db74e27f9807e908a0a15c5d9a2b9db27558bfafb06c4246b4f9e1e181b56d687209f037cda21bb2a36b9f63ca84bed96bfaa0d62";
             serviceIntent.putExtra("item", b);
             startService(serviceIntent);
             bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);

@@ -12,4 +12,6 @@
     <dimen name="drag_handler">30dp</dimen>
     <dimen name="textview_row">52dp</dimen>
     <dimen name="tabs_height">48dp</dimen>
+    <dimen name="licensedialog_width">350dp</dimen>
+    <dimen name="licensedialog_height">525dp</dimen>
 </resources>

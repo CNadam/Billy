@@ -12,6 +12,7 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.AppCompatButton;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -80,7 +81,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     RequestQueue req;
     BillyApplication billyapp;
     ProcessingTask ft;
-    String tableName, rssurl;
+    String tableName, charturl;
     ImageLoader imgload;
     SwipeRefreshLayout swipelayout;
     StringRequest stringreq;
@@ -92,8 +93,13 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
     private String tag = SongsFragment.class.getSimpleName(); // Tag is not final, because it's dynamic
 
+    /**
+     * {@link #SIMPLE} Remove non-alphabets from parameters
+     * {@link #NORMAL} No changes made to parameters
+     * {@link #ME} Replace parameters with their corrections from Me
+     */
     private enum ItunesParamType {
-        SIMPLE(0), NORMAL(1), ELIM(2);
+        SIMPLE(0), NORMAL(1), ME(2);
         private final int value;
 
         private ItunesParamType(int value) {
@@ -115,7 +121,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         imgload = billyapp.getImageLoader();
         req = billyapp.getRequestQueue();
 
-        rssurl = getResources().getStringArray(R.array.url)[position];
+        charturl = getResources().getStringArray(R.array.charturl)[position];
         tableName = getResources().getStringArray(R.array.table)[position];
 
         /**
@@ -287,9 +293,9 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
      * Make sure to get cached version of Billboard response before making a new request, for comparing later
      */
     private void performRequests(boolean invalidateCache) throws UnsupportedEncodingException {
-        stringreq = new StringRequest(rssurl, billyComplete(), billyError());
+        stringreq = new StringRequest(charturl, billyComplete(), billyError());
         spinnerVisible = true;
-        Cache.Entry entry = req.getCache().get(rssurl);
+        Cache.Entry entry = req.getCache().get(charturl);
         if (entry != null) {
             if (entry.data != null) {
                 cacheData = new String(entry.data, "UTF-8");
@@ -355,7 +361,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             final LinearLayout layout = new LinearLayout(getActivity());
             layout.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, AbsListView.LayoutParams.WRAP_CONTENT));
             layout.setGravity(Gravity.CENTER_HORIZONTAL);
-            final Button loadMore = new Button(getActivity());
+            final AppCompatButton loadMore = new AppCompatButton(getActivity());
             loadMore.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             loadMore.setText(billyapp.getString(R.string.loadmore));
             layout.addView(loadMore);
@@ -549,8 +555,8 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                         searchparam = billyapp.UTF8(billySong[i]) + "+" + billyapp.UTF8(billyArtist[i]);
                         createItunesRequest(searchparam, i, method.getValue());
                         break;
-                    case ELIM:
-                        JsonArrayRequest me = new JsonArrayRequest(getResources().getString(R.string.mistake), meComplete(i), meError());
+                    case ME:
+                        JsonArrayRequest me = new JsonArrayRequest(getResources().getString(R.string.me), meComplete(i), meError());
                         me.setTag(this);
                         req.add(me);
                         break;
@@ -577,9 +583,8 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                             callitunes(i, ItunesParamType.NORMAL);
                         }
                     }
-                } catch (JSONException e) {
-
-                } catch (UnsupportedEncodingException e1) {
+                } catch (JSONException ignored) {
+                } catch (UnsupportedEncodingException ignored) {
                 }
             }
         };
@@ -630,9 +635,9 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                         callitunes(id, ItunesParamType.NORMAL);
                     } else if (method == 1) {
                         Crashlytics.log(Log.ERROR, tag, "Result object is null with normal params. " + url);
-                        callitunes(id, ItunesParamType.ELIM);
+                        callitunes(id, ItunesParamType.ME);
                     } else {
-                        Log.e(tag, "Result object is null with elim params. " + url);
+                        Log.e(tag, "Result object is null with me params. " + url);
                     }
                 } catch (JSONException e) {
                     Log.d(tag, e + "");
@@ -814,20 +819,6 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 headerTranslationY = ScrollUtils.getFloat(-(scrollY - mBaseTranslationY), -toolbarHeight, 0);
                 ViewPropertyAnimator.animate(mHeaderView).cancel();
                 ViewHelper.setTranslationY(mHeaderView, headerTranslationY);
-
-                int xa = billyapp.getDpAsPx(104) + (int) headerTranslationY;
-                // Log.d(tag, "x "+xa);
-
-                //ViewGroup.LayoutParams lp = listviewheader.getLayoutParams();
-                //lp.height = xa;
-                //listviewheader.setLayoutParams(lp);
-                //mHeaderView.setY(headerTranslationY);
-                //mFrame.setTop((int) headerTranslationY);
-                //ViewHelper.setTranslationY(mFrame, headerTranslationY);
-
-                //mFrame.setPadding(0,xa,0,0);
-                //ViewHelper.setTranslationY(mFrame, headerTranslationY);
-                //Log.d(tag,"y "+headerTranslationY);
             }
         }
 
@@ -846,7 +837,6 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 return;
             }
             int scrollY = listView.getCurrentScrollY();
-            Log.d(tag, "scrolly " + scrollY);
             if (scrollState == ScrollState.DOWN) {
                 showToolbar();
             } else if (scrollState == ScrollState.UP) {
@@ -871,15 +861,12 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         ObservableListView listView = (ObservableListView) getListView();
         if (isShown) {
             // Scroll up
-            Log.d(tag, "current scroll y " + listView.getCurrentScrollY());
             if (listView.getCurrentScrollY() < mToolbarView.getHeight()) {
-                Log.d(tag, "scrolling up");
                 listView.setSelection(0);
             }
         } else {
             // Scroll down (to hide padding)
             if (listView.getCurrentScrollY() < mToolbarView.getHeight()) {
-                Log.d(tag, "scrolling down");
                 listView.setSelection(1);
             }
         }
@@ -894,25 +881,21 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     }
 
     private void showToolbar() {
-        //Log.d(tag, "showtool");
         float headerTranslationY = ViewHelper.getTranslationY(mHeaderView);
         if (headerTranslationY != 0) {
             ViewPropertyAnimator.animate(mHeaderView).cancel();
             ViewPropertyAnimator.animate(mHeaderView).translationY(0).setDuration(200).start();
-            //Log.d(tag, "showtool 2");
         }
         ((MainActivity) getActivity()).callPropagateToolbar(true);
         propagateToolbarState(true);
     }
 
     private void hideToolbar() {
-        //Log.d(tag, "hidetool");
         float headerTranslationY = ViewHelper.getTranslationY(mHeaderView);
         int toolbarHeight = mToolbarView.getHeight();
         if (headerTranslationY != -toolbarHeight) {
             ViewPropertyAnimator.animate(mHeaderView).cancel();
             ViewPropertyAnimator.animate(mHeaderView).translationY(-toolbarHeight).setDuration(200).start();
-            //Log.d(tag, "hidetool 2");
         }
         ((MainActivity) getActivity()).callPropagateToolbar(false);
         propagateToolbarState(false);
