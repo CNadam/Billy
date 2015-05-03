@@ -14,7 +14,6 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.vibin.billy.BillyApplication;
 import com.vibin.billy.BillyItem;
-import com.vibin.billy.util.ProcessingTask;
 import com.vibin.billy.R;
 
 import java.util.ArrayList;
@@ -27,7 +26,8 @@ public class BaseAdapter extends android.widget.BaseAdapter {
     ImageLoader imgload;
     SharedPreferences sharedPref;
     BillyApplication billyapp;
-    @LayoutRes int resource;
+    @LayoutRes
+    int resource;
 
     public BaseAdapter(Context c, ArrayList<BillyItem> arrayList, ImageLoader imgload) {
         this.c = c;
@@ -77,13 +77,14 @@ public class BaseAdapter extends android.widget.BaseAdapter {
     }
 
     static class MyViewHolder {
-        TextView album, artist, song;
+        TextView album, artist, song, rank;
         NetworkImageView artwork;
 
         MyViewHolder(View row) {
             album = (TextView) row.findViewById(R.id.album);
             artist = (TextView) row.findViewById(R.id.artist);
             song = (TextView) row.findViewById(R.id.song);
+            rank = (TextView) row.findViewById(R.id.rank);
             song.setMaxLines(2);
             album.setMaxLines(1);
             song.setEllipsize(TextUtils.TruncateAt.END);
@@ -111,6 +112,10 @@ public class BaseAdapter extends android.widget.BaseAdapter {
 
         //Log.d(TAG, i + " " + temp.album + " " + temp.artist + " " + temp.song + " " + temp.artwork);
 
+        if (b.getRank() != 0) {
+            holder.rank.setText(b.getRank() + "");
+            holder.rank.setVisibility(View.VISIBLE);
+        }
         holder.album.setText(b.getAlbum());
         holder.artist.setText(b.getArtist());
         holder.song.setText(b.getSong());

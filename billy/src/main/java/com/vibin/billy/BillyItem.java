@@ -2,13 +2,12 @@ package com.vibin.billy;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-
-import java.util.Arrays;
-import java.util.List;
+import android.util.Log;
 
 public class BillyItem implements Parcelable {
+    private static final String TAG = BillyItem.class.getSimpleName();
     String song, album, artist, artwork, streamLink, simpleSong, simpleArtist;
-    int index;
+    int rank = 0;
     long duration;
 
     public BillyItem(){}
@@ -25,12 +24,14 @@ public class BillyItem implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        List<String> fields = Arrays.asList(song,album,artist,artwork,streamLink, simpleSong, simpleArtist);
-        for (String field: fields)
-        {
-            dest.writeString(field);
-        }
-        dest.writeInt(index);
+        dest.writeString(song);
+        dest.writeString(album);
+        dest.writeString(artist);
+        dest.writeString(artwork);
+        dest.writeString(streamLink);
+        dest.writeString(simpleSong);
+        dest.writeString(simpleArtist);
+        dest.writeInt(rank);
         dest.writeLong(duration);
     }
 
@@ -42,7 +43,7 @@ public class BillyItem implements Parcelable {
         streamLink = in.readString();
         simpleSong = in.readString();
         simpleArtist = in.readString();
-        index = in.readInt();
+        rank = in.readInt();
         duration = in.readLong();
     }
 
@@ -81,12 +82,13 @@ public class BillyItem implements Parcelable {
         this.artist = artist;
     }
 
-    public void setItunes(String song, String album, String artist, String artwork)
+    public void setItunes(String song, String album, String artist, String artwork, int rank)
     {
        setSong(song);
        setAlbum(album);
        setArtist(artist);
        setArtwork(artwork);
+       setRank(rank);
     }
 
     /**
@@ -124,14 +126,6 @@ public class BillyItem implements Parcelable {
         this.duration = duration;
     }
 
-    public int getIndex() {
-        return index;
-    }
-
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
     public String getSimpleSong() {
         return simpleSong;
     }
@@ -146,5 +140,13 @@ public class BillyItem implements Parcelable {
 
     public void setSimpleArtist(String simpleArtist) {
         this.simpleArtist = simpleArtist;
+    }
+
+    public int getRank() {
+        return rank;
+    }
+
+    public void setRank(int rank){
+        this.rank = rank;
     }
 }

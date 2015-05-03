@@ -578,6 +578,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                     if (result != null) {
                         try {
                             mData.get(id).setItunes(result[0], result[1], result[2], result[3]);
+                            mData.get(id).setItunes(result[0], result[1], result[2], result[3], id + 1);
                             baseAdapter.updateArrayList(mData);
                             baseAdapter.notifyDataSetChanged();
                         } catch (NullPointerException e) {
