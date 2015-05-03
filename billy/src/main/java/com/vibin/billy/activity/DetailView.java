@@ -180,7 +180,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         final String lastFmBioUrl = getResources().getString(R.string.lastfm, "getinfo", billyapp.UTF8(singleArtist).replaceAll(" ", "+"));
         final String lastFmTopAlbumsUrl = getResources().getString(R.string.lastfm, "gettopalbums", billyapp.UTF8(singleArtist).replaceAll(" ", "+"));
         final String youtubeUrl = getResources().getString(R.string.youtube, (simpleSong + " " + billyapp.UTF8(simpleArtist)).replaceAll(" ", "+"));
-        JsonArrayRequest stringreq = new JsonArrayRequest(scUrl, scComplete(), scError());
+        StringRequest stringreq = new StringRequest(scUrl, scComplete(), scError());
         JsonObjectRequest lastFmBio = new JsonObjectRequest(lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
         JsonObjectRequest lastFmTopAlbums = new JsonObjectRequest(lastFmTopAlbumsUrl, null, lastFmTopAlbumsComplete(), lastFmTopAlbumsError());
         JsonObjectRequest youtubeSearch = new JsonObjectRequest(youtubeUrl, null, youtubeSearchComplete(), youtubeSearchError());
@@ -245,7 +245,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
             public void onResponse(JSONArray jsonArray) {
                 String[] result = new String[4];
                 try {
-                    result = ft.parseSoundcloud(jsonArray, song);
+                    result = ft.parseSoundcloud(response, song);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

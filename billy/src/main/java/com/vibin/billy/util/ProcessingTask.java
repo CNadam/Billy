@@ -301,8 +301,7 @@ public class ProcessingTask {
      * @return SoundCloud song details
      */
 
-    public String[] parseSoundcloud(JSONArray response, String song) throws JSONException {
-        Log.d(TAG, "len "+response.length());
+    public String[] parseSoundcloud(String response, String song) throws JSONException {
         String soundcloudKey = context.getResources().getStringArray(R.array.keys)[0];
         String[] firstScSong = new String[4];
         String firstWord;
@@ -316,8 +315,14 @@ public class ProcessingTask {
         boolean ignore = false;
         boolean first = true;
         Pattern pat = Pattern.compile("\\b(remix|cover|guitar|parody|acoustic|instrumental|drums|cloudseeder)\\b");
-        while (count < response.length()) {
-            JSONObject obj = response.getJSONObject(count);
+        if (isJsonObject(response)) {
+            JSONObject obj = new JSONObject(response);
+            arr = obj.getJSONArray("collection");
+        } else {
+            arr = new JSONArray(response);
+        }
+        while (count < arr.length()) {
+            JSONObject obj = arr.getJSONObject(count);
             boolean streamable = obj.getBoolean("streamable");
             if (streamable) {
                 String tags = obj.getString("tag_list");
@@ -354,6 +359,10 @@ public class ProcessingTask {
             count++;
         }
         return firstScSong;
+    }
+
+    private boolean isJsonObject(String response) {
+        return response.charAt(0) == '{';
     }
 
     private InputStream getStringAsInputStream(String text) throws UnsupportedEncodingException {
