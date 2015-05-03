@@ -173,7 +173,7 @@ public class BillyApplication extends Application {
      * Convert display-independent pixels to pixels
      */
 
-    public int getDPAsPixels(int DP) {
+    public int getDpAsPx(int DP) {
         float scale = this.getResources().getDisplayMetrics().density;
         return (int) (DP * scale);
     }

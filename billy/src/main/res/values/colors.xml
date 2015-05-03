@@ -7,14 +7,18 @@
 
     <color name="secondaryprogress">#96ea5157</color>
     <color name="green">#FF4DC25C</color>
+    <color name="gray">#cccccc</color>
     <color name="btn_stroke">#ffffa3a0</color>
     <color name="btn_background">#ffff5e6c</color>
-    <color name="text_black">#ff3c3c3c</color>
-    <color name="gray">#cccccc</color>
-    <color name="lt_gray">#eeeeee</color>
 
-    <!-- Notification / Lollipop -->
-    <color name="nTitle">#d8000000</color>
-    <color name="nDesc">#80000000</color>
-    <color name="material_background_light">#FFEEEEEE</color>
+    <color name="text_primary_dark">#de000000</color>
+    <color name="text_secondary_dark">#8a000000</color>
+    <color name="text_primary_light">#ffffffff</color>
+    <color name="text_secondary_light">#b3ffffff</color>
+
+    <color name="background_material_light">#ffeeeeee</color>
+    <color name="n_ripple_material_dark">#40000000</color>
+    <color name="n_ripple_material_light">#c8ffffff</color>
+
+    <color name="rank_background">#96000000</color>
 </resources>

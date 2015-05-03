@@ -2,7 +2,6 @@ package com.vibin.billy.service;
 
 import android.annotation.TargetApi;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -28,6 +27,7 @@ import android.widget.RemoteViews;
 import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
+import com.crashlytics.android.Crashlytics;
 import com.vibin.billy.BillyApplication;
 import com.vibin.billy.BillyItem;
 import com.vibin.billy.R;
@@ -42,7 +42,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     public String streamLink, song, album, artist, artwork;
     BillyItem b;
     long duration;
-    int songIndex;
+    int songRank;
     public int bufferPercent;
     Notification note;
     Bitmap notifIcon;
@@ -132,7 +132,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                 song = b.getSong();
                 album = b.getAlbum();
                 artist = b.getArtist();
-                songIndex = b.getIndex();
+                songRank = b.getRank();
                 artwork = b.getArtwork();
                 duration = b.getDuration();
 
@@ -141,6 +141,12 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                 setNotificationArtwork();
                 if (!bp.isPlaying()) {
                     try {
+                        if(streamLink == null){
+                            Crashlytics.log(Log.ERROR, TAG, "streamLink is null for: "+song+" "+artist);
+                        }
+                        if(b == null){
+                            Crashlytics.log(Log.ERROR, TAG, "parcelable itself is null");
+                        }
                         bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
                         bp.setAudioStreamType(AudioManager.STREAM_MUSIC);
                         //bp.setDataSource(streamLink);
@@ -382,9 +388,9 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build();
             note.visibility = Notification.VISIBILITY_PUBLIC;
-            notifView.setTextColor(R.id.song,getResources().getColor(R.color.nTitle));
-            notifView.setTextColor(R.id.artist,getResources().getColor(R.color.nDesc));
-            notifView.setTextColor(R.id.album,getResources().getColor(R.color.nDesc));
+            notifView.setTextColor(R.id.song,getResources().getColor(R.color.text_primary_dark));
+            notifView.setTextColor(R.id.artist,getResources().getColor(R.color.text_secondary_dark));
+            notifView.setTextColor(R.id.album,getResources().getColor(R.color.text_secondary_dark));
             //notifView.setInt(R.id.notifDivider,"setBackgroundColor",getResources().getColor(R.color.nTitle));
         }
 
@@ -472,7 +478,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
     /**
      * Register a custom UncaughtException Handler for dismissing persistent notification on foreground Service's crash
-     * Do call the default Android UncaughtException Handler at last, to get the dialog
+     * Calls the default Android UncaughtException Handler at last, to get the app crash dialog
      */
     private void setCustomExceptionHandler() {
         final Thread.UncaughtExceptionHandler defaultExHandler = Thread.getDefaultUncaughtExceptionHandler();
