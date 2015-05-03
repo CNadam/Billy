@@ -14,6 +14,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
@@ -39,8 +40,8 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.NetworkImageView;
+import com.crashlytics.android.Crashlytics;
 import com.google.android.youtube.player.YouTubeIntents;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.vibin.billy.BillyApplication;
@@ -49,6 +50,7 @@ import com.vibin.billy.R;
 import com.vibin.billy.custom.NotifyingScrollView;
 import com.vibin.billy.custom.ShareActionProvider;
 import com.vibin.billy.http.JsonObjectRequest;
+import com.vibin.billy.http.StringRequest;
 import com.vibin.billy.service.PlayerService;
 import com.vibin.billy.swipeable.SwipeableActivity;
 import com.vibin.billy.util.ProcessingTask;
@@ -70,7 +72,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     private String song, artist, streamLink, permaLink, lastFmBio, thumbnail, videoId;
     private String[] relatedAlbumImg, relatedAlbums;
     BillyItem b;
-    private int songIndex, songLength;
+    private int songRank, songLength;
     private float secondaryProgressFactor;
     private boolean isMusicPlaying;
     private boolean stopTh;
@@ -83,6 +85,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     private BillyApplication billyapp;
     private Drawable mActionBarBackgroundDrawable;
     private SystemBarTintManager tintManager;
+    private Toolbar bar;
     private ProcessingTask ft;
     private SeekBar seekBar;
     private RotateAnimation rotateAnim;
@@ -120,15 +123,18 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         song = b.getSong();
         artist = b.getArtist();
         String artwork = b.getArtwork();
-        songIndex = b.getIndex();
+        songRank = b.getRank();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
         tintManager = new SystemBarTintManager(this);
-        customActionBar();
+        setToolbar();
 
-        billyapp.getActionBarView(getWindow()).addOnLayoutChangeListener(expandedDesktopListener);
+        bar.addOnLayoutChangeListener(expandedDesktopListener);
+        tintManager.setStatusBarTintEnabled(true);
+        tintManager.setStatusBarAlpha(0.0f);
+        tintManager.setTintColor(getResources().getColor(R.color.billy));
 
         streamBtn = (ImageButton) findViewById(R.id.streamButton);
         dashes = (ImageView) findViewById(R.id.dashes);
@@ -239,10 +245,10 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         }
     }
 
-    private Response.Listener<JSONArray> scComplete() {
-        return new Response.Listener<JSONArray>() {
+    private Response.Listener<String> scComplete() {
+        return new Response.Listener<String>() {
             @Override
-            public void onResponse(JSONArray jsonArray) {
+            public void onResponse(String response) {
                 String[] result = new String[4];
                 try {
                     result = ft.parseSoundcloud(response, song);
@@ -252,13 +258,14 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 permaLink = result[2];
                 streamLink = result[3];
                 b.setStreamLink(streamLink);
+                if(result[1] == null){
+                    Crashlytics.log(Log.ERROR, TAG, "Duration is null, for song: "+song);
+                }
                 b.setDuration(Long.parseLong(result[1]));
                 Log.d(TAG, "User is " + result[0] + " duration is " + result[1]);
                 Log.d(TAG, "original streamLink is " + streamLink);
                 Log.d(TAG, "original permaLink is " + permaLink);
                 supportInvalidateOptionsMenu();
-//                    JsonObjectRequest i1 = new JsonObjectRequest(Request.Method.GET, "https://api.soundcloud.com/i1/tracks/133433134/streams?client_id=apigee", null, i1Complete(), i1Error());
-//                    req.add(i1);
                 if (scaleAnim != null) {
                     streamBtn.startAnimation(scaleAnim);
                 }
@@ -740,7 +747,10 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
             float scrollOpacity = (float) Math.min(Math.max(t, 0), headerHeight) / headerHeight;
             final int newAlpha = (int) (scrollOpacity * 255);
             mActionBarBackgroundDrawable.setAlpha(newAlpha);
-            tintManager.setTintAlpha(scrollOpacity);
+            //Log.d(TAG,"headerheight "+ headerHeight);
+            //Log.d(TAG, "scroll opacity "+ scrollOpacity);
+            //Log.d(TAG, "new alpha "+ newAlpha);
+            tintManager.setStatusBarAlpha(scrollOpacity);
         }
     };
 
@@ -769,11 +779,19 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
      * Apply parallax scrolling
      */
 
-    private void customActionBar() {
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    private void setToolbar() {
+        bar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(bar);
 
-        setTitle(" " + song.toUpperCase());
+        getSupportActionBar().setTitle(song);
+        bar.setNavigationIcon(R.drawable.up);
+        bar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+
 
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.JELLY_BEAN) {
             getSupportActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.ab_solid));
@@ -781,7 +799,8 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             mActionBarBackgroundDrawable = getResources().getDrawable(R.drawable.ab_solid);
             mActionBarBackgroundDrawable.setAlpha(0);
-            getSupportActionBar().setBackgroundDrawable(mActionBarBackgroundDrawable);
+            //getSupportActionBar().setBackgroundDrawable(mActionBarBackgroundDrawable);
+            bar.setBackground(mActionBarBackgroundDrawable);
         }
 
         ((NotifyingScrollView) findViewById(R.id.scroll_view)).setOnScrollChangedListener(mOnScrollChangedListener);
@@ -885,6 +904,6 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     }
 
     @Override
-    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+    public void onProgressChanged(SeekBar seekBar, int i, boolean bool) {
     }
 }

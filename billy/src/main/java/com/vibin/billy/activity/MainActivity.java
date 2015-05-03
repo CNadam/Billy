@@ -11,8 +11,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -28,20 +31,30 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.astuetz.PagerSlidingTabStrip;
+import com.github.ksoichiro.android.observablescrollview.ObservableListView;
+import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
+import com.github.ksoichiro.android.observablescrollview.ScrollState;
+import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
+import com.nineoldandroids.view.ViewHelper;
+import com.nineoldandroids.view.ViewPropertyAnimator;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.vibin.billy.BillyApplication;
 import com.vibin.billy.R;
 import com.vibin.billy.adapter.FragmentAdapter;
 import com.vibin.billy.fragment.ChangelogDialog;
+import com.vibin.billy.fragment.SongsFragment;
 
 /**
  * The main activity. (no pun intended)
  */
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity{
 
     SystemBarTintManager tintManager;
     FragmentAdapter mAdapter;
+    private View mHeaderView;
+    private Toolbar bar;
+    private ViewPager mPager;
     private static final String TAG = MainActivity.class.getSimpleName();
 
     @Override
@@ -52,11 +65,11 @@ public class MainActivity extends ActionBarActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
-        tintManager = new SystemBarTintManager(this);
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
-        getSupportActionBar().setElevation(0);
-        setTitle(" " + "Billy".toUpperCase());
+        mHeaderView = findViewById(R.id.header);
+        bar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(bar);
 
+        tintManager = new SystemBarTintManager(this);
         setViewpager();
 
         BillyApplication billyapp = (BillyApplication) this.getApplication();
@@ -65,20 +78,36 @@ public class MainActivity extends ActionBarActivity {
             dialog.show(getFragmentManager(), "change");
             Log.d(TAG, "showing changelog");
         }
-        billyapp.getActionBarView(getWindow()).addOnLayoutChangeListener(expandedDesktopListener);
+        bar.addOnLayoutChangeListener(expandedDesktopListener);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        tintManager.setStatusBarTintEnabled(true);
+        tintManager.setTintColor(getResources().getColor(R.color.billy));
+        tintManager.setStatusBarAlpha(1.0f);
     }
 
     private void setViewpager() {
         try {
             mAdapter = new FragmentAdapter(getSupportFragmentManager(), this);
-            ViewPager mPager = (ViewPager) findViewById(R.id.pager);
+            mPager = (ViewPager) findViewById(R.id.pager);
             mPager.setAdapter(mAdapter);
             PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
             tabs.setViewPager(mPager);
             tabs.setTextColor(Color.WHITE);
         } catch (IllegalStateException e) {
             Log.e(TAG, e.toString());
+        }
+    }
+
+    public void callPropagateToolbar(boolean isShown){
+        int i = mPager.getCurrentItem() -1;
+        int j = mPager.getCurrentItem() +1;
+        safeCall(i, isShown);
+        safeCall(j, isShown);
+    }
+
+    private void safeCall(int num, boolean isShown) {
+        if(num>=0 && num<mAdapter.getCount()) {
+            ((SongsFragment) mAdapter.instantiateItem(mPager, num)).propagateToolbarState(isShown);
         }
     }
 
@@ -160,6 +189,8 @@ public class MainActivity extends ActionBarActivity {
         }
     };
 
+
+
     public static class AboutDialog extends DialogFragment {
         View v;
 
@@ -215,7 +246,6 @@ public class MainActivity extends ActionBarActivity {
 //TODO volley cache
 //TODO Implement playlists - Use Google's draglistview, with handlers (only), show SC likes, comments count
 
-//TODO ripple for play button
 //TODO seekbar not visible on notification click
 //TODO better SoundCloud track fetch
 

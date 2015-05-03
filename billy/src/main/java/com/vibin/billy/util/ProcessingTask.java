@@ -181,9 +181,9 @@ public class ProcessingTask {
      */
     private String extractSong(String text) {
         String extractedSong = text.substring(0, text.indexOf(" by "));
-            if (extractedSong.contains("(")) {
-                extractedSong = extractedSong.substring(0, extractedSong.indexOf("("));
-            }
+        if (extractedSong.contains("(")) {
+            extractedSong = extractedSong.substring(0, extractedSong.indexOf("("));
+        }
         return extractedSong.trim();
     }
 
@@ -217,16 +217,16 @@ public class ProcessingTask {
      * for using in URLs
      */
 
-    public String getSimpleString(String str){
+    public String getSimpleString(String str) {
         String simpleStr = str;
-        char symbols[] = {'!', '#', '&', '+','"','.'};
-        if(StringUtils.containsAny(str,symbols)){
-            for(char symbol: symbols){
+        char symbols[] = {'!', '#', '&', '+', '"', '.'};
+        if (StringUtils.containsAny(str, symbols)) {
+            for (char symbol : symbols) {
                 simpleStr = StringUtils.remove(simpleStr, symbol);
             }
         }
-        simpleStr = simpleStr.replace(" x "," "); // Chris Brown x Tyga
-        simpleStr = simpleStr.replace(" X "," ");
+        simpleStr = simpleStr.replace(" x ", " "); // Chris Brown x Tyga
+        simpleStr = simpleStr.replace(" X ", " ");
         //Log.d(TAG,"1 "+simpleStr);
         return simpleStr;
     }
@@ -306,6 +306,7 @@ public class ProcessingTask {
         String[] firstScSong = new String[4];
         String firstWord;
         int count = 0;
+        JSONArray arr;
         if (song.contains(" ")) {
             firstWord = song.substring(0, song.indexOf(" "));
         } else {

@@ -5,8 +5,9 @@
     Base theme
     We set windowTranslucentStatus programmatically in Activities, for a better app preview window
     -->
-    <style name="Theme.Billy" parent="Theme.AppCompat.Light">
-        <item name="homeAsUpIndicator">@drawable/up</item>
+
+    <style name="Theme.Billy" parent="Theme.AppCompat.Light.NoActionBar">
+
         <item name="actionBarItemBackground">@drawable/actionitem_background</item>
         <item name="android:actionBarItemBackground">@drawable/actionitem_background</item>
         <item name="actionOverflowButtonStyle">@style/OverFlow</item>
@@ -15,10 +16,9 @@
         <item name="android:dialogTheme">@style/Button.Dialog.Billy</item>
         <item name="android:fastScrollThumbDrawable">@drawable/fastscroll_thumb</item>
         <item name="popupMenuStyle">@style/PopupMenu.Billy</item>
-        <item name="actionBarStyle">@style/ActionBar.Solid.Billy</item>
-        <item name="android:textColor">@color/text_black</item>
-        <item name="android:windowBackground">@color/lt_gray</item>
-
+        <item name="toolbarStyle">@style/Toolbar.Solid.Billy</item>
+        <item name="android:textColor">@color/text_primary_dark</item>
+        <item name="android:windowBackground">@color/background_material_light</item>
         <item name="colorPrimary">@color/billy</item>
         <item name="colorPrimaryDark">@color/billy_darker</item>
         <item name="colorAccent">@color/billy_lighter</item>
@@ -30,26 +30,26 @@
 
     <!-- For Activities which are swipeable and have transparent ActionBar-->
 
-    <style name="Theme.Billy.Swipeable" parent="Theme.Billy.TransparentActionBar">
+    <style name="Theme.Billy.Swipeable" parent="Theme.Billy.TransparentToolbar">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:backgroundDimEnabled">false</item>
     </style>
 
-    <style name="Theme.Billy.TransparentActionBar" parent="Theme.Billy">
-        <item name="android:windowActionBarOverlay">true</item>
-        <item name="android:actionBarStyle">@style/ActionBar.Transparent.Billy</item>
+
+    <style name="Theme.Billy.TransparentToolbar" parent="Theme.Billy">
+        <item name="toolbarStyle">@style/Toolbar.Transparent.Billy</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
-    <style name="ActionBar.Solid.Billy" parent="Widget.AppCompat.Light.ActionBar">
+    <style name="Toolbar.Solid.Billy" parent="Widget.AppCompat.Toolbar">
         <item name="background">@drawable/ab_solid</item>
-        <item name="titleTextStyle">@style/ActionBar.Billy.TextAppearance</item>
+        <item name="titleTextAppearance">@style/Toolbar.Billy.TextAppearance</item>
     </style>
 
-    <style name="ActionBar.Transparent.Billy" parent="Widget.AppCompat.Light.ActionBar">
+    <style name="Toolbar.Transparent.Billy" parent="Widget.AppCompat.Toolbar">
         <item name="background">@drawable/ab_transparent</item>
-        <item name="titleTextStyle">@style/ActionBar.Billy.TextAppearance</item>
+        <item name="titleTextAppearance">@style/Toolbar.Billy.TextAppearance</item>
     </style>
 
     <style name="Button.Dialog.Billy" parent="@android:style/Theme.Holo.Light.Dialog">
@@ -79,7 +79,7 @@
 
     <!-- ActionBar Title -->
 
-    <style name="ActionBar.Billy.TextAppearance" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+    <style name="Toolbar.Billy.TextAppearance" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
         <item name="android:textColor">#fff</item>
         <item name="android:textSize">20sp</item>
         <item name="android:fontFamily">sans-serif-condensed</item>
@@ -87,6 +87,7 @@
         <item name="android:singleLine">true</item>
         <item name="android:ellipsize">end</item>
         <item name="android:alpha">1</item>
+        <item name="android:textAllCaps">true</item>
         <item name="textAllCaps">true</item>
     </style>
 

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -31,13 +32,21 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.crashlytics.android.Crashlytics;
+import com.github.ksoichiro.android.observablescrollview.ObservableListView;
+import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
+import com.github.ksoichiro.android.observablescrollview.ScrollState;
+import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.nineoldandroids.view.ViewHelper;
+import com.nineoldandroids.view.ViewPropertyAnimator;
 import com.vibin.billy.BillyApplication;
 import com.vibin.billy.BillyItem;
 import com.vibin.billy.R;
 import com.vibin.billy.activity.DetailView;
+import com.vibin.billy.activity.MainActivity;
 import com.vibin.billy.adapter.BaseAdapter;
 import com.vibin.billy.adapter.DatabaseAdapter;
 import com.vibin.billy.http.JsonObjectRequest;
@@ -45,6 +54,7 @@ import com.vibin.billy.http.StringRequest;
 import com.vibin.billy.util.ProcessingTask;
 import com.vibin.billy.util.SwingBottomInAnimationAdapter;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
@@ -62,7 +72,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     String[] billySong, billyArtist;
     String jsonMdata, cacheData = "";
     LinearLayout spinner;
-    View v;
+    View v, mHeaderView, mToolbarView;
     boolean spinnerVisible, pulltorefresh;
     BaseAdapter baseAdapter;
     DatabaseAdapter databaseAdapter;
@@ -77,8 +87,23 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     int mIndex, billySize, onlyOnce;
     final long ANIMATION_DELAY = 200;
     final long ANIMATION_DURATION = 350;
+    int mBaseTranslationY;
+    float headerTranslationY;
 
     private String tag = SongsFragment.class.getSimpleName(); // Tag is not final, because it's dynamic
+
+    private enum ItunesParamType {
+        SIMPLE(0), NORMAL(1), ELIM(2);
+        private final int value;
+
+        private ItunesParamType(int value) {
+            this.value = value;
+        }
+
+        private int getValue() {
+            return value;
+        }
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -171,6 +196,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 android.R.color.holo_orange_light,
                 R.color.green);
         swipelayout.setSize(SwipeRefreshLayout.LARGE);
+
         //swipelayout.setRefreshing(true);
 
         /**
@@ -284,6 +310,14 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         baseAdapter.notifyDataSetChanged();
     }
 
+    int getToolbarHeight() {
+        final TypedArray styledAttributes = getActivity().getTheme().obtainStyledAttributes(
+                new int[]{android.R.attr.actionBarSize});
+        int mActionBarSize = (int) styledAttributes.getDimension(0, 0);
+        styledAttributes.recycle();
+        return mActionBarSize;
+    }
+
     /**
      * Set adapter to list
      * If current screen is Hot 100, then attach a Button as footer view to ListView which loads additional data
@@ -291,6 +325,17 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        int headerHeight = (int) (getToolbarHeight() + getResources().getDimension(R.dimen.tabs_height));
+        swipelayout.setProgressViewOffset(false, headerHeight / 4, (int) (headerHeight * 1.2));
+        mHeaderView = getActivity().findViewById(R.id.header);
+        Log.d(tag, mHeaderView.getTranslationY() + " on attach");
+        mToolbarView = getActivity().findViewById(R.id.toolbar);
+        View listviewheader = new View(getActivity());
+
+        listviewheader.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, headerHeight));
+        getListView().addHeaderView(listviewheader);
+
         setListAdapter(baseAdapter);
 
         // Assign the ListView to the AnimationAdapter and vice versa
@@ -299,6 +344,12 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         getListView().setAdapter(swingBottomInAdapter);
         swingBottomInAdapter.setShouldAnimate(false);
         getListView().setOnItemClickListener(this);
+        if (!toolbarIsShown()) {
+            Log.d(tag, "hidden toolbar, translation = " + mHeaderView.getTranslationY());
+            getListView().setSelection(1);
+        }
+
+        ((ObservableListView) getListView()).setScrollViewCallbacks(obsv);
 
         if (tableName.equals("MostPopular")) {
             final LinearLayout layout = new LinearLayout(getActivity());
@@ -334,7 +385,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
                             for (int i = 0; i < billyapp.getMinBillySize(billySize); i++) {
                                 try {
-                                    callitunes(mData.size() - billyapp.getMinBillySize(billySize) + i, true);
+                                    callitunes(mData.size() - billyapp.getMinBillySize(billySize) + i, ItunesParamType.SIMPLE);
                                 } catch (UnsupportedEncodingException e) {
                                     Log.d(tag, e.toString());
                                 }
@@ -350,6 +401,11 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+    }
+
+    @Override
     public void onPause() {
         super.onPause();
         getActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
@@ -361,6 +417,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         super.onResume();
         PreferenceManager.getDefaultSharedPreferences(getActivity()).registerOnSharedPreferenceChangeListener(myPrefListener);
     }
+
 
     /**
      * Save mData to Bundle, to reuse on rotate
@@ -468,7 +525,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
         billyArtist = ft.getBillyArtist();
         if (doItunesRequests) {
             while (mIndex < billyapp.getMinBillySize(billySize)) {
-                callitunes(mIndex, true);
+                callitunes(mIndex, ItunesParamType.SIMPLE);
                 mIndex++;
             }
         }
@@ -477,15 +534,9 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
     /**
      * Spawn an iTunes request with song and artist Strings
      */
-    private void callitunes(int i, boolean simpleParams) throws UnsupportedEncodingException {
+    private void callitunes(int i, ItunesParamType method) throws UnsupportedEncodingException {
         try {
             if (isAdded()) {
-                String searchparam;
-                if (simpleParams) {
-                    searchparam = billyapp.UTF8(ft.getSimpleString(billySong[i])) + "+" + billyapp.UTF8(ft.getSimpleString(billyArtist[i]));
-                } else {
-                    Log.d(tag, "trying normal params");
-                    searchparam = billyapp.UTF8(billySong[i]) + "+" + billyapp.UTF8(billyArtist[i]);
                 String searchparam = "";
 
                 switch (method) {
@@ -504,15 +555,6 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                         req.add(me);
                         break;
                 }
-                int simple = simpleParams ? 1 : 0;
-                String uri = getResources().getString(R.string.itunes, searchparam) + "&id=" + i + "&simple=" + simple;
-                Log.d(tag, uri);
-                JsonObjectRequest jsonreq = new JsonObjectRequest(uri, null, itunesComplete(), itunesError());
-                jsonreq.setTag(this);
-                req.add(jsonreq);
-/*                if (invalidateCache) {
-                    req.getCache().invalidate(jsonreq.getCacheKey(), true);
-                }*/
             }
         } catch (NullPointerException e) {
             Log.d(tag, e.toString());
@@ -572,22 +614,19 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 try {
                     String url = jsonObject.getString("url");
                     int id = Integer.parseInt(url.substring(url.indexOf("id=") + 3, url.lastIndexOf("&")));
-                    int simpleParam = Integer.parseInt(url.substring(url.length() - 1));
+                    int method = Integer.parseInt(url.substring(url.length() - 1));
                     String[] result = ft.parseItunes(jsonObject, id);
 
                     if (result != null) {
                         try {
-                            mData.get(id).setItunes(result[0], result[1], result[2], result[3]);
                             mData.get(id).setItunes(result[0], result[1], result[2], result[3], id + 1);
                             baseAdapter.updateArrayList(mData);
                             baseAdapter.notifyDataSetChanged();
                         } catch (NullPointerException e) {
                             Log.d(tag, e.toString());
                         }
-                    } else if (simpleParam == 1) {
+                    } else if (method == 0) {
                         Log.e(tag, "Result object is null with simple params. " + url);
-                        callitunes(id, false);
-                    } else {
                         callitunes(id, ItunesParamType.NORMAL);
                     } else if (method == 1) {
                         Crashlytics.log(Log.ERROR, tag, "Result object is null with normal params. " + url);
@@ -619,8 +658,10 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        i = i - 1; // 0th index contains ListView header
         try {
             if (billyapp.isConnected()) {
+                Log.d(tag, "item clicked is " + i);
                 BillyItem b = mData.get(i);
                 b.setSimpleSong(ft.getSimpleString(billySong[i]));
                 b.setSimpleArtist(ft.getSimpleString(billyArtist[i]));
@@ -630,7 +671,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                     myintent.putExtra("item", b);
                     startActivity(myintent);
                 } else {
-                    callitunes(i, true);
+                    callitunes(i, ItunesParamType.SIMPLE);
                     baseAdapter.notifyDataSetChanged();
                 }
             } else {
@@ -746,7 +787,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                     mIndex = 0;
                     while (mIndex < billyapp.getMinBillySize(billySize)) {
                         try {
-                            callitunes(mIndex, true);
+                            callitunes(mIndex, ItunesParamType.SIMPLE);
                         } catch (UnsupportedEncodingException e) {
                             Log.d(tag, e.toString());
                         }
@@ -756,4 +797,124 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             }
         }
     };
+
+    ObservableScrollViewCallbacks obsv = new ObservableScrollViewCallbacks() {
+        @Override
+        public void onScrollChanged(int scrollY, boolean firstScroll, boolean dragging) {
+            //Log.d(tag, "scroll changed");
+
+            if (dragging) {
+                int toolbarHeight = mToolbarView.getHeight();
+                float currentHeaderTranslationY = ViewHelper.getTranslationY(mHeaderView);
+                if (firstScroll) {
+                    if (-toolbarHeight < currentHeaderTranslationY) {
+                        mBaseTranslationY = scrollY;
+                    }
+                }
+                headerTranslationY = ScrollUtils.getFloat(-(scrollY - mBaseTranslationY), -toolbarHeight, 0);
+                ViewPropertyAnimator.animate(mHeaderView).cancel();
+                ViewHelper.setTranslationY(mHeaderView, headerTranslationY);
+
+                int xa = billyapp.getDpAsPx(104) + (int) headerTranslationY;
+                // Log.d(tag, "x "+xa);
+
+                //ViewGroup.LayoutParams lp = listviewheader.getLayoutParams();
+                //lp.height = xa;
+                //listviewheader.setLayoutParams(lp);
+                //mHeaderView.setY(headerTranslationY);
+                //mFrame.setTop((int) headerTranslationY);
+                //ViewHelper.setTranslationY(mFrame, headerTranslationY);
+
+                //mFrame.setPadding(0,xa,0,0);
+                //ViewHelper.setTranslationY(mFrame, headerTranslationY);
+                //Log.d(tag,"y "+headerTranslationY);
+            }
+        }
+
+        @Override
+        public void onDownMotionEvent() {
+
+        }
+
+        @Override
+        public void onUpOrCancelMotionEvent(ScrollState scrollState) {
+            //Log.d(tag,"up or cancel");
+
+            int toolbarHeight = mToolbarView.getHeight();
+            final ObservableListView listView = (ObservableListView) v.findViewById(android.R.id.list);
+            if (listView == null) {
+                return;
+            }
+            int scrollY = listView.getCurrentScrollY();
+            Log.d(tag, "scrolly " + scrollY);
+            if (scrollState == ScrollState.DOWN) {
+                showToolbar();
+            } else if (scrollState == ScrollState.UP) {
+                if (toolbarHeight * 0.75 <= scrollY) {
+                    hideToolbar();
+                } else {
+                    showToolbar();
+                }
+            } else {
+                if (toolbarIsShown() || toolbarIsHidden()) {
+                    propagateToolbarState(toolbarIsShown());
+                } else {
+                    showToolbar();
+                }
+            }
+
+        }
+
+    };
+
+    public void propagateToolbarState(boolean isShown) {
+        ObservableListView listView = (ObservableListView) getListView();
+        if (isShown) {
+            // Scroll up
+            Log.d(tag, "current scroll y " + listView.getCurrentScrollY());
+            if (listView.getCurrentScrollY() < mToolbarView.getHeight()) {
+                Log.d(tag, "scrolling up");
+                listView.setSelection(0);
+            }
+        } else {
+            // Scroll down (to hide padding)
+            if (listView.getCurrentScrollY() < mToolbarView.getHeight()) {
+                Log.d(tag, "scrolling down");
+                listView.setSelection(1);
+            }
+        }
+    }
+
+    private boolean toolbarIsShown() {
+        return ViewHelper.getTranslationY(mHeaderView) == 0;
+    }
+
+    private boolean toolbarIsHidden() {
+        return ViewHelper.getTranslationY(mHeaderView) == -mToolbarView.getHeight();
+    }
+
+    private void showToolbar() {
+        //Log.d(tag, "showtool");
+        float headerTranslationY = ViewHelper.getTranslationY(mHeaderView);
+        if (headerTranslationY != 0) {
+            ViewPropertyAnimator.animate(mHeaderView).cancel();
+            ViewPropertyAnimator.animate(mHeaderView).translationY(0).setDuration(200).start();
+            //Log.d(tag, "showtool 2");
+        }
+        ((MainActivity) getActivity()).callPropagateToolbar(true);
+        propagateToolbarState(true);
+    }
+
+    private void hideToolbar() {
+        //Log.d(tag, "hidetool");
+        float headerTranslationY = ViewHelper.getTranslationY(mHeaderView);
+        int toolbarHeight = mToolbarView.getHeight();
+        if (headerTranslationY != -toolbarHeight) {
+            ViewPropertyAnimator.animate(mHeaderView).cancel();
+            ViewPropertyAnimator.animate(mHeaderView).translationY(-toolbarHeight).setDuration(200).start();
+            //Log.d(tag, "hidetool 2");
+        }
+        ((MainActivity) getActivity()).callPropagateToolbar(false);
+        propagateToolbarState(false);
+    }
 }

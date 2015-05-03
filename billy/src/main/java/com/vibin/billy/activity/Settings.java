@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -34,14 +35,27 @@ public class Settings extends SwipeableActivity {
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.KITKAT) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
-        tintManager = new SystemBarTintManager(this);
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        setTitle(" " + "Settings".toUpperCase());
+        Toolbar bar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(bar);
 
-        ((BillyApplication) getApplication()).getActionBarView(getWindow()).addOnLayoutChangeListener(expandedDesktopListener);
+        getSupportActionBar().setTitle("Settings");
+        bar.setNavigationIcon(R.drawable.up);
+        bar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+
+        tintManager = new SystemBarTintManager(this);
+        tintManager.setStatusBarTintEnabled(true);
+        tintManager.setStatusBarAlpha(1.0f);
+        tintManager.setTintColor(getResources().getColor(R.color.billy));
+
+        bar.addOnLayoutChangeListener(expandedDesktopListener);
         getFragmentManager().beginTransaction().replace(R.id.settingsLinear, new SettingsFragment()).commitAllowingStateLoss();
     }
+
 
     /**
      * Detects if the user is using phone in Expanded Desktop/Fullscreen mode, and toggles tint

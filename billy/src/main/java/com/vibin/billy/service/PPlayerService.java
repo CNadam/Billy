@@ -38,7 +38,7 @@ public class PPlayerService extends Service implements Handler.Callback {
     String streamLink, song, album, artist, artwork;
     LibVLC bp;
     MediaList list;
-    int songIndex;
+    int songRank;
     int bufferPercent;
     Notification note;
     NotificationManager noteMan;
@@ -162,7 +162,7 @@ public class PPlayerService extends Service implements Handler.Callback {
             song = intent.getStringExtra("songName");
             album = intent.getStringExtra("albumName");
             artist = intent.getStringExtra("artistName");
-            songIndex = intent.getIntExtra("songIndex", 50);
+            songRank = intent.getIntExtra("songRank", 50);
             artwork = intent.getStringExtra("artwork");
 
             //bp.reset();
@@ -326,7 +326,7 @@ public class PPlayerService extends Service implements Handler.Callback {
         resultIntent.putExtra("album", album);
         resultIntent.putExtra("artist", artist);
         resultIntent.putExtra("artwork", artwork);
-        resultIntent.putExtra("index", songIndex);
+        resultIntent.putExtra("index", songRank);
         //resultIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         //resultIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         resultIntent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
