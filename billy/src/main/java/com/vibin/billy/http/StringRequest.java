@@ -28,13 +28,13 @@ public class StringRequest extends Request<String> {
 
     @Override
     protected Response<String> parseNetworkResponse(NetworkResponse response) {
-        String parsed="";
+        String parsed = "";
         try {
             parsed = new String(response.data, HttpHeaderParser.parseCharset(response.headers));
         } catch (UnsupportedEncodingException e) {
             Log.d(TAG, e.toString());
         }
-        return Response.success(parsed,parseIgnoreCacheHeaders(response));
+        return Response.success(parsed, parseIgnoreCacheHeaders(response));
     }
 
     @Override
@@ -45,6 +45,7 @@ public class StringRequest extends Request<String> {
     /**
      * Extracts a {@link Cache.Entry} from a {@link NetworkResponse}.
      * Cache-control headers are ignored.
+     *
      * @param response The network response to parse headers from
      * @return a cache entry for the given response, or null if the response is not cacheable.
      */
@@ -83,7 +84,7 @@ public class StringRequest extends Request<String> {
     @Override
     public void addMarker(String tag) {
         super.addMarker(tag);
-        if (tag.equals("cache-hit")){
+        if (tag.equals("cache-hit")) {
             cacheHit = true;
             Log.d(TAG, "cachie hit");
         }

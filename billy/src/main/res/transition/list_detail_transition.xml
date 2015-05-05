@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<transitionSet>
+
+<!--    &lt;!&ndash; changeBounds is used for the TextViews which are shared &ndash;&gt;
+    <changeBounds />-->
+
+    <!-- changeImageTransform is used for the ImageViews which are shared -->
+    <changeBounds />
+
+</transitionSet>

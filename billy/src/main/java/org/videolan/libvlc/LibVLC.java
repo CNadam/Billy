@@ -20,14 +20,14 @@
 
 package org.videolan.libvlc;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Map;
-
 import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 import android.view.Surface;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Map;
 
 public class LibVLC {
     private static final String TAG = "VLC/LibVLC";

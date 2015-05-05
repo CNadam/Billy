@@ -2,7 +2,6 @@ package com.vibin.billy.swipeable;
 
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.View;
 import android.view.ViewGroup;
 
 /**

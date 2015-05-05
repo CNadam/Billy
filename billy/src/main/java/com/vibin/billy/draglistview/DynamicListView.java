@@ -119,9 +119,9 @@ public class DynamicListView extends ListView {
 
     //TODO make this dynamic
     public void init(Context context) {
-        vertical_dimen = context.getResources().getDimensionPixelSize(R.dimen.textview_row)*7;
+        vertical_dimen = context.getResources().getDimensionPixelSize(R.dimen.textview_row) * 7;
         horizontal_dimen = context.getResources().getDimensionPixelSize(R.dimen.drag_handler);
-        Log.d(TAG," "+horizontal_dimen+" "+vertical_dimen);
+        Log.d(TAG, " " + horizontal_dimen + " " + vertical_dimen);
         setOnScrollListener(mScrollListener);
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         mSmoothScrollAmountAtEdge = (int) (SMOOTH_SCROLL_AMOUNT_AT_EDGE / metrics.density);
@@ -272,8 +272,7 @@ public class DynamicListView extends ListView {
                 {
                     handleTouchdown();
                 }*/
-                if(mDownX>0 && mDownY>0)
-                {
+                if (mDownX > 0 && mDownY > 0) {
                     handleTouchdown();
                 }
                 break;
@@ -370,8 +369,8 @@ public class DynamicListView extends ListView {
             final int switchViewStartTop = switchView.getTop();
 
 //            if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.KITKAT){
-                mobileView.setVisibility(View.VISIBLE);
-                switchView.setVisibility(View.INVISIBLE);
+            mobileView.setVisibility(View.VISIBLE);
+            switchView.setVisibility(View.INVISIBLE);
 //            }
             /*else{
                 mobileView.setVisibility(View.INVISIBLE);
@@ -429,20 +428,20 @@ public class DynamicListView extends ListView {
     private void touchEventsEnded() {
         final View mobileView = getViewForID(mMobileItemId);
         try {
-        if (mCellIsMobile || mIsWaitingForScrollFinish) {
-            mCellIsMobile = false;
-            mIsWaitingForScrollFinish = false;
-            mIsMobileScrolling = false;
-            mActivePointerId = INVALID_POINTER_ID;
+            if (mCellIsMobile || mIsWaitingForScrollFinish) {
+                mCellIsMobile = false;
+                mIsWaitingForScrollFinish = false;
+                mIsMobileScrolling = false;
+                mActivePointerId = INVALID_POINTER_ID;
 
 
-            // If the autoscroller has not completed scrolling, we need to wait for it to
-            // finish in order to determine the final location of where the hover cell
-            // should be animated to.
-            if (mScrollState != OnScrollListener.SCROLL_STATE_IDLE) {
-                mIsWaitingForScrollFinish = true;
-                return;
-            }
+                // If the autoscroller has not completed scrolling, we need to wait for it to
+                // finish in order to determine the final location of where the hover cell
+                // should be animated to.
+                if (mScrollState != OnScrollListener.SCROLL_STATE_IDLE) {
+                    mIsWaitingForScrollFinish = true;
+                    return;
+                }
 
                 mHoverCellCurrentBounds.offsetTo(mHoverCellOriginalBounds.left, mobileView.getTop());
 
@@ -473,7 +472,7 @@ public class DynamicListView extends ListView {
                     }
                 });
                 hoverViewAnimator.start();
-            }else{
+            } else {
                 touchEventsCancelled();
             }
         } catch (NullPointerException e) {

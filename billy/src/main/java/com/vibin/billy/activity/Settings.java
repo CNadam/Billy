@@ -9,15 +9,12 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.readystatesoftware.systembartint.SystemBarTintManager;
-import com.vibin.billy.BillyApplication;
 import com.vibin.billy.R;
 import com.vibin.billy.fragment.ChangelogDialog;
 import com.vibin.billy.fragment.LicensesFragment;
@@ -34,13 +31,13 @@ public class Settings extends SwipeableActivity {
         super.enableSwipeToDismiss();
         setContentView(R.layout.settings_view);
 
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
         Toolbar bar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(bar);
 
-        getSupportActionBar().setTitle("Settings");
+        getSupportActionBar().setTitle(getResources().getString(R.string.action_settings));
         bar.setNavigationIcon(R.drawable.up);
         bar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -90,7 +87,7 @@ public class Settings extends SwipeableActivity {
     }
 
     public static class SettingsFragment extends PreferenceFragment {
-        private Preference rate,changelog,licenses;
+        private Preference rate, changelog, licenses;
         private FragmentManager fm;
 
         @Override
@@ -137,7 +134,7 @@ public class Settings extends SwipeableActivity {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
                     ChangelogDialog dialog = ChangelogDialog.newInstance();
-                    dialog.show(fm,"change");
+                    dialog.show(fm, "change");
                     return true;
                 }
             });
@@ -146,7 +143,7 @@ public class Settings extends SwipeableActivity {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
                     LicensesFragment dialog = LicensesFragment.newInstance();
-                    dialog.show(fm,"licenses");
+                    dialog.show(fm, "licenses");
                     return true;
                 }
             });

@@ -2,7 +2,6 @@ package com.vibin.billy;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 public class BillyItem implements Parcelable {
     private static final String TAG = BillyItem.class.getSimpleName();
@@ -10,7 +9,8 @@ public class BillyItem implements Parcelable {
     int rank = 0;
     long duration;
 
-    public BillyItem(){}
+    public BillyItem() {
+    }
 
     public BillyItem(Parcel in) {
         super();
@@ -82,13 +82,12 @@ public class BillyItem implements Parcelable {
         this.artist = artist;
     }
 
-    public void setItunes(String song, String album, String artist, String artwork, int rank)
-    {
-       setSong(song);
-       setAlbum(album);
-       setArtist(artist);
-       setArtwork(artwork);
-       setRank(rank);
+    public void setItunes(String song, String album, String artist, String artwork, int rank) {
+        setSong(song);
+        setAlbum(album);
+        setArtist(artist);
+        setArtwork(artwork);
+        setRank(rank);
     }
 
     /**
@@ -146,7 +145,7 @@ public class BillyItem implements Parcelable {
         return rank;
     }
 
-    public void setRank(int rank){
+    public void setRank(int rank) {
         this.rank = rank;
     }
 }

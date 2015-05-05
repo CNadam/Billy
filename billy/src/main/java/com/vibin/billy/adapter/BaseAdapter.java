@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.LayoutRes;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,7 @@ public class BaseAdapter extends android.widget.BaseAdapter {
     public BaseAdapter(Context c, ArrayList<BillyItem> arrayList, ImageLoader imgload) {
         this.c = c;
         mData = arrayList;
+        Log.d(TAG, "arrayList " + arrayList.get(0).getArtwork());
         this.imgload = imgload;
         sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
         billyapp = BillyApplication.getInstance();
@@ -109,6 +111,7 @@ public class BaseAdapter extends android.widget.BaseAdapter {
         }
 
         BillyItem b = mData.get(i);
+        Log.d(TAG, "b is " + b.getArtwork());
 
         //Log.d(TAG, i + " " + temp.album + " " + temp.artist + " " + temp.song + " " + temp.artwork);
 

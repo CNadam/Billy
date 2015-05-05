@@ -99,7 +99,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
         isRunning = true;
         setCustomExceptionHandler();
-        ((AudioManager)getSystemService(AUDIO_SERVICE)).registerMediaButtonEventReceiver(new ComponentName(this, MediaControl.class));
+        ((AudioManager) getSystemService(AUDIO_SERVICE)).registerMediaButtonEventReceiver(new ComponentName(this, MediaControl.class));
         req = billyapp.getRequestQueue();
 
         bp.setOnPreparedListener(this);
@@ -110,7 +110,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         bp.setOnSeekCompleteListener(this);
         bp.reset();
 
-        notifIcon = Bitmap.createBitmap(600,600, Bitmap.Config.ARGB_8888);
+        notifIcon = Bitmap.createBitmap(600, 600, Bitmap.Config.ARGB_8888);
     }
 
     @Override
@@ -141,10 +141,10 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                 setNotificationArtwork();
                 if (!bp.isPlaying()) {
                     try {
-                        if(streamLink == null){
-                            Crashlytics.log(Log.ERROR, TAG, "streamLink is null for: "+song+" "+artist);
+                        if (streamLink == null) {
+                            Crashlytics.log(Log.ERROR, TAG, "streamLink is null for: " + song + " " + artist);
                         }
-                        if(b == null){
+                        if (b == null) {
                             Crashlytics.log(Log.ERROR, TAG, "parcelable itself is null");
                         }
                         bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
@@ -221,7 +221,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     @Override
     public void onCompletion(MediaPlayer mp) {
         Log.d(TAG, "onCompletion");
-        if(BPlistener != null) {
+        if (BPlistener != null) {
             BPlistener.onCompletion();
         }
         stopForeground(true);
@@ -236,7 +236,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
     @Override
     public boolean onError(MediaPlayer mp, int i, int i2) {
         stopForeground(true);
-        if(BPlistener != null) {
+        if (BPlistener != null) {
             BPlistener.onError(i, i2);
         }
         switch (i) {
@@ -281,7 +281,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         stopForeground(true);
         try {
             unregisterReceiver(NotificationMediaControl);
-            ((AudioManager)getSystemService(AUDIO_SERVICE)).unregisterMediaButtonEventReceiver(new ComponentName(this, MediaControl.class));
+            ((AudioManager) getSystemService(AUDIO_SERVICE)).unregisterMediaButtonEventReceiver(new ComponentName(this, MediaControl.class));
         } catch (IllegalArgumentException e) {
             Log.d(TAG, e.toString());
         }
@@ -295,7 +295,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         if (!bp.isPlaying()) {
             bp.start();
             putNotification();
-            if(BPlistener != null) {
+            if (BPlistener != null) {
                 BPlistener.onMediaPlay();
             }
             return true;
@@ -307,7 +307,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         if (bp.isPlaying()) {
             bp.pause();
             putNotification();
-            if(BPlistener != null) {
+            if (BPlistener != null) {
                 BPlistener.onMediaPause();
             }
             return true;
@@ -325,7 +325,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         if (bp.isPlaying()) {
             Log.d(TAG, "media has successfully stopped");
             bp.stop();
-            if(BPlistener != null) {
+            if (BPlistener != null) {
                 BPlistener.onMediaStop();
             }
         }
@@ -336,9 +336,9 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
         return (int) duration;
     }
 
-    void setNotificationArtwork(){
+    void setNotificationArtwork() {
         try {
-            final ImageLoader.ImageListener imgload = new ImageLoader.ImageListener() {
+            final ImageLoader.ImageListener imageListener = new ImageLoader.ImageListener() {
                 @Override
                 public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
                     notifIcon = response.getBitmap();
@@ -351,9 +351,9 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                     Log.d(TAG, error.toString());
                 }
             };
-            billyapp.getImageLoader().get(artwork, imgload);
+            billyapp.getImageLoader().get(artwork, imageListener);
         } catch (NullPointerException e) {
-            Log.d(TAG,e.toString());
+            Log.d(TAG, e.toString());
         }
     }
 
@@ -388,9 +388,9 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build();
             note.visibility = Notification.VISIBILITY_PUBLIC;
-            notifView.setTextColor(R.id.song,getResources().getColor(R.color.text_primary_dark));
-            notifView.setTextColor(R.id.artist,getResources().getColor(R.color.text_secondary_dark));
-            notifView.setTextColor(R.id.album,getResources().getColor(R.color.text_secondary_dark));
+            notifView.setTextColor(R.id.song, getResources().getColor(R.color.text_primary_dark));
+            notifView.setTextColor(R.id.artist, getResources().getColor(R.color.text_secondary_dark));
+            notifView.setTextColor(R.id.album, getResources().getColor(R.color.text_secondary_dark));
             //notifView.setInt(R.id.notifDivider,"setBackgroundColor",getResources().getColor(R.color.nTitle));
         }
 
@@ -412,7 +412,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
             PendingIntent pendingPlayIntent = PendingIntent.getBroadcast(getBaseContext(), 100, playIntent, 0);
             notifView.setOnClickPendingIntent(R.id.control, pendingPlayIntent);
         }
-        Log.d(TAG,"put");
+        Log.d(TAG, "put");
         startForeground(1, note);
 
         IntentFilter filter = new IntentFilter();
@@ -426,11 +426,10 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
      * @return false if key is not handled
      */
 
-    private boolean handleKeyDown(KeyEvent keyEvent)
-    {
-        if (keyEvent.getAction()!=KeyEvent.ACTION_DOWN) {
+    private boolean handleKeyDown(KeyEvent keyEvent) {
+        if (keyEvent.getAction() != KeyEvent.ACTION_DOWN) {
             int keyCode = keyEvent.getKeyCode();
-            Log.d(TAG,"Keycode is "+keyCode);
+            Log.d(TAG, "Keycode is " + keyCode);
 
             switch (keyCode) {
                 case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
@@ -468,7 +467,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                 if (bp.isPlaying()) {
                     bp.stop();
                 }
-                if(BPlistener != null) {
+                if (BPlistener != null) {
                     BPlistener.onNotificationStopPressed();
                 }
                 stopSelf();
@@ -486,7 +485,7 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
 
             @Override
             public void uncaughtException(Thread thread, Throwable throwable) {
-                Log.d(TAG,"Uncaught exception handled");
+                Log.d(TAG, "Uncaught exception handled");
                 stopForeground(true);
 
                 defaultExHandler.uncaughtException(thread, throwable);

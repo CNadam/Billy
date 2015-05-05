@@ -99,7 +99,7 @@ public class DragDropList extends DialogPreference {
                         }
                     }
                 } catch (NullPointerException e) {
-                    Log.e(TAG,e.toString());
+                    Log.e(TAG, e.toString());
                 }
 
             }
@@ -115,7 +115,7 @@ public class DragDropList extends DialogPreference {
             View divider = getDialog().findViewById(divierId);
             divider.setBackgroundColor(getContext().getResources().getColor(R.color.billy));
         } catch (NullPointerException e) {
-            Log.d(TAG,e.toString());
+            Log.d(TAG, e.toString());
         }
     }
 

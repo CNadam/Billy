@@ -63,11 +63,11 @@ public class PPlayerService extends Service implements Handler.Callback {
                 //Log.d(TAG, "started playing" +bundle2string(msg.getData()));
                 break;
             case EventHandler.MediaPlayerEndReached:
-                Log.d(TAG, "end reached" +bundle2string(msg.getData()));
+                Log.d(TAG, "end reached" + bundle2string(msg.getData()));
                 onCompletion();
                 break;
             case EventHandler.MediaPlayerEncounteredError:
-                Log.d(TAG,"Mediaplayer error occured");
+                Log.d(TAG, "Mediaplayer error occured");
                 onError();
                 break;
             case EventHandler.MediaPlayerPositionChanged:
@@ -82,7 +82,7 @@ public class PPlayerService extends Service implements Handler.Callback {
     }
 
     private void onBufferChange(float percent) {
-            bufferPercent = (int) percent;
+        bufferPercent = (int) percent;
     }
 
     public static String bundle2string(Bundle bundle) {
@@ -168,7 +168,7 @@ public class PPlayerService extends Service implements Handler.Callback {
             //bp.reset();
 
 //            if (!bp.isPlaying()) {
-                //bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
+            //bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
 
 /*
                     URLConnection con = new URL(streamLink).openConnection();
@@ -178,21 +178,21 @@ public class PPlayerService extends Service implements Handler.Callback {
                     is.close();
 */
 //                  streamLink="http://ec-media.soundcloud.com/p7Uw60gtODDZ.128.mp3?f10880d39085a94a0418a7ef69b03d522cd6dfee9399eeb9a522009e6bf9b93b1c57cf78a3e4865f4b47b62a40b86e0209984a23f40484b51853d2c1e8a7dc8285658d0e8e&AWSAccessKeyId=AKIAJNIGGLK7XA7YZSNQ&Expires=1412417762&Signature=Oz5cUbgp06dzFOy3aTBm0txXSIY%3D";
-                //list = bp.getPrimaryMediaList();
-                //list.clear();
+            //list = bp.getPrimaryMediaList();
+            //list.clear();
 
-                //list.add(LibVLC.PathToURI(streamLink));
-                Log.d(TAG, "service " + streamLink);
+            //list.add(LibVLC.PathToURI(streamLink));
+            Log.d(TAG, "service " + streamLink);
 
-                EventHandler eh = EventHandler.getInstance();
-                Handler handler = new Handler(this);
-                eh.addHandler(handler);
+            EventHandler eh = EventHandler.getInstance();
+            Handler handler = new Handler(this);
+            eh.addHandler(handler);
 
-                bp.setNetworkCaching(1);
-                //bp.playIndex(0);
-                onlyOnce = true;
-                bp.playMRL(LibVLC.PathToURI(streamLink));
-                //putNotification();
+            bp.setNetworkCaching(1);
+            //bp.playIndex(0);
+            onlyOnce = true;
+            bp.playMRL(LibVLC.PathToURI(streamLink));
+            //putNotification();
 //            }
         }
         return START_STICKY;
@@ -244,9 +244,9 @@ public class PPlayerService extends Service implements Handler.Callback {
 
 
     public void onPrepared() {
-        if(onlyOnce) {
+        if (onlyOnce) {
             putNotification();
-            Log.d(TAG,"Mediaplayer has prepared");
+            Log.d(TAG, "Mediaplayer has prepared");
             isIdle = false;
             onlyOnce = false;
             BPlistener.onPrepared((int) bp.getLength() / 1000); //ms
@@ -264,7 +264,7 @@ public class PPlayerService extends Service implements Handler.Callback {
     }
 
     public void doPause() {
-        if(bp.isPlaying()) {
+        if (bp.isPlaying()) {
             bp.pause();
         }
         putNotification();
@@ -288,10 +288,10 @@ public class PPlayerService extends Service implements Handler.Callback {
     }
 
     public void stopMedia() {
-  //      if (bp.isPlaying()) {
-            bp.stop();
-            BPlistener.onStop();
-  //      }
+        //      if (bp.isPlaying()) {
+        bp.stop();
+        BPlistener.onStop();
+        //      }
     }
 
     @Override

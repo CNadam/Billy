@@ -11,8 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatDialog;
@@ -25,19 +23,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.astuetz.PagerSlidingTabStrip;
-import com.github.ksoichiro.android.observablescrollview.ObservableListView;
-import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
-import com.github.ksoichiro.android.observablescrollview.ScrollState;
-import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
-import com.nineoldandroids.view.ViewHelper;
-import com.nineoldandroids.view.ViewPropertyAnimator;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.vibin.billy.BillyApplication;
 import com.vibin.billy.R;
@@ -49,11 +38,12 @@ import com.vibin.billy.fragment.SongsFragment;
  * The main activity. (no pun intended)
  */
 
-public class MainActivity extends ActionBarActivity{
+public class MainActivity extends ActionBarActivity {
 
     SystemBarTintManager tintManager;
     FragmentAdapter mAdapter;
     private ViewPager mPager;
+    private View mHeaderView;
     private static final String TAG = MainActivity.class.getSimpleName();
 
     @Override
@@ -64,7 +54,8 @@ public class MainActivity extends ActionBarActivity{
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
-        View mHeaderView = findViewById(R.id.header);
+        mHeaderView = findViewById(R.id.header);
+
         Toolbar bar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(bar);
 
@@ -97,15 +88,15 @@ public class MainActivity extends ActionBarActivity{
         }
     }
 
-    public void callPropagateToolbar(boolean isShown){
-        int i = mPager.getCurrentItem() -1;
-        int j = mPager.getCurrentItem() +1;
+    public void callPropagateToolbar(boolean isShown) {
+        int i = mPager.getCurrentItem() - 1;
+        int j = mPager.getCurrentItem() + 1;
         safeCall(i, isShown);
         safeCall(j, isShown);
     }
 
     private void safeCall(int num, boolean isShown) {
-        if(num>=0 && num<mAdapter.getCount()) {
+        if (num >= 0 && num < mAdapter.getCount()) {
             ((SongsFragment) mAdapter.instantiateItem(mPager, num)).propagateToolbarState(isShown);
         }
     }
@@ -189,7 +180,6 @@ public class MainActivity extends ActionBarActivity{
     };
 
 
-
     public static class AboutDialog extends DialogFragment {
         View v;
 
@@ -234,7 +224,7 @@ public class MainActivity extends ActionBarActivity{
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            return new AppCompatDialog(getActivity(),getTheme());
+            return new AppCompatDialog(getActivity(), getTheme());
         }
 
         @Override
@@ -246,6 +236,8 @@ public class MainActivity extends ActionBarActivity{
 }
 
 //TODO volley cache
+//TODO add toolbar shadow
+
 //TODO add international charts - UK singles, germany and france
 //TODO Implement playlists - Use Google's draglistview, with handlers (only), show SC likes, comments count
 

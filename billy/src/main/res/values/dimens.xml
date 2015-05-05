@@ -14,4 +14,5 @@
     <dimen name="tabs_height">48dp</dimen>
     <dimen name="licensedialog_width">350dp</dimen>
     <dimen name="licensedialog_height">525dp</dimen>
+    <dimen name="toolbar_elevation">6dp</dimen>
 </resources>

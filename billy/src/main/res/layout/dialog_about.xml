@@ -4,24 +4,28 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:paddingBottom="12dp"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
+    android:paddingTop="12dp">
 
     <TextView
         android:id="@+id/dialog_desc"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="@string/aboutdesc"
+        android:layout_marginBottom="5dp"
         android:fontFamily="sans-serif"
-        android:layout_marginBottom="5dp" />
+        android:text="@string/aboutdesc"
+        android:textSize="16sp" />
 
-    <android.support.v7.widget.AppCompatButton
+    <!-- Will be replaced by AppCompatButton automatically -->
+    <Button
         android:id="@+id/playStoreButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/rate"
-        android:layout_centerHorizontal="true"
         android:layout_below="@id/dialog_desc"
-        android:backgroundTint="@color/billy_lighter"/>
+        android:layout_centerHorizontal="true"
+        android:backgroundTint="@color/billy_lighter"
+        android:text="@string/rate" />
 
 </RelativeLayout>

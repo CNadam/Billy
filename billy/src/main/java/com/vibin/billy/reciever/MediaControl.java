@@ -10,7 +10,8 @@ import com.vibin.billy.service.PlayerService;
 public class MediaControl extends BroadcastReceiver {
     private static final String TAG = MediaControl.class.getSimpleName();
 
-    public MediaControl() {}
+    public MediaControl() {
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -18,9 +19,9 @@ public class MediaControl extends BroadcastReceiver {
             String action = intent.getAction();
             if (Intent.ACTION_MEDIA_BUTTON.equals(action)) {
                 if (PlayerService.isRunning) {
-                    Log.d(TAG,"passing media button data to service");
+                    Log.d(TAG, "passing media button data to service");
                     Intent serviceIntent = new Intent(context, PlayerService.class);
-                    serviceIntent.putExtra("id","key");
+                    serviceIntent.putExtra("id", "key");
                     serviceIntent.putExtra("keyevent", intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT));
                     context.startService(serviceIntent);
                 }

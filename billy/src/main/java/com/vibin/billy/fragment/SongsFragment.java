@@ -23,7 +23,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -364,6 +363,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
             final AppCompatButton loadMore = new AppCompatButton(getActivity());
             loadMore.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             loadMore.setText(billyapp.getString(R.string.loadmore));
+//            loadMore.setBackgroundColor(getResources().getColor(R.color.billy_lighter));
             layout.addView(loadMore);
             getListView().addFooterView(layout);
 

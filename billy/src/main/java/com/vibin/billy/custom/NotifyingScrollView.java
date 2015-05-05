@@ -10,7 +10,7 @@ import com.vibin.billy.R;
 
 /**
  * @author Cyril Mottier
- * A custom ScrollView which notifies when user scrolls.
+ *         A custom ScrollView which notifies when user scrolls.
  */
 public class NotifyingScrollView extends ScrollView {
 
@@ -37,7 +37,7 @@ public class NotifyingScrollView extends ScrollView {
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        header = (NetworkImageView) findViewById(R.id.image_header);
+        header = (NetworkImageView) findViewById(R.id.artwork);
     }
 
     @Override

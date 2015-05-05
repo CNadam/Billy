@@ -7,9 +7,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.BasicNetwork;
@@ -20,7 +17,6 @@ import com.android.volley.toolbox.Volley;
 import com.crashlytics.android.Crashlytics;
 import com.vibin.billy.util.BitmapLruCache;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -75,12 +71,11 @@ public class BillyApplication extends Application {
      * Deleting database because we have changed the schema
      */
     public boolean isFirstRun() {
-     boolean check = pref.getBoolean("firstrun163",true);
-        if(check)
-        {
+        boolean check = pref.getBoolean("firstrun163", true);
+        if (check) {
             //this.deleteDatabase("BillyDatabase");
             SharedPreferences.Editor ed = pref.edit();
-            ed.putBoolean("firstrun163",false);
+            ed.putBoolean("firstrun163", false);
             ed.apply();
             return true;
         }
@@ -170,6 +165,6 @@ public class BillyApplication extends Application {
     }
 
     public String UTF8(String URL) throws UnsupportedEncodingException {
-        return URLEncoder.encode(URL,"utf-8");
+        return URLEncoder.encode(URL, "utf-8");
     }
 }

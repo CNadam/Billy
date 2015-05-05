@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 
 /**
  * @author Created by Saketme on 5/25/14.
- * Contains base methods and fields for  and {@link ActivitySwipeDismissListener}
+ *         Contains base methods and fields for  and {@link ActivitySwipeDismissListener}
  */
 public abstract class SwipeListener {
 

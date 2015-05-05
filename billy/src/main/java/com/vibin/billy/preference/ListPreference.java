@@ -29,7 +29,7 @@ public class ListPreference extends android.preference.ListPreference {
             View divider = getDialog().findViewById(divierId);
             divider.setBackgroundColor(getContext().getResources().getColor(R.color.billy));
         } catch (NullPointerException e) {
-            Log.d(TAG,e.toString());
+            Log.d(TAG, e.toString());
         }
     }
 }

@@ -20,13 +20,13 @@
 
 package org.videolan.libvlc;
 
+import android.graphics.Bitmap;
+import android.util.Log;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Locale;
-
-import android.graphics.Bitmap;
-import android.util.Log;
 
 public class Media implements Comparable<Media> {
     public final static String TAG = "VLC/LibVLC/Media";

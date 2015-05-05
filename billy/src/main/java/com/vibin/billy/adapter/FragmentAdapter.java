@@ -26,7 +26,7 @@ public class FragmentAdapter extends FragmentStatePagerAdapter {
     public FragmentAdapter(FragmentManager fm, Context context) {
         super(fm);
         this.c = context;
-        Log.d(TAG,"CustomFragmentAdapter constructor");
+        Log.d(TAG, "CustomFragmentAdapter constructor");
         BillyApplication billyapp = BillyApplication.getInstance();
         content = billyapp.getGenresList();
         mCount = content.length;

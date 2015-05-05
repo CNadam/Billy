@@ -2,7 +2,6 @@ package com.vibin.billy.fragment;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatDialog;
@@ -17,6 +16,7 @@ public class ChangelogDialog extends DialogFragment {
     View changelogView;
 
     private static final String TAG = DialogFragment.class.getSimpleName();
+
     public static ChangelogDialog newInstance() {
         ChangelogDialog frag = new ChangelogDialog();
         Bundle args = new Bundle();
@@ -46,7 +46,7 @@ public class ChangelogDialog extends DialogFragment {
             View divider = getDialog().findViewById(divierId);
             divider.setBackgroundColor(this.getResources().getColor(R.color.billy));
         } catch (NullPointerException e) {
-            Log.d(TAG,e.toString());
+            Log.d(TAG, e.toString());
         }
     }
 }
