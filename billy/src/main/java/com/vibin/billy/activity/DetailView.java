@@ -77,6 +77,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     private boolean isMusicPlaying;
     private boolean stopTh;
     private boolean isPreparing;
+    private boolean appendOrignal;
     private static boolean active, mBound;
     private Drawable playIcon, pauseIcon;
     private ImageButton streamBtn;
@@ -161,7 +162,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
             e.printStackTrace();
         }
 
-        NetworkImageView hero = (NetworkImageView) findViewById(R.id.image_header);
+        NetworkImageView hero = (NetworkImageView) findViewById(R.id.artwork);
         hero.setImageUrl(artwork, imgload);
 
         serviceIntent = new Intent(this, PlayerService.class);
@@ -182,25 +183,34 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         String singleArtist = b.getSingleArtist();
         String simpleArtist = b.getSimpleArtist();
         String simpleSong = b.getSimpleSong();
-        final String scUrl = getResources().getString(R.string.soundcloud, (simpleSong + " " + billyapp.UTF8(simpleArtist)).replaceAll(" ", "+"));
+
+        performSCRequest(req, simpleSong, simpleArtist);
         final String lastFmBioUrl = getResources().getString(R.string.lastfm, "getinfo", billyapp.UTF8(singleArtist).replaceAll(" ", "+"));
         final String lastFmTopAlbumsUrl = getResources().getString(R.string.lastfm, "gettopalbums", billyapp.UTF8(singleArtist).replaceAll(" ", "+"));
         final String youtubeUrl = getResources().getString(R.string.youtube, (simpleSong + " " + billyapp.UTF8(simpleArtist)).replaceAll(" ", "+"));
-        StringRequest stringreq = new StringRequest(scUrl, scComplete(), scError());
         JsonObjectRequest lastFmBio = new JsonObjectRequest(lastFmBioUrl, null, lastFmBioComplete(), lastFmBioError());
         JsonObjectRequest lastFmTopAlbums = new JsonObjectRequest(lastFmTopAlbumsUrl, null, lastFmTopAlbumsComplete(), lastFmTopAlbumsError());
         JsonObjectRequest youtubeSearch = new JsonObjectRequest(youtubeUrl, null, youtubeSearchComplete(), youtubeSearchError());
 
-        Log.d(TAG, "scUrl is " + scUrl);
         Log.d(TAG, "topalbum " + lastFmTopAlbumsUrl);
         Log.d(TAG, "YoutubeURL is " + youtubeUrl);
 
-        req.add(stringreq);
         req.add(lastFmTopAlbums);
         req.add(lastFmBio);
         req.add(youtubeSearch);
 
+
         ft = new ProcessingTask(getBaseContext());
+    }
+
+    private void performSCRequest(RequestQueue req, String simpleSong, String simpleArtist) throws UnsupportedEncodingException {
+        String scUrl = getResources().getString(R.string.soundcloud, (simpleSong + " " + billyapp.UTF8(simpleArtist)).replaceAll(" ", "+"));
+        if (appendOrignal) {
+            scUrl = getResources().getString(R.string.soundcloud, (simpleSong + " " + billyapp.UTF8(simpleArtist) + " " + "original").replaceAll(" ", "+"));
+        }
+        StringRequest stringreq = new StringRequest(scUrl, scComplete(), scError());
+        req.add(stringreq);
+        Log.d(TAG, "scUrl is " + scUrl);
     }
 
     @Override
@@ -251,9 +261,18 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
             public void onResponse(String response) {
                 String[] result = new String[4];
                 try {
-                    result = ft.parseSoundcloud(response, song);
+                    result = ft.parseSoundcloud(response, song, appendOrignal);
                 } catch (JSONException e) {
                     e.printStackTrace();
+                }
+                if (result == null) {
+                    appendOrignal = true;
+                    try {
+                        performSCRequest(billyapp.getRequestQueue(), b.getSimpleSong(), b.getSimpleArtist());
+                        return;
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
                 }
                 permaLink = result[2];
                 streamLink = result[3];
@@ -284,47 +303,8 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 }
 
             }
-
-/*            private Response.Listener<JSONObject> i1Complete() {
-                return new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject jsonObject) {
-                        try {
-                            String hlsurl = jsonObject.getString("hls_mp3_128_url");
-                            AsyncHttpClient ac = new AsyncHttpClient();
-                            ac.get(getBaseContext(), hlsurl, new FileAsyncHttpResponseHandler(getBaseContext()) {
-                                @Override
-                                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
-                                    Toast.makeText(getBaseContext(), "File failed.",
-                                            Toast.LENGTH_LONG).show();
-                                }
-
-                                @Override
-                                public void onSuccess(int statusCode, Header[] headers, File file) {
-                                    Toast.makeText(getBaseContext(), "File download success",
-                                            Toast.LENGTH_LONG).show();
-
-                                }
-                            });
-                        } catch (JSONException e) {
-                            Log.d(TAG, e.toString());
-                        }
-                    }
-                };
-            }*/
-
         };
     }
-
-    private Response.ErrorListener i1Error() {
-        return new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError volleyError) {
-                Log.e(TAG, volleyError.toString());
-            }
-        };
-    }
-
 
     private Response.ErrorListener scError() {
         return new Response.ErrorListener() {
@@ -727,7 +707,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
 
     private NotifyingScrollView.OnScrollChangedListener mOnScrollChangedListener = new NotifyingScrollView.OnScrollChangedListener() {
         public void onScrollChanged(ScrollView who, int l, int t, int oldl, int oldt) {
-            final int headerHeight = findViewById(R.id.image_header).getHeight() - getSupportActionBar().getHeight() - 500;
+            final int headerHeight = findViewById(R.id.artwork).getHeight() - getSupportActionBar().getHeight() - 500;
             float scrollOpacity = (float) Math.min(Math.max(t, 0), headerHeight) / headerHeight;
             final int newAlpha = (int) (scrollOpacity * 255);
             mActionBarBackgroundDrawable.setAlpha(newAlpha);

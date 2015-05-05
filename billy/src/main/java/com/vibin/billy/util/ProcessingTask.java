@@ -301,7 +301,7 @@ public class ProcessingTask {
      * @return SoundCloud song details
      */
 
-    public String[] parseSoundcloud(String response, String song) throws JSONException {
+    public String[] parseSoundcloud(String response, String song, boolean appendOriginal) throws JSONException {
         String soundcloudKey = context.getResources().getStringArray(R.array.keys)[0];
         String[] firstScSong = new String[4];
         String firstWord;
@@ -315,7 +315,7 @@ public class ProcessingTask {
         firstWord = firstWord.toLowerCase();
         boolean ignore = false;
         boolean first = true;
-        Pattern pat = Pattern.compile("\\b(remix|cover|guitar|parody|acoustic|instrumental|drums|cloudseeder)\\b");
+        Pattern pat = Pattern.compile(context.getString(R.string.soundcloud_filter));
         if (isJsonObject(response)) {
             JSONObject obj = new JSONObject(response);
             arr = obj.getJSONArray("collection");
@@ -359,7 +359,8 @@ public class ProcessingTask {
             }
             count++;
         }
-        return firstScSong;
+        if (appendOriginal) return firstScSong;
+        else return null;
     }
 
     private boolean isJsonObject(String response) {

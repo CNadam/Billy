@@ -24,4 +24,6 @@
     <string name="share">Share</string>
     <string name="reorder_pref_ok">Save</string>
     <string name="loadmore">Load more songs</string>
+
+    <string name="soundcloud_filter">\b(remix|live|cover|acapella|guitar|parody|acoustic|instrumental|drums|cloudseeder|bootleg|mashup|rendition|re-drum|android-record|iphone-record)\b</string>
 </resources>
