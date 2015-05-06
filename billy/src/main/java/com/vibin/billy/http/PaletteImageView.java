@@ -163,7 +163,7 @@ public class PaletteImageView extends ImageView {
                         if (response.getBitmap() != null) {
                             setImageBitmap(response.getBitmap());
                             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                mPalette = Palette.generate(response.getBitmap());
+                                //mPalette = Palette.generate(response.getBitmap());
                             }
                         } else if (mDefaultImageId != 0) {
                             setImageResource(mDefaultImageId);

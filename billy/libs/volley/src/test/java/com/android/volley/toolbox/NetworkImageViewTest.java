@@ -3,6 +3,8 @@ package com.android.volley.toolbox;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView.ScaleType;
 
+import com.android.volley.toolbox.NetworkImageView;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -72,6 +72,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     private String song, artist, streamLink, permaLink, lastFmBio, thumbnail, videoId;
     private String[] relatedAlbumImg, relatedAlbums;
     BillyItem b;
+    int paletteColor;
     private int songRank, songLength;
     private float secondaryProgressFactor;
     private boolean isMusicPlaying;
@@ -130,7 +131,8 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
         tintManager = new SystemBarTintManager(this);
-        setToolbar();
+        paletteColor = newIntent.getExtras().getInt("paletteColor");
+        setToolbar(paletteColor);
 
         bar.addOnLayoutChangeListener(expandedDesktopListener);
         tintManager.setStatusBarTintEnabled(true);
@@ -138,6 +140,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         tintManager.setTintColor(getResources().getColor(R.color.billy));
 
         streamBtn = (ImageButton) findViewById(R.id.streamButton);
+
         dashes = (ImageView) findViewById(R.id.dashes);
         seekBar = (SeekBar) findViewById(R.id.seekBar);
         seekBar.setAlpha(0.85f);
@@ -146,6 +149,9 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         playIcon = getResources().getDrawable(R.drawable.play);
         pauseIcon = getResources().getDrawable(R.drawable.pause);
         setButtonListener();
+
+        //playIcon.setTint(paletteColor);
+        //pauseIcon.setTint(paletteColor);
 
         dashes.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -413,6 +419,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         ((TextView) findViewById(R.id.artistTitle)).setText(artist);
         ((TextView) findViewById(R.id.artistBio)).setText(lastFmBio);
         (findViewById(R.id.artistInfo)).setVisibility(View.VISIBLE);
+        //(findViewById(R.id.topAlbums)).setBackgroundColor(paletteColor);
     }
 
     private void setRelatedAlbums() {
@@ -743,8 +750,10 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
      * Apply parallax scrolling
      */
 
-    private void setToolbar() {
+    private void setToolbar(int paletteColor) {
         bar = (Toolbar) findViewById(R.id.toolbar);
+        //bar.setBackgroundColor(paletteColor);
+
         setSupportActionBar(bar);
 
         getSupportActionBar().setTitle(song);
@@ -755,7 +764,6 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
                 onBackPressed();
             }
         });
-
 
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.JELLY_BEAN) {
             getSupportActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.ab_solid));

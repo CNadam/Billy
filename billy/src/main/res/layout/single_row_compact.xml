@@ -25,7 +25,7 @@
         android:orientation="horizontal">
 
     <!--Width and Height 120dp-->
-    <com.android.volley.toolbox.NetworkImageView
+    <com.vibin.billy.http.PaletteImageView
         android:id="@+id/artwork"
         android:layout_width="@dimen/listitem_dimen_compact"
         android:layout_height="@dimen/listitem_dimen_compact" />

@@ -5,17 +5,16 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.LayoutRes;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.NetworkImageView;
 import com.vibin.billy.BillyApplication;
 import com.vibin.billy.BillyItem;
 import com.vibin.billy.R;
+import com.vibin.billy.http.PaletteImageView;
 
 import java.util.ArrayList;
 
@@ -33,7 +32,6 @@ public class BaseAdapter extends android.widget.BaseAdapter {
     public BaseAdapter(Context c, ArrayList<BillyItem> arrayList, ImageLoader imgload) {
         this.c = c;
         mData = arrayList;
-        Log.d(TAG, "arrayList " + arrayList.get(0).getArtwork());
         this.imgload = imgload;
         sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
         billyapp = BillyApplication.getInstance();
@@ -80,7 +78,7 @@ public class BaseAdapter extends android.widget.BaseAdapter {
 
     static class MyViewHolder {
         TextView album, artist, song, rank;
-        NetworkImageView artwork;
+        PaletteImageView artwork;
 
         MyViewHolder(View row) {
             album = (TextView) row.findViewById(R.id.album);
@@ -91,7 +89,7 @@ public class BaseAdapter extends android.widget.BaseAdapter {
             album.setMaxLines(1);
             song.setEllipsize(TextUtils.TruncateAt.END);
             album.setEllipsize(TextUtils.TruncateAt.END);
-            artwork = (NetworkImageView) row.findViewById(R.id.artwork);
+            artwork = (PaletteImageView) row.findViewById(R.id.artwork);
         }
     }
 
@@ -111,7 +109,7 @@ public class BaseAdapter extends android.widget.BaseAdapter {
         }
 
         BillyItem b = mData.get(i);
-        Log.d(TAG, "b is " + b.getArtwork());
+        //Log.d(TAG, "b is "+b.getArtwork());
 
         //Log.d(TAG, i + " " + temp.album + " " + temp.artist + " " + temp.song + " " + temp.artwork);
 
@@ -122,8 +120,9 @@ public class BaseAdapter extends android.widget.BaseAdapter {
         holder.album.setText(b.getAlbum());
         holder.artist.setText(b.getArtist());
         holder.song.setText(b.getSong());
-        holder.artwork.setImageUrl(b.getArtwork(), imgload);
-
+        if(b.getArtwork() != null) {
+            holder.artwork.setImageUrl(b.getArtwork(), imgload);
+        }
         return row;
     }
 }

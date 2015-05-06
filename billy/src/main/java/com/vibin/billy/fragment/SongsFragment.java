@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -50,6 +51,7 @@ import com.vibin.billy.activity.MainActivity;
 import com.vibin.billy.adapter.BaseAdapter;
 import com.vibin.billy.adapter.DatabaseAdapter;
 import com.vibin.billy.http.JsonObjectRequest;
+import com.vibin.billy.http.PaletteImageView;
 import com.vibin.billy.http.StringRequest;
 import com.vibin.billy.util.ProcessingTask;
 import com.vibin.billy.util.SwingBottomInAnimationAdapter;
@@ -67,7 +69,7 @@ import java.util.ArrayList;
  * Heart of the app
  * Fetches songs' data and puts that in a Listview. This goes inside a Viewpager.
  */
-public class SongsFragment extends ListFragment implements AdapterView.OnItemClickListener, SwipeRefreshLayout.OnRefreshListener {
+public class SongsFragment extends ListFragment implements AdapterView.OnItemClickListener, SwipeRefreshLayout.OnRefreshListener{
     ArrayList<BillyItem> mData, mDataLite;
     String[] billySong, billyArtist;
     String jsonMdata, cacheData = "";
@@ -674,6 +676,11 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
                 Intent myintent = new Intent(getActivity(), DetailView.class);
                 if (b.getArtwork() != null) {
                     myintent.putExtra("item", b);
+                    if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        //PaletteImageView piv = (PaletteImageView) view.findViewById(R.id.artwork);
+                        //myintent.putExtra("paletteColor",piv.getVibrantColor());
+                        //Log.d(tag, "vibrant color "+ piv.getVibrantColor());
+                    }
                     startActivity(myintent);
                 } else {
                     callitunes(i, ItunesParamType.SIMPLE);

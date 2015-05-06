@@ -237,6 +237,8 @@ public class MainActivity extends ActionBarActivity {
 
 //TODO volley cache
 //TODO add toolbar shadow
+//TODO palette - tint play button and toolbar in v21
+
 
 //TODO add international charts - UK singles, germany and france
 //TODO Implement playlists - Use Google's draglistview, with handlers (only), show SC likes, comments count
