@@ -47,7 +47,7 @@ public class DatabaseAdapter {
     static class DatabaseHelper extends SQLiteOpenHelper {
         private static final int VERSION = 10;
         private static final String DATABASE_NAME = "BillyDatabase";
-        private static final String[] TABLE_NAME = {"MostPopular", "Pop", "Rock", "Dance", "Metal", "RnB", "Country"};
+        private static final String[] TABLE_NAME = {"MostPopular", "Pop", "Rock", "Dance", "Metal", "RnB", "Country", "Rap"};
         private static final String UID = "_id";
         private static final String ArrayList = "ArrayList";
 

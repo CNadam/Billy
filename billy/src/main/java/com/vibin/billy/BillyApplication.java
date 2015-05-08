@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -30,8 +31,9 @@ public class BillyApplication extends Application {
     ImageLoader imageLoader;
     String[] genres;
     SharedPreferences pref;
+    public boolean isL = false;
     private static BillyApplication mInstance;
-    public static final String defaultGenres = "1Most Popular.1Pop.1Rock.1Dance.1Metal.1R&B.1Country.";
+    public static final String defaultGenres = "1Most Popular.1Pop.1Rock.1Dance.1Metal.1R&B.1Country.1Rap.";
     private static final String DEFAULT_CACHE_DIR = "volley";
 
     private static final String TAG = BillyApplication.class.getSimpleName();
@@ -40,6 +42,7 @@ public class BillyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         mInstance = this;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) isL = true;
         init();
     }
 
@@ -71,11 +74,11 @@ public class BillyApplication extends Application {
      * Deleting database because we have changed the schema
      */
     public boolean isFirstRun() {
-        boolean check = pref.getBoolean("firstrun163", true);
+        boolean check = pref.getBoolean("firstrun17", true);
         if (check) {
-            //this.deleteDatabase("BillyDatabase");
+            this.deleteDatabase("BillyDatabase");
             SharedPreferences.Editor ed = pref.edit();
-            ed.putBoolean("firstrun163", false);
+            ed.putBoolean("firstrun17", false);
             ed.apply();
             return true;
         }
