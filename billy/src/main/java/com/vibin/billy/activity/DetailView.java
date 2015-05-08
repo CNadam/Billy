@@ -21,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.Animation;
@@ -42,10 +43,13 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.crashlytics.android.Crashlytics;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.google.android.youtube.player.YouTubeIntents;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.vibin.billy.BillyApplication;
 import com.vibin.billy.BillyItem;
+import com.vibin.billy.BuildConfig;
 import com.vibin.billy.R;
 import com.vibin.billy.custom.NotifyingScrollView;
 import com.vibin.billy.custom.ShareActionProvider;
@@ -73,13 +77,14 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
     private String[] relatedAlbumImg, relatedAlbums;
     BillyItem b;
     int paletteColor;
-    private int songRank, songLength;
+    private int songRank, songLength, orientation;
     private float secondaryProgressFactor;
     private boolean isMusicPlaying;
     private boolean stopTh;
     private boolean isPreparing;
     private boolean appendOrignal;
     private static boolean active, mBound;
+    private AdView mAdView;
     private Drawable playIcon, pauseIcon;
     private ImageButton streamBtn;
     private ImageView dashes;
@@ -130,6 +135,7 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
+        orientation = getResources().getConfiguration().orientation;
         tintManager = new SystemBarTintManager(this);
         paletteColor = newIntent.getExtras().getInt("paletteColor");
         setToolbar(paletteColor);
@@ -139,8 +145,9 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         tintManager.setStatusBarAlpha(0.0f);
         tintManager.setTintColor(getResources().getColor(R.color.billy));
 
-        streamBtn = (ImageButton) findViewById(R.id.streamButton);
+        mAdView = (AdView) findViewById(R.id.adView);
 
+        streamBtn = (ImageButton) findViewById(R.id.streamButton);
         dashes = (ImageView) findViewById(R.id.dashes);
         seekBar = (SeekBar) findViewById(R.id.seekBar);
         seekBar.setAlpha(0.85f);
@@ -204,9 +211,27 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
         req.add(lastFmTopAlbums);
         req.add(lastFmBio);
         req.add(youtubeSearch);
-
+        loadAd(BuildConfig.DEBUG);
 
         ft = new ProcessingTask(getBaseContext());
+    }
+
+    private void loadAd(boolean isDebug) {
+        boolean isL = billyapp.isL;
+        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) mAdView.getLayoutParams();
+        if(orientation == 2){
+            lp.setMargins(0,0,0,0);
+            mAdView.setLayoutParams(lp);
+        } else if(isL){
+            lp.setMargins(0,0,0,billyapp.getDpAsPx(48));
+            mAdView.setLayoutParams(lp);
+        }
+        AdRequest.Builder adBuilder = new AdRequest.Builder();
+        if(isDebug){
+            adBuilder.addTestDevice("0EF8BB7630D4EDF8936F48900E507AE3");
+        }
+        AdRequest adRequest = adBuilder.build();
+        mAdView.loadAd(adRequest);
     }
 
     private void performSCRequest(RequestQueue req, String simpleSong, String simpleArtist) throws UnsupportedEncodingException {
@@ -396,8 +421,22 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
             @Override
             public void onResponse(JSONObject jsonObject) {
                 try {
-                    videoId = jsonObject.getJSONArray("items").getJSONObject(0).getJSONObject("id").getString("videoId");
-                    thumbnail = jsonObject.getJSONArray("items").getJSONObject(0).getJSONObject("snippet").getJSONObject("thumbnails").getJSONObject("high").getString("url");
+                    JSONArray items = jsonObject.getJSONArray("items");
+                    String firstWord = b.getSong().split(" ", 2)[0].toLowerCase();
+                    for(int i=0;i<items.length();i++)
+                    {
+                     JSONObject obj = items.getJSONObject(i);
+                     if(obj.getJSONObject("snippet").getString("title").toLowerCase().contains(firstWord)){
+                         videoId = obj.getJSONObject("id").getString("videoId");
+                         thumbnail = obj.getJSONObject("snippet").getJSONObject("thumbnails").getJSONObject("high").getString("url");
+                         break;
+                     }
+                    }
+                    if(videoId == null){    // fallback
+                        videoId = items.getJSONObject(0).getJSONObject("id").getString("videoId");
+                        thumbnail = items.getJSONObject(0).getJSONObject("snippet").getJSONObject("thumbnails").getJSONObject("high").getString("url");
+                    }
+
                     setYoutube(thumbnail, videoId);
                 } catch (JSONException e) {
                     Log.d(TAG, e.toString());
@@ -834,8 +873,15 @@ public class DetailView extends SwipeableActivity implements SeekBar.OnSeekBarCh
      */
     @Override
     protected void onPause() {
+        mAdView.pause();
         super.onPause();
         overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mAdView.resume();
     }
 
     @Override
