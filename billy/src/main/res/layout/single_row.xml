@@ -24,7 +24,7 @@
         android:orientation="horizontal"
         >
     <!--Width and Height 143dp-->
-    <ImageView
+    <com.vibin.billy.http.PaletteImageView
         android:id="@+id/artwork"
         android:layout_width="@dimen/listitem_dimen"
         android:layout_height="@dimen/listitem_dimen" />
@@ -32,7 +32,7 @@
             android:id="@+id/rank"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=""
+            android:visibility="invisible"
             android:background="@color/rank_background"
             android:textColor="@android:color/white"
             android:padding="5dp"
@@ -43,12 +43,13 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="@dimen/listitem_dimen"
+        android:gravity="top"
         android:orientation="vertical"
         android:paddingBottom="10dp"
         android:paddingTop="5dp"
         android:layout_toRightOf="@+id/artwork"
-        android:paddingLeft="10dp"
-        android:id="@+id/linearLayout">
+        android:paddingLeft="10dp">
+
         <TextView
             android:id="@+id/song"
             android:layout_width="match_parent"

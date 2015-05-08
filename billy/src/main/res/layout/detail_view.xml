@@ -1,6 +1,7 @@
 <!-- FrameLayout used to overlay Toolbar over the Scroll View -->
 
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -288,9 +289,9 @@
                                     tools:text="Third album" />
                             </RelativeLayout>
                         </RelativeLayout>
-
                     </LinearLayout>
                 </android.support.v7.widget.CardView>
+
 
                 <android.support.v7.widget.CardView
                     android:id="@+id/youTube"
@@ -355,7 +356,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
-        android:minHeight="?attr/actionBarSize"
         android:elevation="6dp"
-        android:fitsSystemWindows="true"/>
+        android:fitsSystemWindows="true"
+        android:minHeight="?attr/actionBarSize" />
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true"
+            ads:adSize="SMART_BANNER"
+            ads:adUnitId="@string/banner_ad"
+            android:layout_gravity="bottom|center_horizontal"/>
 </FrameLayout>

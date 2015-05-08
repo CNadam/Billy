@@ -33,8 +33,8 @@ android {
     defaultConfig {
         minSdkVersion MIN_SDK
         targetSdkVersion TARGET_SDK
-        versionCode 6
-        versionName "1.6.3"
+        versionCode 8
+        versionName "1.7.1"
     }
 
     /**
@@ -61,20 +61,26 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar', '*.aar'], dir: 'libraries')
     compile files('libs/systembartint-1.0.3.jar')
+    compile files('libs/libAdapterSDKMoPub.jar')
+    compile files('libs/YouTubeAndroidPlayerApi.jar')
+    compile files('libs/simple-xml-2.7.1.jar')
+    compile files('libs/mobfoxmediationadapter.jar')
+    compile files('libs/AdSdk_6.0.8.jar')
     compile 'com.jakewharton:disklrucache:2.0.2'
     compile 'org.apache.commons:commons-lang3:3.1'
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'com.nhaarman.listviewanimations:library:2.6.0'
-    compile files('libs/YouTubeAndroidPlayerApi.jar')
     compile 'com.crashlytics.android:crashlytics:1.+'
     compile 'com.android.support:support-v4:22.1.+'
     compile 'com.android.support:appcompat-v7:22.1.1'
     compile 'com.android.support:cardview-v7:22.1.0'
     compile 'com.android.support:palette-v7:22.1.0'
+    compile 'com.google.android.gms:play-services-ads:7.3.0'
     compile 'com.github.gabrielemariotti.changeloglib:library:1.5.2'
     compile 'com.github.ksoichiro:android-observablescrollview:1.5.0'
     compile project(':tabstriplib')
     compile project(':volley')
+    compile project(':mopub-sdk')
 }
 
 /**

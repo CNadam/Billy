@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <changelog bulletedList="true">
 
-    <changelogversion versionName="1.6.3" changeDate="Mar 27, 2015">
-        <changelogtext>[b]New![/b] Headphone play/pause control</changelogtext>
-        <changelogtext>More Material Design!</changelogtext>
-        <changelogtext>SoundCloud song accuracy fix</changelogtext>
+    <changelogversion versionName="1.7" changeDate="Apr 8, 2015">
+        <changelogtext>[b]New![/b] Added a new chart: Rap</changelogtext>
+        <changelogtext>Toolbar now hides automatically when scrolling</changelogtext>
+        <changelogtext>Charts now show song ranks as well</changelogtext>
+        <changelogtext>More consistent Material Design</changelogtext>
         <changelogtext>Bug and crash fixes</changelogtext>
     </changelogversion>
 

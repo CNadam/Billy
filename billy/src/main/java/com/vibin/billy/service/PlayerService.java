@@ -143,15 +143,17 @@ public class PlayerService extends Service implements MediaPlayer.OnCompletionLi
                     try {
                         if (streamLink == null) {
                             Crashlytics.log(Log.ERROR, TAG, "streamLink is null for: " + song + " " + artist);
+                            if (b == null) {
+                                Crashlytics.log(Log.ERROR, TAG, "parcelable itself is null "+ song+" "+artist);
+                            }
                         }
-                        if (b == null) {
-                            Crashlytics.log(Log.ERROR, TAG, "parcelable itself is null");
-                        }
-                        bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
-                        bp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                        //bp.setDataSource(streamLink);
+                        else {
+                            bp.setDataSource(getBaseContext(), Uri.parse(streamLink));
+                            bp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                            //bp.setDataSource(streamLink);
 
-                        bp.prepareAsync();
+                            bp.prepareAsync();
+                        }
                     } catch (IOException e) {
                         Log.d(TAG, e.toString());
                     }

@@ -1,3 +1,4 @@
-include ':billy', ':tabstriplib', ':volley'
+include ':billy', ':tabstriplib', ':volley', ':mopub-sdk'
 project(':tabstriplib').projectDir = new File('billy/libs/PagerSlidingTabStrip/library')
 project(':volley').projectDir = new File('billy/libs/volley')
+project(':mopub-sdk').projectDir = new File('billy/libs/mopub-sdk')

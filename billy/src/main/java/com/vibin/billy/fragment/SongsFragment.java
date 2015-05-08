@@ -51,7 +51,6 @@ import com.vibin.billy.activity.MainActivity;
 import com.vibin.billy.adapter.BaseAdapter;
 import com.vibin.billy.adapter.DatabaseAdapter;
 import com.vibin.billy.http.JsonObjectRequest;
-import com.vibin.billy.http.PaletteImageView;
 import com.vibin.billy.http.StringRequest;
 import com.vibin.billy.util.ProcessingTask;
 import com.vibin.billy.util.SwingBottomInAnimationAdapter;
@@ -132,7 +131,7 @@ public class SongsFragment extends ListFragment implements AdapterView.OnItemCli
 
         if (tableName.equals("MostPopular")) {
             billySize = 100;
-        } else if (tableName.equals("RnB")) {
+        } else if (tableName.equals("RnB") || tableName.equals("Rap")) {
             billySize = 15;
         } else {
             billySize = 20;

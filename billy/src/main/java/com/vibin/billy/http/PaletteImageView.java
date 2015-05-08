@@ -16,7 +16,6 @@
 package com.vibin.billy.http;
 
 import android.content.Context;
-import android.os.Build;
 import android.support.v7.graphics.Palette;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -27,6 +26,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.ImageLoader.ImageContainer;
 import com.android.volley.toolbox.ImageLoader.ImageListener;
+import com.vibin.billy.BillyApplication;
 import com.vibin.billy.R;
 
 /**
@@ -162,7 +162,7 @@ public class PaletteImageView extends ImageView {
                         }
                         if (response.getBitmap() != null) {
                             setImageBitmap(response.getBitmap());
-                            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            if (BillyApplication.getInstance().isL) {
                                 //mPalette = Palette.generate(response.getBitmap());
                             }
                         } else if (mDefaultImageId != 0) {

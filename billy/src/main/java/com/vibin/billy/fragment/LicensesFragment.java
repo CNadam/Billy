@@ -24,12 +24,14 @@ import android.app.FragmentTransaction;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
 
+import com.vibin.billy.BillyApplication;
 import com.vibin.billy.R;
 
 import java.io.BufferedReader;
@@ -51,6 +53,7 @@ import java.io.InputStreamReader;
 
 public class LicensesFragment extends DialogFragment {
 
+    private static final String TAG = LicensesFragment.class.getSimpleName();
     private AsyncTask<Void, Void, String> mLicenseLoader;
 
     private static final String FRAGMENT_TAG = "nz.net.speakman.androidlicensespage.LicensesFragment";
@@ -93,13 +96,22 @@ public class LicensesFragment extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        return new AppCompatDialog(getActivity(), getTheme());
+        if(BillyApplication.getInstance().isL) return new AppCompatDialog(getActivity(), R.style.Dialog_Billy);
+        else return super.onCreateDialog(savedInstanceState);
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        getDialog().setTitle("Open Source Licenses");
+        try {
+            getDialog().setTitle("Open Source Licenses");
+            int divierId = getDialog().getContext().getResources()
+                    .getIdentifier("android:id/titleDivider", null, null);
+            View divider = getDialog().findViewById(divierId);
+            divider.setBackgroundColor(this.getResources().getColor(R.color.billy));
+        } catch (NullPointerException e) {
+            Log.d(TAG, e.toString());
+        }
         int width = getResources().getDimensionPixelSize(R.dimen.licensedialog_width);
         int height = getResources().getDimensionPixelSize(R.dimen.licensedialog_height);
         getDialog().getWindow().setLayout(width, height);

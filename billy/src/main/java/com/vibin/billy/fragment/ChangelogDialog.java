@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.vibin.billy.BillyApplication;
 import com.vibin.billy.R;
 
 public class ChangelogDialog extends DialogFragment {
@@ -26,7 +27,8 @@ public class ChangelogDialog extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        return new AppCompatDialog(getActivity(), getTheme());
+        if(BillyApplication.getInstance().isL) return new AppCompatDialog(getActivity(), R.style.Dialog_Billy);
+        else return super.onCreateDialog(savedInstanceState);
     }
 
     @Override

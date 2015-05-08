@@ -26,4 +26,6 @@
     <string name="loadmore">Load more songs</string>
 
     <string name="soundcloud_filter">\b(remix|live|cover|acapella|guitar|parody|acoustic|instrumental|drums|cloudseeder|bootleg|mashup|rendition|re-drum|android-record|iphone-record)\b</string>
+    <string name="example_banner_ad">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="banner_ad">ca-app-pub-3783897170887240/1804952619</string>
 </resources>

@@ -107,7 +107,6 @@ public class Settings extends SwipeableActivity {
             View rootView = getView();
             if (rootView != null) {
                 ListView list = (ListView) rootView.findViewById(android.R.id.list);
-                //list.setPadding(0, 0, 0, 0);
                 list.setDivider(null);
             }
         }
